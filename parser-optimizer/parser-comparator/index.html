@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur et Comparateur .nc2 vers .F4C</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
+    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><img src="assets/favicon.png" alt="Convertisseur" class="title-icon"> Convertisseur .nc1/2 vers .F4C</h1>
+        </header>
+        
+        <main>
+            <div class="upload-section">
+                <div class="upload-container">
+                    <div class="upload-side">
+                        <h2>Fichier .nc1/2 à convertir</h2>
+                        <div class="upload-box" id="nc2-upload">
+                            <input type="file" id="nc2-file" accept=".nc1,.nc2" hidden>
+                            <label for="nc2-file" class="upload-box-content">
+                                <i class="upload-icon">📁</i>
+                                <span>Déposer un fichier .nc1/.nc2</span>
+                                <small>ou cliquer pour sélectionner</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="upload-side">
+                        <h2>Fichier .F4C de référence</h2>
+                        <div class="upload-box" id="f4c-upload">
+                            <input type="file" id="f4c-file" accept=".f4c" hidden>
+                            <label for="f4c-file" class="upload-box-content">
+                                <i class="upload-icon">📁</i>
+                                <span>Déposer un fichier .F4C</span>
+                                <small>ou cliquer pour sélectionner</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section source-preview hidden">
+                <div class="preview-box">
+                    <div class="preview-header">
+                        <h3>Fichier source</h3>
+                        <div class="edit-controls">
+                            <button id="source-undo-button" class="icon-button" title="Annuler" disabled>
+                                <img src="assets/undo.svg" alt="Annuler" class="undo-icon" onerror="this.onerror=null; this.parentElement.innerHTML='↩️'">
+                            </button>
+                            <button id="source-redo-button" class="icon-button" title="Rétablir" disabled>
+                                <img src="assets/redo.svg" alt="Rétablir" class="redo-icon" onerror="this.onerror=null; this.parentElement.innerHTML='↪️'">
+                            </button>
+                            <button id="source-edit-button" class="icon-button" title="Éditer">
+                                <img src="assets/edit.svg" alt="Éditer" class="edit-icon" onerror="this.onerror=null; this.innerHTML='✏️'; this.parentElement.innerHTML='✏️'">
+                            </button>
+                        </div>
+                    </div>
+                    <pre class="preview-content" id="source-content" contenteditable="false"></pre>
+                    <div class="preview-footer">
+                        <button id="convert-button" class="primary-button" disabled>
+                            <img src="assets/convert.svg" alt="Convertir" class="convert-icon" onerror="this.onerror=null; this.innerHTML='🔄'; this.parentElement.innerHTML='🔄 Convertir'">
+                            Convertir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section hidden" id="comparison-section">
+                <h2>Comparateur</h2>
+                <div class="preview-controls">
+                    <div class="preview-controls-group hidden" id="opacity-control">
+                        <label for="opacity-slider">Opacité de la superposition:</label>
+                        <input type="range" id="opacity-slider" min="0" max="100" value="50">
+                    </div>
+                </div>
+                
+                <div class="preview-container">
+                    <div id="generated-preview" class="preview-box">
+                        <div class="preview-header">
+                            <h3>Fichier F4C généré</h3>
+                            <div class="preview-actions">
+                                <div class="edit-controls">
+                                    <button id="undo-button" class="icon-button" title="Annuler" disabled>
+                                        <img src="assets/undo.svg" alt="Annuler" class="undo-icon" onerror="this.onerror=null; this.parentElement.innerHTML='↩️'">
+                                    </button>
+                                    <button id="redo-button" class="icon-button" title="Rétablir" disabled>
+                                        <img src="assets/redo.svg" alt="Rétablir" class="redo-icon" onerror="this.onerror=null; this.parentElement.innerHTML='↪️'">
+                                    </button>
+                                    <button id="edit-button" class="icon-button" title="Éditer">
+                                        <img src="assets/edit.svg" alt="Éditer" class="edit-icon" onerror="this.onerror=null; this.innerHTML='✏️'; this.parentElement.innerHTML='✏️'">
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="word-wrap-control">
+                            <input type="checkbox" id="word-wrap-checkbox" class="toggle-checkbox">
+                            <label for="word-wrap-checkbox" class="toggle-label">Retour automatique à la ligne</label>
+                        </div>
+                        <pre class="preview-content" contenteditable="false"></pre>
+                    </div>
+                    <div id="reference-preview" class="preview-box hidden">
+                        <div class="preview-header">
+                            <h3>Fichier F4C de référence</h3>
+                            <div class="preview-actions">
+                                <div class="edit-controls invisible">
+                                    <button class="icon-button" disabled>
+                                        <img src="assets/undo.svg" alt="" class="undo-icon">
+                                    </button>
+                                    <button class="icon-button" disabled>
+                                        <img src="assets/redo.svg" alt="" class="redo-icon">
+                                    </button>
+                                    <button class="icon-button" disabled>
+                                        <img src="assets/edit.svg" alt="" class="edit-icon">
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="word-wrap-control invisible">
+                            <input type="checkbox" class="toggle-checkbox" disabled>
+                            <label class="toggle-label">Retour automatique à la ligne</label>
+                        </div>
+                        <pre class="preview-content"></pre>
+                    </div>
+                </div>
+                <div class="warning-box hidden" id="comparison-warning">
+                    <span class="warning-icon">⚠️</span>
+                    <p class="warning-message">La comparaison n'est pas disponible car il manque un fichier. Veuillez charger les deux fichiers pour activer la comparaison.</p>
+                </div>
+                <div class="preview-footer">
+                    <button id="download-button" class="primary-button" disabled>
+                        <img src="assets/download.svg" alt="Télécharger" class="download-icon" onerror="this.onerror=null; this.innerHTML='⬇️'; this.parentElement.innerHTML='⬇️ Télécharger le fichier F4C'">
+                        Télécharger le fichier F4C
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="parser.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

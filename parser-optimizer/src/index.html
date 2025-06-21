@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CutOptimizer - Optimisation de découpe</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo">
+                <h1>CutOptimizer</h1>
+            </div>
+            <nav class="main-nav">
+                <button class="nav-btn active" data-section="data-section">Données</button>
+                <button class="nav-btn" data-section="result-section">Résultats</button>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <section id="data-section" class="content-section active">
+                <div class="section-header">
+                    <h2>Données d'entrée</h2>
+                    <div class="section-actions">
+                        <button id="import-btn" class="btn btn-outline">Importer CSV</button>
+                        <input type="file" id="csv-upload" accept=".csv" class="hidden">
+                    </div>
+                </div>
+
+                <div class="panels-container">
+                    <!-- Stock Bars Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Barres mères</h3>
+                            <div class="panel-actions">
+                                <button id="add-stock-bar-btn" class="btn btn-sm">+ Ajouter</button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <table id="stock-bars-table" class="data-table editable-table">
+                                <thead>
+                                    <tr>
+                                        <th>Modèle</th>
+                                        <th>Longueur</th>
+                                        <th>Quantité</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Stock bars will be dynamically added here -->
+                                </tbody>
+                                <tfoot>
+                                    <tr id="add-stock-bar-row" class="add-row hidden">
+                                        <td><input type="text" id="new-stock-model" placeholder="Modèle"></td>
+                                        <td><input type="number" id="new-stock-length" placeholder="Longueur"></td>
+                                        <td><input type="number" id="new-stock-quantity" placeholder="Quantité" value="100000"></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button id="confirm-add-stock" class="btn btn-sm btn-success">✓</button>
+                                                <button id="cancel-add-stock" class="btn btn-sm btn-danger">✗</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pieces Panel -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Pièces à découper</h3>
+                            <div class="panel-actions">
+                                <button id="add-piece-btn" class="btn btn-sm">+ Ajouter</button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <table id="pieces-table" class="data-table editable-table">
+                                <thead>
+                                    <tr>
+                                        <th>Modèle</th>
+                                        <th>Longueur</th>
+                                        <th>Quantité</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Pieces will be dynamically added here -->
+                                </tbody>
+                                <tfoot>
+                                    <tr id="add-piece-row" class="add-row hidden">
+                                        <td><input type="text" id="new-piece-model" placeholder="Modèle"></td>
+                                        <td><input type="number" id="new-piece-length" placeholder="Longueur"></td>
+                                        <td><input type="number" id="new-piece-quantity" placeholder="Quantité" value="1"></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button id="confirm-add-piece" class="btn btn-sm btn-success">✓</button>
+                                                <button id="cancel-add-piece" class="btn btn-sm btn-danger">✗</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Optimization buttons -->
+                <div class="optimization-actions">
+                    <h3>Lancer l'optimisation</h3>
+                    <p>Choisissez un algorithme d'optimisation ou lancez les deux pour comparer les résultats.</p>
+                    <div class="algorithm-buttons">
+                        <button id="run-ffd-btn" class="btn btn-primary">
+                            <span class="algorithm-name">First-Fit Decreasing</span>
+                            <span class="algorithm-desc">Rapide et efficace pour des cas simples</span>
+                        </button>
+                        <button id="run-ilp-btn" class="btn btn-primary">
+                            <span class="algorithm-name">Programmation Linéaire (ILP)</span>
+                            <span class="algorithm-desc">Solution optimale mais plus lent</span>
+                        </button>
+                        <button id="run-compare-btn" class="btn btn-success">
+                            <span class="algorithm-name">Comparer les deux</span>
+                            <span class="algorithm-desc">Lancer les deux et garder le meilleur</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="result-section" class="content-section">
+                <div class="section-header">
+                    <h2>Résultats</h2>
+                    <div class="section-actions">
+                        <span id="result-algorithm" class="tag">Aucun calcul effectué</span>
+                    </div>
+                </div>
+
+                <div id="results-container">
+                    <div class="no-results-message">
+                        <p>Aucun résultat disponible. Veuillez exécuter un algorithme d'optimisation.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal for CSV import feedback -->
+        <div id="import-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Importer un fichier CSV</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez un fichier CSV contenant vos données de barres mères et pièces.</p>
+                    <div class="file-drop-zone">
+                        <input type="file" id="csv-file-input" accept=".csv" class="file-input">
+                        <label for="csv-file-input" class="file-label">
+                            <span class="file-icon">📄</span>
+                            <span class="file-prompt">Glisser un fichier ou cliquer pour sélectionner</span>
+                            <span class="file-name"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="csv-format-example">
+                        <h4>Format attendu:</h4>
+                        <pre><code>type,modele,longueur,quantite
+mere,ALU,6000,10
+mere,ALU,3000,15
+fille,ALU,2500,5
+fille,ALU,1800,3</code></pre>
+                        <p class="info-text">Les colonnes doivent être: type (mere/fille), modèle, longueur, quantité</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm-import" class="btn btn-primary">Importer</button>
+                    <button class="btn btn-outline close-modal">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p>Calcul en cours...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/algorithms/First-Fit-Decreasing.js"></script>
+    <script src="js/algorithms/Integer-Linear-Programming.js"></script>
+    <script src="js/data-manager.js"></script>
+    <script src="js/ui-components.js"></script>
+    <script src="js/algorithm-handler.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>

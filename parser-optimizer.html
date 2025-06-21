@@ -1,0 +1,1650 @@
+<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CutOptimizer - Optimisation de découpe</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"><link rel="stylesheet" href="css/style.css"><style type="text/css">/* Base styles */
+:root {
+    --primary: #2563eb;
+    --primary-light: #3b82f6;
+    --primary-dark: #1d4ed8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --border-radius: 0.375rem;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --transition: all 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--gray-800);
+    line-height: 1.5;
+    background-color: var(--gray-50);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+h2 {
+    margin-bottom: 15px;
+    color: #3498db;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+}
+
+/* Sections */
+section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.primary-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+}
+
+.primary-btn:hover {
+    background-color: #2980b9;
+}
+
+.secondary-btn {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.secondary-btn:hover {
+    background-color: #7f8c8d;
+}
+
+/* File Upload */
+.file-upload {
+    margin-bottom: 15px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.file-upload label {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.file-upload label:hover {
+    background-color: #2980b9;
+}
+
+.file-info {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #7f8c8d;
+}
+
+/* Forms */
+.mother-bar-form, .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+label {
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+input[type="number"], select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 80px;
+}
+
+.model-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.model-title {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+/* Data Display */
+.tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #7f8c8d;
+}
+
+.tab-btn.active {
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.data-table th, .data-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.data-table th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.data-table .delete-cell {
+    width: 40px;
+    text-align: center;
+}
+
+.model-section {
+    margin-bottom: 20px;
+}
+
+.model-header {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.delete-icon {
+    cursor: pointer;
+    color: #e74c3c;
+    font-size: 1.2rem;
+    display: inline-block;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.delete-icon:hover {
+    background-color: #ff7b7b;
+}
+
+/* Styles pour les résultats d'optimisation */
+.ffd-results {
+    margin-top: 20px;
+}
+
+.results-summary {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.model-result {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.warning {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.cutting-details {
+    margin-top: 15px;
+}
+
+.bar-detail {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.visual-bar {
+    display: flex;
+    height: 30px;
+    background-color: #ddd;
+    margin-top: 10px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.cut-piece {
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.waste-piece {
+    background-color: #e74c3c;
+    color: white;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+/* Styles pour les multiplicateurs de coupe */
+.cut-count {
+    color: #777;
+    font-size: 0.85em;
+    margin-right: 2px;
+}
+
+.cut-length {
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+/* Pour améliorer l'espacement entre les groupes */
+.cutting-details p {
+    line-height: 1.8;
+    margin: 5px 0;
+}
+
+/* S'assurer que les coupes s'affichent correctement sur mobile */
+@media (max-width: 480px) {
+    .cut-length {
+        font-size: 1em;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    input[type="number"], select {
+        width: 100%;
+    }
+}
+
+/* Ajouter à la fin du fichier */
+
+#action-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#calculate-btn {
+    background-color: #27ae60;
+}
+
+#calculate-btn:hover {
+    background-color: #219653;
+}
+
+#edit-btn:hover {
+    background-color: #7f8c8d;
+}
+
+/* Styles pour la sélection d'algorithmes */
+#algorithm-selection {
+    margin: 20px 0;
+}
+
+.instruction {
+    margin-bottom: 20px;
+    font-style: italic;
+    color: #555;
+}
+
+.algorithm-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.algorithm-card {
+    flex: 1;
+    min-width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.algorithm-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.algorithm-card h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.algo-description {
+    margin-bottom: 20px;
+}
+
+.algo-description p {
+    margin-bottom: 10px;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.algo-btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Loading indicator */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 40px 0;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: #3498db;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Ajouter à la fin du fichier */
+
+.error-message {
+    background-color: #fdecea;
+    border-left: 4px solid #e74c3c;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.error-message p {
+    margin: 5px 0;
+}
+
+.error-message strong {
+    color: #c0392b;
+}
+
+/* Ajout pour une meilleure séparation entre les sections */
+section#algorithm-selection {
+    margin-bottom: 20px;
+}
+
+section#results-section {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 30px;
+    margin-top: 30px;
+}
+
+/* Styles pour mettre en évidence les valeurs de coupe et de chute */
+.waste-value {
+    background-color: #ffebee;
+    color: #e53935;
+    border-radius: 30px;
+    padding: 1px 6px;
+    display: inline-block;
+    border: 1px solid #ffcdd2;
+    font-size: 1em;
+    display: inline;
+
+}
+
+.cut-value {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border-radius: 30px;
+    padding: 1px 6px;
+    display: inline-block;
+    border: 1px solid #bbdefb;
+}
+
+/* Pour les multiplicateurs dans les coupes */
+.cut-count {
+    color: #777;
+    font-size: 0.85em;
+    margin-right: 2px;
+}
+
+.cut-length {
+    font-size: 1em;
+    font-weight: 500;
+    background-color: #e3f2fd;
+    border-radius: 30px;
+    padding: 1px 6px;
+    border: 1px solid #bbdefb;
+    color: #1976d2;
+
+}
+
+.efficiency-value {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 30px;
+    padding: 1px 6px;
+    display: inline;
+    border: 1px solid #c8e6c9;
+}
+
+.cut-scheme {
+    font-size: 1.12em;
+}
+
+/* Styles pour les statistiques détaillées */
+.detailed-stats, .model-stats {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.detailed-stats h4, .model-stats h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.detailed-stats table, .model-stats table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.detailed-stats td, .model-stats td {
+    padding: 8px 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.detailed-stats tr:last-child td, .model-stats tr:last-child td {
+    border-bottom: none;
+    font-weight: bold;
+    color: #2980b9;
+}
+
+.detailed-stats td:first-child, .model-stats td:first-child {
+    width: 70%;
+}
+
+.detailed-stats td:last-child, .model-stats td:last-child {
+    text-align: right;
+    font-weight: bold;
+}
+
+.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border-left: 4px solid #ffeeba;
+    margin: 10px 0;
+    font-weight: 500;
+}
+
+.success {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border-left: 4px solid #c3e6cb;
+    margin: 10px 0;
+    font-weight: 500;
+}
+
+/* Ajout pour l'exemple CSV et les autres modifications */
+.upload-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.file-upload-area {
+    flex: 1;
+    min-width: 300px;
+}
+
+.csv-example {
+    flex: 1;
+    min-width: 300px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px dashed #ccc;
+}
+
+.csv-example pre {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    border: 1px solid #eee;
+    margin: 10px 0;
+}
+
+.csv-example code {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.example-note {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 10px;
+    font-style: italic;
+}
+
+/* Style pour les card footers */
+.card-footer {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+/* Faire en sorte que les cartes d'algorithmes aient une hauteur égale */
+.algorithm-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.algo-description {
+    flex-grow: 1;
+}
+
+/* Reste du CSS existant... */
+
+/* Layout */
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.logo h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin: 0;
+}
+
+.main-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.nav-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.main-content {
+    min-height: 600px;
+}
+
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Panels */
+.panels-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.panel {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.panel-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.panel-content {
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+/* Tables */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500);
+    background-color: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.data-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--gray-50);
+}
+
+.editable-table .editable-cell {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.editable-table .editable-cell:hover {
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.editable-table .editing {
+    padding: 0;
+}
+
+.editable-table .editing input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background-color: var(--primary-light);
+    color: white;
+    font-size: 0.875rem;
+    font-family: inherit;
+}
+
+.editable-table .editing input:focus {
+    outline: none;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-end;
+}
+
+.add-row.hidden {
+    display: none;
+}
+
+.add-row input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-family: inherit;
+}
+
+.add-row input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    background-color: white;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-outline {
+    border: 1px solid var(--gray-300);
+}
+
+.btn-outline:hover {
+    background-color: var(--gray-100);
+}
+
+.btn-success {
+    background-color: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #0ca678;
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    filter: brightness(90%);
+}
+
+/* CSV info box */
+.csv-info-box {
+    background-color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px dashed var(--gray-300);
+    margin-top: 2rem;
+}
+
+.csv-info-box h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.csv-info-box pre {
+    background-color: var(--gray-50);
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--gray-200);
+}
+
+.csv-info-box code {
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.info-text {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+/* Algorithm cards */
+.algorithm-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.algorithm-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: var(--transition);
+}
+
+.algorithm-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+.card-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--gray-800);
+}
+
+.algo-description {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.card-footer {
+    padding: 1rem 1.5rem;
+    background-color: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* Results styles */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: var(--gray-100);
+    color: var(--gray-600);
+    border-radius: 9999px;
+}
+
+.no-results-message {
+    background-color: white;
+    padding: 2rem;
+    text-align: center;
+    border-radius: var(--border-radius);
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+/* Results visualization */
+.results-summary {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.results-summary h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--gray-800);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background-color: var(--gray-50);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-200);
+}
+
+.stat-card .stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500);
+    background-color: var(--gray-100);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.stat-card .stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.model-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.model-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+    border: 1px solid var(--gray-300);
+    /* Ajout d'une bordure plus distincte */
+}
+
+.model-header {
+    background-color: var(--gray-100);
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--primary-light);
+}
+
+.model-content {
+    padding: 1.5rem;
+}
+
+.model-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.model-stat {
+    text-align: center;
+}
+
+.model-stat .stat-label {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.model-stat .stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.efficiency-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 9999px;
+}
+
+.cut-schemes {
+    margin-top: 1.5rem;
+}
+
+.cut-scheme {
+    background-color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.cut-scheme-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.cut-pieces {
+    margin: 0.5rem 0;
+}
+
+.cut-bar {
+    display: flex;
+    height: 30px;
+    background-color: var(--gray-200);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.cut-piece {
+    background-color: var(--primary-light);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-right: 2px solid white;
+}
+
+.cut-piece.last-piece {
+    border-right: none;
+}
+
+.waste-piece {
+    background-color: var(--danger);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-right: none; /* Le dernier morceau (chute) n'a pas de bordure */
+}
+
+/* Modal dialog */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray-500);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+/* File drop zone */
+.file-drop-zone {
+    position: relative;
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    transition: var(--transition);
+    margin: 1rem 0;
+}
+
+.file-drop-zone:hover {
+    border-color: var(--primary);
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--gray-500);
+}
+
+.file-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.file-prompt {
+    font-size: 0.875rem;
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--primary);
+    margin-top: 0.5rem;
+    display: none;
+}
+
+.file-name.active {
+    display: block;
+}
+
+/* Loading overlay */
+.hidden {
+    display: none !important;
+}
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Utils */
+.text-center {
+    text-align: center;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+    }
+    
+    .panels-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .algorithm-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .model-results {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Ajouter à la fin du fichier */
+.csv-format-example {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--gray-50);
+    border: 1px dashed var(--gray-300);
+    border-radius: var(--border-radius);
+}
+
+.csv-format-example pre {
+    margin: 10px 0;
+    padding: 8px;
+    background-color: white;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    font-size: 0.8rem;
+}
+
+.delete-icon {
+    cursor: pointer;
+    color: var(--gray-800);
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
+.delete-icon:hover {
+    background-color: var(--gray-200);
+}
+
+/* Styles pour le résumé des statistiques */
+.stats-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.efficiency-value {
+    color: #2980b9;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Styles pour les résultats de l'algorithme */
+.ffd-results {
+    margin-top: 20px;
+}
+
+.results-block h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.results-block h3 {
+    font-size: 1.4rem;
+    color: #2980b9;
+    margin-bottom: 15px;
+}
+
+.summary-section {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.summary-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-weight: 500;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.model-block {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.model-block h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.cutting-schemes h5 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.cutting-scheme {
+    background-color: white;
+    border: 1px solid #eaeaea;
+    border-radius: 3px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.scheme-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.scheme-detail {
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.visual-bar {
+    display: flex;
+    height: 30px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.cut-piece {
+    background-color: #3498db;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.waste-piece {
+    background-color: #e74c3c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+/* Ajouter ce style pour la carte d'efficacité */
+.stat-card.efficiency-card {
+    background-color: #e6f7e6; /* Fond vert pâle */
+}
+
+.stat-card.efficiency-card .stat-label,
+.stat-card.efficiency-card .stat-value {
+    color: #2e7d32; /* Texte vert foncé */
+    font-weight: bold;
+}
+
+/* Optimization actions */
+.optimization-actions {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.optimization-actions h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--gray-800);
+}
+
+.optimization-actions p {
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.algorithm-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.algorithm-buttons .btn {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    text-align: center;
+}
+
+.algorithm-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.algorithm-desc {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* Algorithm comparison styles */
+.algorithm-comparison {
+    background-color: var(--gray-50);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--gray-200);
+}
+
+.comparison-result {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.algorithm-efficiencies {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.efficiency-comparison {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    text-align: center;
+}
+
+.efficiency-comparison.best {
+    background-color: #e6f7e6;
+    border-color: var(--success);
+}
+
+.algorithm-name {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.efficiency-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.efficiency-comparison.best .efficiency-value {
+    color: var(--success);
+}
+
+.difference-info {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    text-align: center;
+}
+</style></head><body><div class="app-container"><header class="main-header"><div class="logo"><h1>CutOptimizer</h1></div><nav class="main-nav"><button class="nav-btn active" data-section="data-section">Données</button> <button class="nav-btn" data-section="result-section">Résultats</button></nav></header><main class="main-content"><section id="data-section" class="content-section active"><div class="section-header"><h2>Données d'entrée</h2><div class="section-actions"><button id="import-btn" class="btn btn-outline">Importer CSV</button> <input type="file" id="csv-upload" accept=".csv" class="hidden"></div></div><div class="panels-container"><div class="panel"><div class="panel-header"><h3>Barres mères</h3><div class="panel-actions"><button id="add-stock-bar-btn" class="btn btn-sm">+ Ajouter</button></div></div><div class="panel-content"><table id="stock-bars-table" class="data-table editable-table"><thead><tr><th>Modèle</th><th>Longueur</th><th>Quantité</th><th></th></tr></thead><tbody></tbody><tfoot><tr id="add-stock-bar-row" class="add-row hidden"><td><input id="new-stock-model" placeholder="Modèle"></td><td><input type="number" id="new-stock-length" placeholder="Longueur"></td><td><input type="number" id="new-stock-quantity" placeholder="Quantité" value="100000"></td><td><div class="action-buttons"><button id="confirm-add-stock" class="btn btn-sm btn-success">✓</button> <button id="cancel-add-stock" class="btn btn-sm btn-danger">✗</button></div></td></tr></tfoot></table></div></div><div class="panel"><div class="panel-header"><h3>Pièces à découper</h3><div class="panel-actions"><button id="add-piece-btn" class="btn btn-sm">+ Ajouter</button></div></div><div class="panel-content"><table id="pieces-table" class="data-table editable-table"><thead><tr><th>Modèle</th><th>Longueur</th><th>Quantité</th><th></th></tr></thead><tbody></tbody><tfoot><tr id="add-piece-row" class="add-row hidden"><td><input id="new-piece-model" placeholder="Modèle"></td><td><input type="number" id="new-piece-length" placeholder="Longueur"></td><td><input type="number" id="new-piece-quantity" placeholder="Quantité" value="1"></td><td><div class="action-buttons"><button id="confirm-add-piece" class="btn btn-sm btn-success">✓</button> <button id="cancel-add-piece" class="btn btn-sm btn-danger">✗</button></div></td></tr></tfoot></table></div></div></div><div class="optimization-actions"><h3>Lancer l'optimisation</h3><p>Choisissez un algorithme d'optimisation ou lancez les deux pour comparer les résultats.</p><div class="algorithm-buttons"><button id="run-ffd-btn" class="btn btn-primary"><span class="algorithm-name">First-Fit Decreasing</span> <span class="algorithm-desc">Rapide et efficace pour des cas simples</span></button> <button id="run-ilp-btn" class="btn btn-primary"><span class="algorithm-name">Programmation Linéaire (ILP)</span> <span class="algorithm-desc">Solution optimale mais plus lent</span></button> <button id="run-compare-btn" class="btn btn-success"><span class="algorithm-name">Comparer les deux</span> <span class="algorithm-desc">Lancer les deux et garder le meilleur</span></button></div></div></section><section id="result-section" class="content-section"><div class="section-header"><h2>Résultats</h2><div class="section-actions"><span id="result-algorithm" class="tag">Aucun calcul effectué</span></div></div><div id="results-container"><div class="no-results-message"><p>Aucun résultat disponible. Veuillez exécuter un algorithme d'optimisation.</p></div></div></section></main><div id="import-modal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h3>Importer un fichier CSV</h3><button class="close-modal">&times;</button></div><div class="modal-body"><p>Sélectionnez un fichier CSV contenant vos données de barres mères et pièces.</p><div class="file-drop-zone"><input type="file" id="csv-file-input" accept=".csv" class="file-input"> <label for="csv-file-input" class="file-label"><span class="file-icon">📄</span> <span class="file-prompt">Glisser un fichier ou cliquer pour sélectionner</span> <span class="file-name"></span></label></div><div class="csv-format-example"><h4>Format attendu:</h4><pre><code>type,modele,longueur,quantite
+mere,ALU,6000,10
+mere,ALU,3000,15
+fille,ALU,2500,5
+fille,ALU,1800,3</code></pre><p class="info-text">Les colonnes doivent être: type (mere/fille), modèle, longueur, quantité</p></div></div><div class="modal-footer"><button id="confirm-import" class="btn btn-primary">Importer</button> <button class="btn btn-outline close-modal">Annuler</button></div></div></div></div><div id="loading-overlay" class="hidden"><div class="spinner"></div><p>Calcul en cours...</p></div><script src="js/algorithms/First-Fit-Decreasing.js"></script><script src="js/algorithms/Integer-Linear-Programming.js"></script><script src="js/data-manager.js"></script><script src="js/ui-components.js"></script><script src="js/algorithm-handler.js"></script><script src="js/index.js"></script><script defer="defer">(()=>{var e={38:(e,t,n)=>{var i=n(442);function s(e,t){this.index=e,this.value=t}i.prototype.getMostFractionalVar=function(){for(var e=0,t=null,n=null,i=this.model.integerVariables,o=i.length,a=0;a<o;a++){var r=i[a].index,l=this.rowByVarIndex[r];if(-1!==l){var c=this.matrix[l][this.rhsColumn],d=Math.abs(c-Math.round(c));e<d&&(e=d,t=r,n=c)}}return new s(t,n)},i.prototype.getFractionalVarWithLowestCost=function(){for(var e=1/0,t=null,n=null,i=this.model.integerVariables,o=i.length,a=0;a<o;a++){var r=i[a],l=r.index,c=this.rowByVarIndex[l];if(-1!==c){var d=this.matrix[c][this.rhsColumn];if(Math.abs(d-Math.round(d))>this.precision){var h=r.cost;e>h&&(e=h,t=l,n=d)}}}return new s(t,n)}},61:(e,t,n)=>{var i,s=n(871),o=n(487),a=n(184),r=n(773),l=n(363),c=r.Constraint,d=r.Variable,h=r.Numeral,u=r.Term,p=n(791),m=function(){"use strict";this.Model=o,this.branchAndCut=a,this.Constraint=c,this.Variable=d,this.Numeral=h,this.Term=u,this.Tableau=s,this.lastSolvedModel=null,this.External=p,this.Solve=function(e,t,i,s){if(s)for(var a in l)e=l[a](e);if(!e)throw new Error("Solver requires a model to operate on");if("object"==typeof e.optimize&&Object.keys(e.optimize>1))return n(681)(this,e);if(e.external){var r=Object.keys(p);if(r=JSON.stringify(r),!e.external.solver)throw new Error("The model you provided has an 'external' object that doesn't have a solver attribute. Use one of the following:"+r);if(!p[e.external.solver])throw new Error("No support (yet) for "+e.external.solver+". Please use one of these instead:"+r);return p[e.external.solver].solve(e)}e instanceof o==0&&(e=new o(t).loadJson(e));var c=e.solve();if(this.lastSolvedModel=e,c.solutionSet=c.generateSolutionSet(),i)return c;var d={};return d.feasible=c.feasible,d.result=c.evaluation,d.bounded=c.bounded,c._tableau.__isIntegral&&(d.isIntegral=!0),Object.keys(c.solutionSet).forEach((function(e){0!==c.solutionSet[e]&&(d[e]=c.solutionSet[e])})),d},this.ReformatLP=n(788),this.MultiObjective=function(e){return n(681)(this,e)}};void 0===(i=function(){return new m}.apply(t,[]))||(e.exports=i),e.exports=new m},66:()=>{},110:(e,t,n)=>{var i=n(442);i.prototype._putInBase=function(e){var t=this.rowByVarIndex[e];if(-1===t){for(var n=this.colByVarIndex[e],i=1;i<this.height;i+=1){var s=this.matrix[i][n];if(s<-this.precision||this.precision<s){t=i;break}}this.pivot(t,n)}return t},i.prototype._takeOutOfBase=function(e){var t=this.colByVarIndex[e];if(-1===t){for(var n=this.rowByVarIndex[e],i=this.matrix[n],s=1;s<this.height;s+=1){var o=i[s];if(o<-this.precision||this.precision<o){t=s;break}}this.pivot(n,t)}return t},i.prototype.updateVariableValues=function(){for(var e=this.variables.length,t=Math.round(1/this.precision),n=0;n<e;n+=1){var i=this.variables[n],s=i.index,o=this.rowByVarIndex[s];if(-1===o)i.value=0;else{var a=this.matrix[o][this.rhsColumn];i.value=Math.round((a+Number.EPSILON)*t)/t}}},i.prototype.updateRightHandSide=function(e,t){var n=this.height-1,i=this.rowByVarIndex[e.index];if(-1===i){for(var s=this.colByVarIndex[e.index],o=0;o<=n;o+=1){var a=this.matrix[o];a[this.rhsColumn]-=t*a[s]}var r=this.optionalObjectives.length;if(r>0)for(var l=0;l<r;l+=1){var c=this.optionalObjectives[l].reducedCosts;c[this.rhsColumn]-=t*c[s]}}else this.matrix[i][this.rhsColumn]-=t},i.prototype.updateConstraintCoefficient=function(e,t,n){if(e.index===t.index)throw new Error("[Tableau.updateConstraintCoefficient] constraint index should not be equal to variable index !");var i=this._putInBase(e.index),s=this.colByVarIndex[t.index];if(-1===s)for(var o=this.rowByVarIndex[t.index],a=0;a<this.width;a+=1)this.matrix[i][a]+=n*this.matrix[o][a];else this.matrix[i][s]-=n},i.prototype.updateCost=function(e,t){var n=e.index,i=this.width-1,s=this.colByVarIndex[n];if(-1===s){var o,a=this.matrix[this.rowByVarIndex[n]];if(0===e.priority){var r=this.matrix[0];for(o=0;o<=i;o+=1)r[o]+=t*a[o]}else{var l=this.objectivesByPriority[e.priority].reducedCosts;for(o=0;o<=i;o+=1)l[o]+=t*a[o]}}else this.matrix[0][s]-=t},i.prototype.addConstraint=function(e){var t=e.isUpperBound?1:-1,n=this.height,i=this.matrix[n];void 0===i&&(i=this.matrix[0].slice(),this.matrix[n]=i);for(var s=this.width-1,o=0;o<=s;o+=1)i[o]=0;i[this.rhsColumn]=t*e.rhs;for(var a=e.terms,r=a.length,l=0;l<r;l+=1){var c=a[l],d=c.coefficient,h=c.variable.index,u=this.rowByVarIndex[h];if(-1===u)i[this.colByVarIndex[h]]+=t*d;else{var p=this.matrix[u];for(p[this.rhsColumn],o=0;o<=s;o+=1)i[o]-=t*d*p[o]}}var m=e.index;this.varIndexByRow[n]=m,this.rowByVarIndex[m]=n,this.colByVarIndex[m]=-1,this.height+=1},i.prototype.removeConstraint=function(e){var t=e.index,n=this.height-1,i=this._putInBase(t),s=this.matrix[n];this.matrix[n]=this.matrix[i],this.matrix[i]=s,this.varIndexByRow[i]=this.varIndexByRow[n],this.varIndexByRow[n]=-1,this.rowByVarIndex[t]=-1,this.availableIndexes[this.availableIndexes.length]=t,e.slack.index=-1,this.height-=1},i.prototype.addVariable=function(e){var t=this.height-1,n=this.width,i=!0===this.model.isMinimization?-e.cost:e.cost,s=e.priority,o=this.optionalObjectives.length;if(o>0)for(var a=0;a<o;a+=1)this.optionalObjectives[a].reducedCosts[n]=0;0===s?this.matrix[0][n]=i:(this.setOptionalObjective(s,n,i),this.matrix[0][n]=0);for(var r=1;r<=t;r+=1)this.matrix[r][n]=0;var l=e.index;this.varIndexByCol[n]=l,this.rowByVarIndex[l]=-1,this.colByVarIndex[l]=n,this.width+=1},i.prototype.removeVariable=function(e){var t=e.index,n=this._takeOutOfBase(t),i=this.width-1;if(n!==i){for(var s=this.height-1,o=0;o<=s;o+=1){var a=this.matrix[o];a[n]=a[i]}var r=this.optionalObjectives.length;if(r>0)for(var l=0;l<r;l+=1){var c=this.optionalObjectives[l].reducedCosts;c[n]=c[i]}var d=this.varIndexByCol[i];this.varIndexByCol[n]=d,this.colByVarIndex[d]=n}this.varIndexByCol[i]=-1,this.colByVarIndex[t]=-1,this.availableIndexes[this.availableIndexes.length]=t,e.index=-1,this.width-=1}},184:(e,t,n)=>{var i=n(442);function s(e,t,n){this.type=e,this.varIndex=t,this.value=n}function o(e,t){this.relaxedEvaluation=e,this.cuts=t}function a(e,t){return t.relaxedEvaluation-e.relaxedEvaluation}i.prototype.applyCuts=function(e){if(this.restore(),this.addCutConstraints(e),this.simplex(),this.model.useMIRCuts)for(var t=!0;t;){var n=this.computeFractionalVolume(!0);this.applyMIRCuts(),this.simplex(),this.computeFractionalVolume(!0)>=.9*n&&(t=!1)}},i.prototype.branchAndCut=function(){var e=[],t=0,n=this.model.tolerance,i=!0,r=1e99;this.model.timeout&&(r=Date.now()+this.model.timeout);for(var l=1/0,c=null,d=[],h=0;h<this.optionalObjectives.length;h+=1)d.push(1/0);var u,p=new o(-1/0,[]);for(e.push(p);e.length>0&&!0===i&&Date.now()<r;)if(u=this.model.isMinimization?this.bestPossibleEval*(1+n):this.bestPossibleEval*(1-n),n>0&&l<u&&(i=!1),!((p=e.pop()).relaxedEvaluation>l)){var m=p.cuts;if(this.applyCuts(m),t++,!1!==this.feasible){var f=this.evaluation;if(!(f>l)){if(f===l){for(var g=!0,v=0;v<this.optionalObjectives.length&&!(this.optionalObjectives[v].reducedCosts[0]>d[v]);v+=1)if(this.optionalObjectives[v].reducedCosts[0]<d[v]){g=!1;break}if(g)continue}if(!0===this.isIntegral()){if(this.__isIntegral=!0,1===t)return void(this.branchAndCutIterations=t);c=p,l=f;for(var b=0;b<this.optionalObjectives.length;b+=1)d[b]=this.optionalObjectives[b].reducedCosts[0]}else{1===t&&this.save();for(var y=this.getMostFractionalVar(),x=y.index,I=[],B=[],w=m.length,E=0;E<w;E+=1){var L=m[E];L.varIndex===x?"min"===L.type?B.push(L):I.push(L):(I.push(L),B.push(L))}var C=Math.ceil(y.value),M=Math.floor(y.value),k=new s("min",x,C);I.push(k);var P=new s("max",x,M);B.push(P),e.push(new o(f,I)),e.push(new o(f,B)),e.sort(a)}}}}null!==c&&this.applyCuts(c.cuts),this.branchAndCutIterations=t}},217:(e,t,n)=>{n(442).prototype.log=function(e,t){console.log("****",e,"****"),console.log("Nb Variables",this.width-1),console.log("Nb Constraints",this.height-1),console.log("Basic Indexes",this.varIndexByRow),console.log("Non Basic Indexes",this.varIndexByCol),console.log("Rows",this.rowByVarIndex),console.log("Cols",this.colByVarIndex);var n,i,s,o,a,r,l,c,d,h,u,p="",m=[" "];for(i=1;i<this.width;i+=1)a=this.varIndexByCol[i],l=(r=void 0===(o=this.variablesPerIndex[a])?"c"+a:o.id).length,Math.abs(l-5),c=" ",d="\t",l>5?c+=" ":d+="\t",m[i]=c,p+=d+r;console.log(p);var f=this.matrix[this.costRowIndex],g="\t";for(n=1;n<this.width;n+=1)g+="\t",g+=m[n],g+=f[n].toFixed(5);for(g+="\t"+m[0]+f[0].toFixed(5),console.log(g+"\tZ"),s=1;s<this.height;s+=1){for(h=this.matrix[s],u="\t",i=1;i<this.width;i+=1)u+="\t"+m[i]+h[i].toFixed(5);u+="\t"+m[0]+h[0].toFixed(5),a=this.varIndexByRow[s],r=void 0===(o=this.variablesPerIndex[a])?"c"+a:o.id,console.log(u+"\t"+r)}console.log("");var v=this.optionalObjectives.length;if(v>0){console.log("    Optional objectives:");for(var b=0;b<v;b+=1){var y=this.optionalObjectives[b].reducedCosts,x="";for(n=1;n<this.width;n+=1)x+=y[n]<0?"":" ",x+=m[n],x+=y[n].toFixed(5);x+=(y[0]<0?"":" ")+m[0]+y[0].toFixed(5),console.log(x+" z"+b)}}return console.log("Feasible?",this.feasible),console.log("evaluation",this.evaluation),this}},227:(e,t,n)=>{function i(e){return(e=(e=e.replace("\\r\\n","\r\n")).split("\r\n")).filter((function(e){return!0!==new RegExp(" 0$","gi").test(e)&&!1!==new RegExp("\\d$","gi").test(e)})).map((function(e){return e.split(/\:{0,1} +(?=\d)/)})).reduce((function(e,t,n){return e[t[0]]=t[1],e}),{})}t.reformat=n(788),t.solve=function(e){return new Promise((function(t,s){"undefined"!=typeof window&&s("Function Not Available in Browser");var o=n(788)(e);e.external||s("Data for this function must be contained in the 'external' attribute. Not seeing anything there."),e.external.binPath||s("No Executable | Binary path provided in arguments as 'binPath'"),e.external.args||s("No arguments array for cli | bash provided on 'args' attribute"),e.external.tempName||s("No 'tempName' given. This is necessary to produce a staging file for the solver to operate on"),n(675).writeFile(e.external.tempName,o,(function(o,a){if(o)s(o);else{var r=n(66).execFile;e.external.args.push(e.external.tempName),r(e.external.binPath,e.external.args,(function(e,n){if(e)if(1===e.code)t(i(n));else{var o={code:e.code,meaning:{"-2":"Out of Memory",1:"SUBOPTIMAL",2:"INFEASIBLE",3:"UNBOUNDED",4:"DEGENERATE",5:"NUMFAILURE",6:"USER-ABORT",7:"TIMEOUT",9:"PRESOLVED",25:"ACCURACY ERROR",255:"FILE-ERROR"}[e.code],data:n};s(o)}else t(i(n))}))}}))}))}},269:(e,t,n)=>{var i=n(442);i.prototype.copy=function(){var e=new i(this.precision);e.width=this.width,e.height=this.height,e.nVars=this.nVars,e.model=this.model,e.variables=this.variables,e.variablesPerIndex=this.variablesPerIndex,e.unrestrictedVars=this.unrestrictedVars,e.lastElementIndex=this.lastElementIndex,e.varIndexByRow=this.varIndexByRow.slice(),e.varIndexByCol=this.varIndexByCol.slice(),e.rowByVarIndex=this.rowByVarIndex.slice(),e.colByVarIndex=this.colByVarIndex.slice(),e.availableIndexes=this.availableIndexes.slice();for(var t=[],n=0;n<this.optionalObjectives.length;n++)t[n]=this.optionalObjectives[n].copy();e.optionalObjectives=t;for(var s=this.matrix,o=new Array(this.height),a=0;a<this.height;a++)o[a]=s[a].slice();return e.matrix=o,e},i.prototype.save=function(){this.savedState=this.copy()},i.prototype.restore=function(){if(null!==this.savedState){var e,t,n=this.savedState,i=n.matrix;for(this.nVars=n.nVars,this.model=n.model,this.variables=n.variables,this.variablesPerIndex=n.variablesPerIndex,this.unrestrictedVars=n.unrestrictedVars,this.lastElementIndex=n.lastElementIndex,this.width=n.width,this.height=n.height,e=0;e<this.height;e+=1){var s=i[e],o=this.matrix[e];for(t=0;t<this.width;t+=1)o[t]=s[t]}var a=n.varIndexByRow;for(t=0;t<this.height;t+=1)this.varIndexByRow[t]=a[t];for(;this.varIndexByRow.length>this.height;)this.varIndexByRow.pop();var r=n.varIndexByCol;for(e=0;e<this.width;e+=1)this.varIndexByCol[e]=r[e];for(;this.varIndexByCol.length>this.width;)this.varIndexByCol.pop();for(var l=n.rowByVarIndex,c=n.colByVarIndex,d=0;d<this.nVars;d+=1)this.rowByVarIndex[d]=l[d],this.colByVarIndex[d]=c[d];if(n.optionalObjectives.length>0&&this.optionalObjectives.length>0){this.optionalObjectives=[],this.optionalObjectivePerPriority={};for(var h=0;h<n.optionalObjectives.length;h++){var u=n.optionalObjectives[h].copy();this.optionalObjectives[h]=u,this.optionalObjectivePerPriority[u.priority]=u}}}}},304:(e,t,n)=>{var i=n(442);i.prototype.countIntegerValues=function(){for(var e=0,t=1;t<this.height;t+=1)if(this.variablesPerIndex[this.varIndexByRow[t]].isInteger){var n=this.matrix[t][this.rhsColumn];(n-=Math.floor(n))<this.precision&&-n<this.precision&&(e+=1)}return e},i.prototype.isIntegral=function(){for(var e=this.model.integerVariables,t=e.length,n=0;n<t;n++){var i=this.rowByVarIndex[e[n].index];if(-1!==i){var s=this.matrix[i][this.rhsColumn];if(Math.abs(s-Math.round(s))>this.precision)return!1}}return!0},i.prototype.computeFractionalVolume=function(e){for(var t=-1,n=1;n<this.height;n+=1)if(this.variablesPerIndex[this.varIndexByRow[n]].isInteger){var i=this.matrix[n][this.rhsColumn];if(i=Math.abs(i),Math.min(i-Math.floor(i),Math.floor(i+1))<this.precision){if(!e)return 0}else-1===t?t=i:t*=i}return-1===t?0:t}},314:(e,t,n)=>{var i=n(442),s=n(773).SlackVariable;i.prototype.addCutConstraints=function(e){for(var t,n=e.length,i=this.height,o=i+n,a=i;a<o;a+=1)void 0===this.matrix[a]&&(this.matrix[a]=this.matrix[a-1].slice());this.height=o,this.nVars=this.width+this.height-2;for(var r=this.width-1,l=0;l<n;l+=1){var c=e[l],d=i+l,h="min"===c.type?-1:1,u=c.varIndex,p=this.rowByVarIndex[u],m=this.matrix[d];if(-1===p){for(m[this.rhsColumn]=h*c.value,t=1;t<=r;t+=1)m[t]=0;m[this.colByVarIndex[u]]=h}else{var f=this.matrix[p],g=f[this.rhsColumn];for(m[this.rhsColumn]=h*(c.value-g),t=1;t<=r;t+=1)m[t]=-h*f[t]}var v=this.getNewElementIndex();this.varIndexByRow[d]=v,this.rowByVarIndex[v]=d,this.colByVarIndex[v]=-1,this.variablesPerIndex[v]=new s("s"+v,v),this.nVars+=1}},i.prototype._addLowerBoundMIRCut=function(e){if(e===this.costRowIndex)return!1;this.model;var t=this.matrix;if(!this.variablesPerIndex[this.varIndexByRow[e]].isInteger)return!1;var n=t[e][this.rhsColumn],i=n-Math.floor(n);if(i<this.precision||1-this.precision<i)return!1;var o=this.height;t[o]=t[o-1].slice(),this.height+=1,this.nVars+=1;var a=this.getNewElementIndex();this.varIndexByRow[o]=a,this.rowByVarIndex[a]=o,this.colByVarIndex[a]=-1,this.variablesPerIndex[a]=new s("s"+a,a),t[o][this.rhsColumn]=Math.floor(n);for(var r=1;r<this.varIndexByCol.length;r+=1)if(this.variablesPerIndex[this.varIndexByCol[r]].isInteger){var l=t[e][r],c=Math.floor(l)+Math.max(0,l-Math.floor(l)-i)/(1-i);t[o][r]=c}else t[o][r]=Math.min(0,t[e][r]/(1-i));for(var d=0;d<this.width;d+=1)t[o][d]-=t[e][d];return!0},i.prototype._addUpperBoundMIRCut=function(e){if(e===this.costRowIndex)return!1;this.model;var t=this.matrix;if(!this.variablesPerIndex[this.varIndexByRow[e]].isInteger)return!1;var n=t[e][this.rhsColumn],i=n-Math.floor(n);if(i<this.precision||1-this.precision<i)return!1;var o=this.height;t[o]=t[o-1].slice(),this.height+=1,this.nVars+=1;var a=this.getNewElementIndex();this.varIndexByRow[o]=a,this.rowByVarIndex[a]=o,this.colByVarIndex[a]=-1,this.variablesPerIndex[a]=new s("s"+a,a),t[o][this.rhsColumn]=-i;for(var r=1;r<this.varIndexByCol.length;r+=1){var l=this.variablesPerIndex[this.varIndexByCol[r]],c=t[e][r],d=c-Math.floor(c);l.isInteger?t[o][r]=d<=i?-d:-(1-d)*i/d:t[o][r]=c>=0?-c:c*i/(1-i)}return!0},i.prototype.applyMIRCuts=function(){}},363:(e,t)=>{t.CleanObjectiveAttributes=function(e){var t,n,i;if("string"==typeof e.optimize){if(e.constraints[e.optimize]){for(n in t=Math.random(),e.variables)e.variables[n][e.optimize]&&(e.variables[n][t]=e.variables[n][e.optimize]);return e.constraints[t]=e.constraints[e.optimize],delete e.constraints[e.optimize],e}return e}for(i in e.optimize)if(e.constraints[i])if("equal"===e.constraints[i])delete e.optimize[i];else{for(n in t=Math.random(),e.variables)e.variables[n][i]&&(e.variables[n][t]=e.variables[n][i]);e.constraints[t]=e.constraints[i],delete e.constraints[i]}return e}},442:(e,t,n)=>{var i=n(824),s=n(746);function o(e){this.model=null,this.matrix=null,this.width=0,this.height=0,this.costRowIndex=0,this.rhsColumn=0,this.variablesPerIndex=[],this.unrestrictedVars=null,this.feasible=!0,this.evaluation=0,this.simplexIters=0,this.varIndexByRow=null,this.varIndexByCol=null,this.rowByVarIndex=null,this.colByVarIndex=null,this.precision=e||1e-8,this.optionalObjectives=[],this.objectivesByPriority={},this.savedState=null,this.availableIndexes=[],this.lastElementIndex=0,this.variables=null,this.nVars=0,this.bounded=!0,this.unboundedVarIndex=null,this.branchAndCutIterations=0}function a(e,t){this.priority=e,this.reducedCosts=new Array(t);for(var n=0;n<t;n+=1)this.reducedCosts[n]=0}e.exports=o,o.prototype.solve=function(){return this.model.getNumberOfIntegerVariables()>0?this.branchAndCut():this.simplex(),this.updateVariableValues(),this.getSolution()},a.prototype.copy=function(){var e=new a(this.priority,this.reducedCosts.length);return e.reducedCosts=this.reducedCosts.slice(),e},o.prototype.setOptionalObjective=function(e,t,n){var i=this.objectivesByPriority[e];void 0===i&&(i=new a(e,Math.max(this.width,t+1)),this.objectivesByPriority[e]=i,this.optionalObjectives.push(i),this.optionalObjectives.sort((function(e,t){return e.priority-t.priority}))),i.reducedCosts[t]=n},o.prototype.initialize=function(e,t,n,i){this.variables=n,this.unrestrictedVars=i,this.width=e,this.height=t;for(var s=new Array(e),o=0;o<e;o++)s[o]=0;this.matrix=new Array(t);for(var a=0;a<t;a++)this.matrix[a]=s.slice();this.varIndexByRow=new Array(this.height),this.varIndexByCol=new Array(this.width),this.varIndexByRow[0]=-1,this.varIndexByCol[0]=-1,this.nVars=e+t-2,this.rowByVarIndex=new Array(this.nVars),this.colByVarIndex=new Array(this.nVars),this.lastElementIndex=this.nVars},o.prototype._resetMatrix=function(){var e,t,n=this.model.variables,i=this.model.constraints,s=n.length,o=i.length,a=this.matrix[0],r=!0===this.model.isMinimization?-1:1;for(e=0;e<s;e+=1){var l=n[e],c=l.priority,d=r*l.cost;0===c?a[e+1]=d:this.setOptionalObjective(c,e+1,d),t=n[e].index,this.rowByVarIndex[t]=-1,this.colByVarIndex[t]=e+1,this.varIndexByCol[e+1]=t}for(var h=1,u=0;u<o;u+=1){var p,m,f=i[u],g=f.index;this.rowByVarIndex[g]=h,this.colByVarIndex[g]=-1,this.varIndexByRow[h]=g;var v=f.terms,b=v.length,y=this.matrix[h++];if(f.isUpperBound){for(p=0;p<b;p+=1)m=v[p],y[this.colByVarIndex[m.variable.index]]=m.coefficient;y[0]=f.rhs}else{for(p=0;p<b;p+=1)m=v[p],y[this.colByVarIndex[m.variable.index]]=-m.coefficient;y[0]=-f.rhs}}},o.prototype.setModel=function(e){this.model=e;var t=e.nVariables+1,n=e.nConstraints+1;return this.initialize(t,n,e.variables,e.unrestrictedVariables),this._resetMatrix(),this},o.prototype.getNewElementIndex=function(){if(this.availableIndexes.length>0)return this.availableIndexes.pop();var e=this.lastElementIndex;return this.lastElementIndex+=1,e},o.prototype.density=function(){for(var e=0,t=this.matrix,n=0;n<this.height;n++)for(var i=t[n],s=0;s<this.width;s++)0!==i[s]&&(e+=1);return e/(this.height*this.width)},o.prototype.setEvaluation=function(){var e=Math.round(1/this.precision),t=this.matrix[this.costRowIndex][this.rhsColumn],n=Math.round((Number.EPSILON+t)*e)/e;this.evaluation=n,0===this.simplexIters&&(this.bestPossibleEval=n)},o.prototype.getSolution=function(){var e=!0===this.model.isMinimization?this.evaluation:-this.evaluation;return this.model.getNumberOfIntegerVariables()>0?new s(this,e,this.feasible,this.bounded,this.branchAndCutIterations):new i(this,e,this.feasible,this.bounded)}},487:(e,t,n)=>{var i=n(442),s=(n(184),n(773)),o=s.Constraint,a=s.Equality,r=s.Variable,l=s.IntegerVariable;function c(e,t){this.tableau=new i(e),this.name=t,this.variables=[],this.integerVariables=[],this.unrestrictedVariables={},this.constraints=[],this.nConstraints=0,this.nVariables=0,this.isMinimization=!0,this.tableauInitialized=!1,this.relaxationIndex=1,this.useMIRCuts=!1,this.checkForCycles=!0,this.messages=[]}s.Term,e.exports=c,c.prototype.minimize=function(){return this.isMinimization=!0,this},c.prototype.maximize=function(){return this.isMinimization=!1,this},c.prototype._getNewElementIndex=function(){if(this.availableIndexes.length>0)return this.availableIndexes.pop();var e=this.lastElementIndex;return this.lastElementIndex+=1,e},c.prototype._addConstraint=function(e){var t=e.slack;this.tableau.variablesPerIndex[t.index]=t,this.constraints.push(e),this.nConstraints+=1,!0===this.tableauInitialized&&this.tableau.addConstraint(e)},c.prototype.smallerThan=function(e){var t=new o(e,!0,this.tableau.getNewElementIndex(),this);return this._addConstraint(t),t},c.prototype.greaterThan=function(e){var t=new o(e,!1,this.tableau.getNewElementIndex(),this);return this._addConstraint(t),t},c.prototype.equal=function(e){var t=new o(e,!0,this.tableau.getNewElementIndex(),this);this._addConstraint(t);var n=new o(e,!1,this.tableau.getNewElementIndex(),this);return this._addConstraint(n),new a(t,n)},c.prototype.addVariable=function(e,t,n,i,s){if("string"==typeof s)switch(s){case"required":default:s=0;break;case"strong":s=1;break;case"medium":s=2;break;case"weak":s=3}var o,a=this.tableau.getNewElementIndex();return null==t&&(t="v"+a),null==e&&(e=0),null==s&&(s=0),n?(o=new l(t,e,a,s),this.integerVariables.push(o)):o=new r(t,e,a,s),this.variables.push(o),this.tableau.variablesPerIndex[a]=o,i&&(this.unrestrictedVariables[a]=!0),this.nVariables+=1,!0===this.tableauInitialized&&this.tableau.addVariable(o),o},c.prototype._removeConstraint=function(e){var t=this.constraints.indexOf(e);-1!==t?(this.constraints.splice(t,1),this.nConstraints-=1,!0===this.tableauInitialized&&this.tableau.removeConstraint(e),e.relaxation&&this.removeVariable(e.relaxation)):console.warn("[Model.removeConstraint] Constraint not present in model")},c.prototype.removeConstraint=function(e){return e.isEquality?(this._removeConstraint(e.upperBound),this._removeConstraint(e.lowerBound)):this._removeConstraint(e),this},c.prototype.removeVariable=function(e){var t=this.variables.indexOf(e);if(-1!==t)return this.variables.splice(t,1),!0===this.tableauInitialized&&this.tableau.removeVariable(e),this;console.warn("[Model.removeVariable] Variable not present in model")},c.prototype.updateRightHandSide=function(e,t){return!0===this.tableauInitialized&&this.tableau.updateRightHandSide(e,t),this},c.prototype.updateConstraintCoefficient=function(e,t,n){return!0===this.tableauInitialized&&this.tableau.updateConstraintCoefficient(e,t,n),this},c.prototype.setCost=function(e,t){var n=e-t.cost;return!1===this.isMinimization&&(n=-n),t.cost=e,this.tableau.updateCost(t,n),this},c.prototype.loadJson=function(e){this.isMinimization="max"!==e.opType;for(var t=e.variables,n=e.constraints,i={},s={},o=Object.keys(n),r=o.length,l=0;l<r;l+=1){var c,d,h=o[l],u=n[h],p=u.equal,m=u.weight,f=u.priority,g=void 0!==m||void 0!==f;if(void 0===p){var v=u.min;void 0!==v&&(c=this.greaterThan(v),i[h]=c,g&&c.relax(m,f));var b=u.max;void 0!==b&&(d=this.smallerThan(b),s[h]=d,g&&d.relax(m,f))}else{c=this.greaterThan(p),i[h]=c,d=this.smallerThan(p),s[h]=d;var y=new a(c,d);g&&y.relax(m,f)}}var x=Object.keys(t),I=x.length;this.tolerance=e.tolerance||0,e.timeout&&(this.timeout=e.timeout),e.options&&(e.options.timeout&&(this.timeout=e.options.timeout),0===this.tolerance&&(this.tolerance=e.options.tolerance||0),e.options.useMIRCuts&&(this.useMIRCuts=e.options.useMIRCuts),void 0===e.options.exitOnCycles?this.checkForCycles=!0:this.checkForCycles=e.options.exitOnCycles);for(var B=e.ints||{},w=e.binaries||{},E=e.unrestricted||{},L=e.optimize,C=0;C<I;C+=1){var M=x[C],k=t[M],P=k[L]||0,V=!!w[M],S=!!B[M]||V,O=!!E[M],$=this.addVariable(P,M,S,O);V&&this.smallerThan(1).addTerm(1,$);var q=Object.keys(k);for(l=0;l<q.length;l+=1){var j=q[l];if(j!==L){var R=k[j],T=i[j];void 0!==T&&T.addTerm(R,$);var D=s[j];void 0!==D&&D.addTerm(R,$)}}}return this},c.prototype.getNumberOfIntegerVariables=function(){return this.integerVariables.length},c.prototype.solve=function(){return!1===this.tableauInitialized&&(this.tableau.setModel(this),this.tableauInitialized=!0),this.tableau.solve()},c.prototype.isFeasible=function(){return this.tableau.feasible},c.prototype.save=function(){return this.tableau.save()},c.prototype.restore=function(){return this.tableau.restore()},c.prototype.activateMIRCuts=function(e){this.useMIRCuts=e},c.prototype.debug=function(e){this.checkForCycles=e},c.prototype.log=function(e){return this.tableau.log(e)}},675:()=>{},681:e=>{e.exports=function(e,t){var n,i,s,o,a,r=t.optimize,l=JSON.parse(JSON.stringify(t.optimize)),c=Object.keys(t.optimize),d=0,h={},u="",p={},m=[];for(delete t.optimize,i=0;i<c.length;i++)l[c[i]]=0;for(i=0;i<c.length;i++){for(a in t.optimize=c[i],t.opType=r[c[i]],n=e.Solve(t,void 0,void 0,!0),c)if(!t.variables[c[a]])for(o in n[c[a]]=n[c[a]]?n[c[a]]:0,t.variables)t.variables[o][c[a]]&&n[o]&&(n[c[a]]+=n[o]*t.variables[o][c[a]]);for(u="base",s=0;s<c.length;s++)n[c[s]]?u+="-"+(1e3*n[c[s]]|0)/1e3:u+="-0";if(!h[u]){for(h[u]=1,d++,s=0;s<c.length;s++)n[c[s]]&&(l[c[s]]+=n[c[s]]);delete n.feasible,delete n.result,m.push(n)}}for(i=0;i<c.length;i++)t.constraints[c[i]]={equal:l[c[i]]/d};for(i in t.optimize="cheater-"+Math.random(),t.opType="max",t.variables)t.variables[i].cheater=1;for(i in m)for(o in m[i])p[o]=p[o]||{min:1e99,max:-1e99};for(i in p)for(o in m)m[o][i]?(m[o][i]>p[i].max&&(p[i].max=m[o][i]),m[o][i]<p[i].min&&(p[i].min=m[o][i])):(m[o][i]=0,p[i].min=0);return{midpoint:n=e.Solve(t,void 0,void 0,!0),vertices:m,ranges:p}}},746:(e,t,n)=>{var i=n(824);function s(e,t,n,s,o){i.call(this,e,t,n,s),this.iter=o}e.exports=s,s.prototype=Object.create(i.prototype),s.constructor=s},773:e=>{function t(e,t,n,i){this.id=e,this.cost=t,this.index=n,this.value=0,this.priority=i}function n(e,n,i,s){t.call(this,e,n,i,s)}function i(e,n){t.call(this,e,0,n,0)}function s(e,t){this.variable=e,this.coefficient=t}function o(e,t,n){return 0===n||"required"===n?null:(t=t||1,n=n||1,!1===e.isMinimization&&(t=-t),e.addVariable(t,"r"+e.relaxationIndex++,!1,!1,n))}function a(e,t,n,s){this.slack=new i("s"+n,n),this.index=n,this.model=s,this.rhs=e,this.isUpperBound=t,this.terms=[],this.termsByVarIndex={},this.relaxation=null}function r(e,t){this.upperBound=e,this.lowerBound=t,this.model=e.model,this.rhs=e.rhs,this.relaxation=null}n.prototype.isInteger=!0,i.prototype.isSlack=!0,a.prototype.addTerm=function(e,t){var n=t.index,i=this.termsByVarIndex[n];if(void 0===i)i=new s(t,e),this.termsByVarIndex[n]=i,this.terms.push(i),!0===this.isUpperBound&&(e=-e),this.model.updateConstraintCoefficient(this,t,e);else{var o=i.coefficient+e;this.setVariableCoefficient(o,t)}return this},a.prototype.removeTerm=function(e){return this},a.prototype.setRightHandSide=function(e){if(e!==this.rhs){var t=e-this.rhs;!0===this.isUpperBound&&(t=-t),this.rhs=e,this.model.updateRightHandSide(this,t)}return this},a.prototype.setVariableCoefficient=function(e,t){var n=t.index;if(-1!==n){var i=this.termsByVarIndex[n];if(void 0===i)this.addTerm(e,t);else if(e!==i.coefficient){var s=e-i.coefficient;!0===this.isUpperBound&&(s=-s),i.coefficient=e,this.model.updateConstraintCoefficient(this,t,s)}return this}console.warn("[Constraint.setVariableCoefficient] Trying to change coefficient of inexistant variable.")},a.prototype.relax=function(e,t){this.relaxation=o(this.model,e,t),this._relax(this.relaxation)},a.prototype._relax=function(e){null!==e&&(this.isUpperBound?this.setVariableCoefficient(-1,e):this.setVariableCoefficient(1,e))},r.prototype.isEquality=!0,r.prototype.addTerm=function(e,t){return this.upperBound.addTerm(e,t),this.lowerBound.addTerm(e,t),this},r.prototype.removeTerm=function(e){return this.upperBound.removeTerm(e),this.lowerBound.removeTerm(e),this},r.prototype.setRightHandSide=function(e){this.upperBound.setRightHandSide(e),this.lowerBound.setRightHandSide(e),this.rhs=e},r.prototype.relax=function(e,t){this.relaxation=o(this.model,e,t),this.upperBound.relaxation=this.relaxation,this.upperBound._relax(this.relaxation),this.lowerBound.relaxation=this.relaxation,this.lowerBound._relax(this.relaxation)},e.exports={Constraint:a,Variable:t,IntegerVariable:n,SlackVariable:i,Equality:r,Term:s}},788:e=>{e.exports=function(e){return e.length?function(e){var t={is_blank:/^\W{0,}$/,is_objective:/(max|min)(imize){0,}\:/i,is_int:/^(?!\/\*)\W{0,}int/i,is_bin:/^(?!\/\*)\W{0,}bin/i,is_constraint:/(\>|\<){0,}\=/i,is_unrestricted:/^\S{0,}unrestricted/i,parse_lhs:/(\-|\+){0,1}\s{0,1}\d{0,}\.{0,}\d{0,}\s{0,}[A-Za-z]\S{0,}/gi,parse_rhs:/(\-|\+){0,1}\d{1,}\.{0,}\d{0,}\W{0,}\;{0,1}$/i,parse_dir:/(\>|\<){0,}\=/gi,parse_int:/[^\s|^\,]+/gi,parse_bin:/[^\s|^\,]+/gi,get_num:/(\-|\+){0,1}(\W|^)\d+\.{0,1}\d{0,}/g,get_word:/[A-Za-z].*/},n={opType:"",optimize:"_obj",constraints:{},variables:{}},i={">=":"min","<=":"max","=":"equal"},s="",o=null,a="",r="",l="",c=0;"string"==typeof e&&(e=e.split("\n"));for(var d=0;d<e.length;d++)if(l="__"+d,s=e[d],o=null,t.is_objective.test(s))n.opType=s.match(/(max|min)/gi)[0],(o=s.match(t.parse_lhs).map((function(e){return e.replace(/\s+/,"")})).slice(1)).forEach((function(e){a=null===(a=e.match(t.get_num))?"-"===e.substr(0,1)?-1:1:a[0],a=parseFloat(a),r=e.match(t.get_word)[0].replace(/\;$/,""),n.variables[r]=n.variables[r]||{},n.variables[r]._obj=a}));else if(t.is_int.test(s))o=s.match(t.parse_int).slice(1),n.ints=n.ints||{},o.forEach((function(e){e=e.replace(";",""),n.ints[e]=1}));else if(t.is_bin.test(s))o=s.match(t.parse_bin).slice(1),n.binaries=n.binaries||{},o.forEach((function(e){e=e.replace(";",""),n.binaries[e]=1}));else if(t.is_constraint.test(s)){var h=s.indexOf(":");(o=(-1===h?s:s.slice(h+1)).match(t.parse_lhs).map((function(e){return e.replace(/\s+/,"")}))).forEach((function(e){a=null===(a=e.match(t.get_num))?"-"===e.substr(0,1)?-1:1:a[0],a=parseFloat(a),r=e.match(t.get_word)[0],n.variables[r]=n.variables[r]||{},n.variables[r][l]=a})),c=parseFloat(s.match(t.parse_rhs)[0]),s=i[s.match(t.parse_dir)[0]],n.constraints[l]=n.constraints[l]||{},n.constraints[l][s]=c}else t.is_unrestricted.test(s)&&(o=s.match(t.parse_int).slice(1),n.unrestricted=n.unrestricted||{},o.forEach((function(e){e=e.replace(";",""),n.unrestricted[e]=1})));return n}(e):function(e){if(!e)throw new Error("Solver requires a model to operate on");var t="",n={max:"<=",min:">=",equal:"="},i=new RegExp("[^A-Za-z0-9_[{}/.&#$%~'@^]","gi");if(e.opType)for(var s in t+=e.opType+":",e.variables)e.variables[s][s]=e.variables[s][s]?e.variables[s][s]:1,e.variables[s][e.optimize]&&(t+=" "+e.variables[s][e.optimize]+" "+s.replace(i,"_"));else t+="max:";for(var o in t+=";\n\n",e.constraints)for(var a in e.constraints[o])if(void 0!==n[a]){for(var r in e.variables)void 0!==e.variables[r][o]&&(t+=" "+e.variables[r][o]+" "+r.replace(i,"_"));t+=" "+n[a]+" "+e.constraints[o][a],t+=";\n"}if(e.ints)for(var l in t+="\n\n",e.ints)t+="int "+l.replace(i,"_")+";\n";if(e.unrestricted)for(var c in t+="\n\n",e.unrestricted)t+="unrestricted "+c.replace(i,"_")+";\n";return t}(e)}},791:(e,t,n)=>{e.exports={lpsolve:n(227)}},824:e=>{function t(e,t,n,i){this.feasible=n,this.evaluation=t,this.bounded=i,this._tableau=e}e.exports=t,t.prototype.generateSolutionSet=function(){for(var e={},t=this._tableau,n=t.varIndexByRow,i=t.variablesPerIndex,s=t.matrix,o=t.rhsColumn,a=t.height-1,r=Math.round(1/t.precision),l=1;l<=a;l+=1){var c=i[n[l]];if(void 0!==c&&!0!==c.isSlack){var d=s[l][o];e[c.id]=Math.round((Number.EPSILON+d)*r)/r}}return e}},871:(e,t,n)=>{n(981),n(314),n(110),n(217),n(269),n(38),n(304),e.exports=n(442)},981:(e,t,n)=>{var i=n(442);i.prototype.simplex=function(){return this.bounded=!0,this.phase1(),!0===this.feasible&&this.phase2(),this},i.prototype.phase1=function(){for(var e=this.model.checkForCycles,t=[],n=this.matrix,i=this.rhsColumn,s=this.width-1,o=this.height-1,a=0;;){for(var r=0,l=-this.precision,c=1;c<=o;c++){this.unrestrictedVars[this.varIndexByRow[c]];var d=n[c][i];d<l&&(l=d,r=c)}if(0===r)return this.feasible=!0,a;for(var h=0,u=-1/0,p=n[0],m=n[r],f=1;f<=s;f++){var g=m[f];if(!0===this.unrestrictedVars[this.varIndexByCol[f]]||g<-this.precision){var v=-p[f]/g;u<v&&(u=v,h=f)}}if(0===h)return this.feasible=!1,a;if(e){t.push([this.varIndexByRow[r],this.varIndexByCol[h]]);var b=this.checkForCycles(t);if(b.length>0)return this.model.messages.push("Cycle in phase 1"),this.model.messages.push("Start :"+b[0]),this.model.messages.push("Length :"+b[1]),this.feasible=!1,a}this.pivot(r,h),a+=1}},i.prototype.phase2=function(){for(var e,t,n=this.model.checkForCycles,i=[],s=this.matrix,o=this.rhsColumn,a=this.width-1,r=this.height-1,l=this.precision,c=this.optionalObjectives.length,d=null,h=0;;){var u=s[this.costRowIndex];c>0&&(d=[]);for(var p=0,m=l,f=!1,g=1;g<=a;g++)e=u[g],t=!0===this.unrestrictedVars[this.varIndexByCol[g]],c>0&&-l<e&&e<l?d.push(g):t&&e<0?-e>m&&(m=-e,p=g,f=!0):e>m&&(m=e,p=g,f=!1);if(c>0)for(var v=0;0===p&&d.length>0&&v<c;){var b=[],y=this.optionalObjectives[v].reducedCosts;m=l;for(var x=0;x<d.length;x++)e=y[g=d[x]],t=!0===this.unrestrictedVars[this.varIndexByCol[g]],-l<e&&e<l?b.push(g):t&&e<0?-e>m&&(m=-e,p=g,f=!0):e>m&&(m=e,p=g,f=!1);d=b,v+=1}if(0===p)return this.setEvaluation(),this.simplexIters+=1,h;for(var I=0,B=1/0,w=(this.varIndexByRow,1);w<=r;w++){var E=s[w],L=E[o],C=E[p];if(!(-l<C&&C<l)){if(C>0&&l>L&&L>-l){B=0,I=w;break}var M=f?-L/C:L/C;M>l&&B>M&&(B=M,I=w)}}if(B===1/0)return this.evaluation=-1/0,this.bounded=!1,this.unboundedVarIndex=this.varIndexByCol[p],h;if(n){i.push([this.varIndexByRow[I],this.varIndexByCol[p]]);var k=this.checkForCycles(i);if(k.length>0)return this.model.messages.push("Cycle in phase 2"),this.model.messages.push("Start :"+k[0]),this.model.messages.push("Length :"+k[1]),this.feasible=!1,h}this.pivot(I,p,!0),h+=1}};var s=[];i.prototype.pivot=function(e,t){var n=this.matrix,i=n[e][t],o=this.height-1,a=this.width-1,r=this.varIndexByRow[e],l=this.varIndexByCol[t];this.varIndexByRow[e]=l,this.varIndexByCol[t]=r,this.rowByVarIndex[l]=e,this.rowByVarIndex[r]=-1,this.colByVarIndex[l]=-1,this.colByVarIndex[r]=t;for(var c,d,h,u=n[e],p=0,m=0;m<=a;m++)u[m]>=-1e-16&&u[m]<=1e-16?u[m]=0:(u[m]/=i,s[p]=m,p+=1);u[t]=1/i,this.precision;for(var f=0;f<=o;f++)if(f!==e&&!(n[f][t]>=-1e-16&&n[f][t]<=1e-16)){var g=n[f];if((c=g[t])>=-1e-16&&c<=1e-16)0!==c&&(g[t]=0);else{for(d=0;d<p;d++)(h=u[m=s[d]])>=-1e-16&&h<=1e-16?0!==h&&(u[m]=0):g[m]=g[m]-c*h;g[t]=-c/i}}var v=this.optionalObjectives.length;if(v>0)for(var b=0;b<v;b+=1){var y=this.optionalObjectives[b].reducedCosts;if(0!==(c=y[t])){for(d=0;d<p;d++)0!==(h=u[m=s[d]])&&(y[m]=y[m]-c*h);y[t]=-c/i}}},i.prototype.checkForCycles=function(e){for(var t=0;t<e.length-1;t++)for(var n=t+1;n<e.length;n++){var i=e[t],s=e[n];if(i[0]===s[0]&&i[1]===s[1]){if(n-t>e.length-n)break;for(var o=!0,a=1;a<n-t;a++){var r=e[t+a],l=e[n+a];if(r[0]!==l[0]||r[1]!==l[1]){o=!1;break}}if(o)return[t,n-t]}}return[]}}},t={};function n(i){var s=t[i];if(void 0!==s)return s.exports;var o=t[i]={exports:{}};return e[i](o,o.exports,n),o.exports}n.n=e=>{var t=e&&e.__esModule?()=>e.default:()=>e;return n.d(t,{a:t}),t},n.d=(e,t)=>{for(var i in t)n.o(t,i)&&!n.o(e,i)&&Object.defineProperty(e,i,{enumerable:!0,get:t[i]})},n.o=(e,t)=>Object.prototype.hasOwnProperty.call(e,t);var i={};(()=>{"use strict";n.d(i,{R:()=>x});const e={showAlgorithmSelectionUI:function(e,t,n){let i=document.getElementById("algorithm-selection");i||(i=document.createElement("section"),i.id="algorithm-selection",e.parentNode.insertBefore(i,e.nextSibling),n.parentNode&&n.parentNode.removeChild(n),i.parentNode.insertBefore(n,i.nextSibling)),i.innerHTML='\n            <h2>Choisir un algorithme d\'optimisation</h2>\n            <p class="instruction">Sélectionnez l\'algorithme à utiliser pour optimiser la découpe de vos barres.</p>\n            \n            <div class="algorithm-cards">\n                <div class="algorithm-card">\n                    <h3>First-Fit Decreasing (FFD)</h3>\n                    <div class="algo-description">\n                        <p><strong>Fonctionnement :</strong> Trie les barres à découper par ordre décroissant et place chaque barre dans la première barre mère où elle peut tenir.</p>\n                        <p><strong>Performance :</strong> Rapide et efficace pour des cas simples. Garantit une solution au plus 11/9 OPT + 6/9.</p>\n                        <p><strong>Idéal pour :</strong> Petits à moyens volumes, calcul rapide.</p>\n                    </div>\n                    <button class="algo-btn primary-btn" id="ffd-btn">Utiliser FFD</button>\n                </div>\n                \n                <div class="algorithm-card">\n                    <h3>Programmation Linéaire en Nombres Entiers (ILP)</h3>\n                    <div class="algo-description">\n                        <p><strong>Fonctionnement :</strong> Formule le problème comme un modèle mathématique d\'optimisation et trouve la solution optimale globale.</p>\n                        <p><strong>Performance :</strong> Garantit la solution optimale mais peut être lent sur de très grands problèmes. Excellente minimisation des déchets.</p>\n                        <p><strong>Idéal pour :</strong> Problèmes à haute valeur où la minimisation des déchets est critique et le temps de calcul n\'est pas une contrainte.</p>\n                    </div>\n                    <button class="algo-btn primary-btn" id="ilp-btn">Utiliser ILP</button>\n                </div>\n            </div>\n        ',i.classList.remove("hidden"),this.initAlgorithmSelectionUI(t,n)},initAlgorithmSelectionUI:function(e,t){const n=document.getElementById("ffd-btn"),i=document.getElementById("ilp-btn");n&&n.addEventListener("click",(()=>{this.runAlgorithm("greedy",e,t)})),i&&i.addEventListener("click",(()=>{this.runAlgorithm("ilp",e,t)}))},runAlgorithm:function(e,t,n){if(0===Object.keys(t.pieces).length)return void alert("Veuillez d'abord importer ou ajouter des pièces à découper.");if(0===Object.keys(t.motherBars).length)return void alert("Veuillez définir des barres mères avant de continuer.");let i=!1;for(const e in t.pieces)if(t.pieces[e]&&t.pieces[e].length>0){i=!0;break}if(!i)return void alert("Veuillez d'abord ajouter des pièces à découper.");document.getElementById("loading-overlay").classList.remove("hidden"),"compare"!==e&&document.querySelectorAll(".nav-btn")[1].click();const s="greedy"===e||"ffd"===e?"First-Fit Decreasing":"ilp"===e?"Programmation Linéaire (ILP)":"Comparaison";document.getElementById("result-algorithm").textContent=s,setTimeout((()=>{try{let n;if("compare"===e){const e=x.solveGreedyFFD(t.motherBars,t.pieces),i=x.solveWithILP(t.motherBars,t.pieces);n=this.compareAndSelectBest(e,i),document.querySelectorAll(".nav-btn")[1].click(),document.getElementById("result-algorithm").textContent="ffd"===n.bestAlgorithm?"First-Fit Decreasing (meilleur)":"Programmation Linéaire (meilleur)"}else"greedy"===e||"ffd"===e?n=x.solveGreedyFFD(t.motherBars,t.pieces):"ilp"===e&&(n=x.solveWithILP(t.motherBars,t.pieces));this.renderResults(n)}catch(e){console.error("Algorithm error:",e),document.getElementById("results-container").innerHTML=`\n                    <div class="error-message">\n                        <h3>Erreur lors de l'exécution</h3>\n                        <p>${e.message||"Une erreur s'est produite"}</p>\n                    </div>\n                `}finally{document.getElementById("loading-overlay").classList.add("hidden")}}),100)},compareAndSelectBest:function(e,t){console.log("Comparaison des résultats des deux algorithmes");const n=parseFloat(e.globalStats.statistics.utilizationRate),i=parseFloat(t.globalStats.statistics.utilizationRate);console.log(`FFD Efficacité: ${n}%, ILP Efficacité: ${i}%`);const s=n>=i?"ffd":"ilp",o="ffd"===s?e:t;return o.comparison={ffdEfficiency:n,ilpEfficiency:i,bestAlgorithm:s,differencePercentage:Math.abs(n-i).toFixed(2)},o.bestAlgorithm=s,o},renderResults:function(e){const t=document.getElementById("results-container");if(!e)return void(t.innerHTML="\n                <div class=\"error-message\">\n                    <h3>Impossible de calculer les résultats</h3>\n                    <p>L'algorithme n'a pas pu trouver de solution avec les données fournies.</p>\n                </div>\n            ");const n=e.modelResults||{};e.globalStats;let i=0,s=0,o=0;for(const e in n){const t=n[e];i+=t.rawData.usedBars.length;for(const e of t.rawData.usedBars)o+=e.originalLength,s+=e.remainingLength||e.waste||0}const a=o>0?(100*(1-s/o)).toFixed(2):"100.00";let r='\n            <div class="results-summary">\n                <h3>Résumé global</h3>\n        ';e.comparison&&(r+=`\n                <div class="algorithm-comparison">\n                    <p class="comparison-result">\n                        <strong>Algorithme choisi:</strong> ${"ffd"===e.bestAlgorithm?"First-Fit Decreasing":"Programmation Linéaire"}\n                        <span class="tag">${"ffd"===e.bestAlgorithm?"FFD":"ILP"}</span>\n                    </p>\n                    <div class="algorithm-efficiencies">\n                        <div class="efficiency-comparison ${"ffd"===e.bestAlgorithm?"best":""}">\n                            <div class="algorithm-name">First-Fit Decreasing</div>\n                            <div class="efficiency-value">${e.comparison.ffdEfficiency}%</div>\n                        </div>\n                        <div class="efficiency-comparison ${"ilp"===e.bestAlgorithm?"best":""}">\n                            <div class="algorithm-name">Programmation Linéaire</div>\n                            <div class="efficiency-value">${e.comparison.ilpEfficiency}%</div>\n                        </div>\n                    </div>\n                    <p class="difference-info">\n                        Différence d'efficacité: <strong>${e.comparison.differencePercentage}%</strong>\n                    </p>\n                </div>\n            `),r+=`\n                <div class="stats-grid">\n                    <div class="stat-card">\n                        <div class="stat-label">Barres utilisées</div>\n                        <div class="stat-value">${i}</div>\n                    </div>\n                    <div class="stat-card">\n                        <div class="stat-label">Longueur totale barres mères</div>\n                        <div class="stat-value">${o} unités</div>\n                    </div>\n                    <div class="stat-card">\n                        <div class="stat-label">Chutes (total)</div>\n                        <div class="stat-value">${s} unités</div>\n                    </div>\n                    <div class="stat-card efficiency-card">\n                        <div class="stat-label">Efficacité</div>\n                        <div class="stat-value">${a}%</div>\n                    </div>\n                </div>\n            </div>\n            \n            <h3 class="mb-3">Détails par modèle</h3>\n            <div class="model-results">\n        `;for(const e in n){const t=n[e],i=t.rawData.usedBars;let s=0,o=0;for(const e of i)s+=e.originalLength,o+=e.remainingLength||e.waste||0;const a=s>0?(100*(1-o/s)).toFixed(2):"100.00";r+=`\n                <div class="model-card">\n                    <div class="model-header">\n                        <h3>Modèle: ${e}</h3>\n                    </div>\n                    <div class="model-content">\n                        <div class="model-stats">\n                            <div class="model-stat">\n                                <div class="stat-label">Barres</div>\n                                <div class="stat-value">${i.length}</div>\n                            </div>\n                            <div class="model-stat">\n                                <div class="stat-label">Longueur totale</div>\n                                <div class="stat-value">${s} unités</div>\n                            </div>\n                            <div class="model-stat">\n                                <div class="stat-label">Chutes</div>\n                                <div class="stat-value">${o} unités</div>\n                            </div>\n                            <div class="model-stat">\n                                <div class="stat-label">Efficacité</div>\n                                <div class="efficiency-tag">${a}%</div>\n                            </div>\n                        </div>\n                        \n                        <div class="cut-schemes">\n                            <h4 class="mb-2">Schémas de coupe</h4>\n            `,t.layouts.forEach(((e,t)=>{const n=e.pattern||e,i=e.count||1,s=n.cuts||n.pieces||[],o=n.remainingLength||n.waste||0,a=n.originalLength||n.totalLength+o,l={};s.forEach((e=>{l[e]=(l[e]||0)+1}));let c="";Object.entries(l).sort(((e,t)=>t[0]-e[0])).forEach((([e,t])=>{c+=`<span class="cut-count">${t}×</span>${e} `}));let d="";s.forEach(((e,t)=>{const n=e/a*100,i=t===s.length-1&&0===o?"last-piece":"";d+=`<div class="cut-piece ${i}" style="width: ${n}%" title="${e}">${e}</div>`})),o>0&&(d+=`<div class="waste-piece" style="width: ${o/a*100}%" title="Chute: ${o}">${o}</div>`),r+=`\n                    <div class="cut-scheme">\n                        <div class="cut-scheme-header">\n                            <strong>${i}× Schéma #${t+1}</strong>\n                            <span>Barre de ${a}</span>\n                        </div>\n                        <div class="cut-pieces">\n                            Pièces: ${c}\n                        </div>\n                        <div class="waste">\n                            Chute: <span class="waste-value">${o}</span>\n                        </div>\n                        <div class="cut-bar">\n                            ${d}\n                        </div>\n                    </div>\n                `})),r+="\n                        </div>\n                    </div>\n                </div>\n            "}r+="</div>",t.innerHTML=r}},t={init:function(e){this.setupNavigation(),this.setupImportModal(),this.setupTableActions(e),this.setupAlgorithmButtons(e),this.renderTables(e)},setupNavigation:function(){document.querySelectorAll(".nav-btn").forEach((e=>{e.addEventListener("click",(()=>{document.querySelectorAll(".nav-btn").forEach((e=>{e.classList.remove("active")})),e.classList.add("active");const t=e.dataset.section;document.querySelectorAll(".content-section").forEach((e=>{e.classList.remove("active")})),document.getElementById(t).classList.add("active")}))}))},setupImportModal:function(){document.getElementById("import-btn").addEventListener("click",(()=>{document.getElementById("import-modal").classList.remove("hidden")})),document.querySelectorAll(".close-modal").forEach((e=>{e.addEventListener("click",(()=>{document.getElementById("import-modal").classList.add("hidden")}))})),document.getElementById("csv-file-input").addEventListener("change",(e=>{const t=e.target.files[0]?e.target.files[0].name:"",n=document.querySelector(".file-name");t?(n.textContent=t,n.classList.add("active")):(n.textContent="",n.classList.remove("active"))})),document.getElementById("confirm-import").addEventListener("click",(()=>{const e=document.getElementById("csv-file-input").files[0];if(!e)return void alert("Veuillez sélectionner un fichier CSV");const t=new FileReader;t.onload=e=>{try{s.parsePiecesCSV(e.target.result),document.getElementById("import-modal").classList.add("hidden"),this.renderTables(s.getData()),document.querySelectorAll(".nav-btn")[0].click()}catch(e){alert(`Erreur lors de l'importation: ${e.message}`)}},t.readAsText(e)}))},setupTableActions:function(e){document.getElementById("add-stock-bar-btn").addEventListener("click",(()=>{document.getElementById("add-stock-bar-row").classList.remove("hidden"),document.getElementById("new-stock-model").focus()})),document.getElementById("cancel-add-stock").addEventListener("click",(()=>{document.getElementById("add-stock-bar-row").classList.add("hidden"),document.getElementById("new-stock-model").value="",document.getElementById("new-stock-length").value="",document.getElementById("new-stock-quantity").value="100000"})),document.getElementById("confirm-add-stock").addEventListener("click",(()=>{const t=document.getElementById("new-stock-model").value.trim(),n=parseInt(document.getElementById("new-stock-length").value),i=parseInt(document.getElementById("new-stock-quantity").value)||1e5;t?!n||n<=0?alert("La longueur doit être un nombre positif"):s.addMotherBar(t,n,i,e)&&(this.renderStockBarsTable(e),document.getElementById("add-stock-bar-row").classList.add("hidden"),document.getElementById("new-stock-model").value="",document.getElementById("new-stock-length").value="",document.getElementById("new-stock-quantity").value="100000"):alert("Le modèle est requis")})),document.getElementById("add-piece-btn").addEventListener("click",(()=>{document.getElementById("add-piece-row").classList.remove("hidden"),document.getElementById("new-piece-model").focus()})),document.getElementById("cancel-add-piece").addEventListener("click",(()=>{document.getElementById("add-piece-row").classList.add("hidden"),document.getElementById("new-piece-model").value="",document.getElementById("new-piece-length").value="",document.getElementById("new-piece-quantity").value="1"})),document.getElementById("confirm-add-piece").addEventListener("click",(()=>{const t=document.getElementById("new-piece-model").value.trim(),n=parseInt(document.getElementById("new-piece-length").value),i=parseInt(document.getElementById("new-piece-quantity").value)||1;t?!n||n<=0?alert("La longueur doit être un nombre positif"):s.addPiece(t,n,i,e)&&(this.renderPiecesTable(e),document.getElementById("add-piece-row").classList.add("hidden"),document.getElementById("new-piece-model").value="",document.getElementById("new-piece-length").value="",document.getElementById("new-piece-quantity").value="1"):alert("Le modèle est requis")}))},setupAlgorithmButtons:function(t){document.getElementById("run-ffd-btn").addEventListener("click",(()=>{e.runAlgorithm("greedy",s.getData())})),document.getElementById("run-ilp-btn").addEventListener("click",(()=>{e.runAlgorithm("ilp",s.getData())})),document.getElementById("run-compare-btn").addEventListener("click",(()=>{e.runAlgorithm("compare",s.getData())}))},renderTables:function(e){this.renderStockBarsTable(e),this.renderPiecesTable(e)},renderStockBarsTable:function(e){const t=document.querySelector("#stock-bars-table tbody");t.innerHTML="";let n="model-suggestions-bars",i=document.getElementById(n);i?i.innerHTML="":(i=document.createElement("datalist"),i.id=n,document.body.appendChild(i)),new Set([...Object.keys(e.motherBars),...Object.keys(e.pieces)]).forEach((e=>{const t=document.createElement("option");t.value=e,i.appendChild(t)}));const o=document.getElementById("new-stock-model");if(o&&o.setAttribute("list",n),0===Object.keys(e.motherBars).length){const e=document.createElement("tr");return e.innerHTML='<td colspan="4" class="text-center">Aucune barre mère définie</td>',void t.appendChild(e)}for(const n in e.motherBars)e.motherBars[n].forEach((i=>{const o=document.createElement("tr");o.dataset.model=n,o.dataset.length=i.length,o.innerHTML=`\n                    <td class="editable-cell" data-field="model">${n}</td>\n                    <td class="editable-cell" data-field="length">${i.length}</td>\n                    <td class="editable-cell" data-field="quantity">${i.quantity}</td>\n                    <td>\n                        <div class="action-buttons">\n                            <button class="btn btn-sm btn-danger delete-stock-btn">✕</button>\n                        </div>\n                    </td>\n                `,t.appendChild(o),o.querySelector(".delete-stock-btn").addEventListener("click",(()=>{s.deleteMotherBar(n,i.length,e)&&this.renderStockBarsTable(e)})),o.querySelectorAll(".editable-cell").forEach((t=>{t.addEventListener("click",(()=>{if(document.querySelector(".editing"))return;const n=t.dataset.field,i=t.textContent;t.classList.add("editing"),t.innerHTML=`<input type="text" value="${i}">`;const s=t.querySelector("input");s.focus(),s.select(),s.addEventListener("keypress",(t=>{"Enter"===t.key&&this.updateStockBarValue(o,n,s.value,e)})),s.addEventListener("blur",(()=>{this.updateStockBarValue(o,n,s.value,e)}))}))}))}))},updateStockBarValue:function(e,t,n,i){const o=e.dataset.model,a=parseInt(e.dataset.length);let r=o,l=a,c=0;if("model"===t){if(r=n.trim(),!r)return alert("Le modèle ne peut pas être vide"),void this.renderStockBarsTable(i)}else if("length"===t){if(l=parseInt(n),!l||l<=0)return alert("La longueur doit être un nombre positif"),void this.renderStockBarsTable(i)}else if("quantity"===t&&(c=parseInt(n),!c||c<=0))return alert("La quantité doit être un nombre positif"),void this.renderStockBarsTable(i);if(s.deleteMotherBar(o,a,i)){if("quantity"===t)s.addMotherBar(o,a,c,i);else if("model"===t){const e=i.motherBars[o]?.find((e=>e.length===a))?.quantity||1e5;s.addMotherBar(r,a,e,i)}else if("length"===t){const e=i.motherBars[o]?.find((e=>e.length===a))?.quantity||1e5;s.addMotherBar(o,l,e,i)}this.renderStockBarsTable(i)}else alert("Erreur lors de la mise à jour"),this.renderStockBarsTable(i)},renderPiecesTable:function(e){const t=document.querySelector("#pieces-table tbody");t.innerHTML="";let n="model-suggestions-pieces",i=document.getElementById(n);i?i.innerHTML="":(i=document.createElement("datalist"),i.id=n,document.body.appendChild(i)),new Set([...Object.keys(e.motherBars),...Object.keys(e.pieces)]).forEach((e=>{const t=document.createElement("option");t.value=e,i.appendChild(t)}));const o=document.getElementById("new-piece-model");if(o&&o.setAttribute("list",n),0===Object.keys(e.pieces).length){const e=document.createElement("tr");return e.innerHTML='<td colspan="4" class="text-center">Aucune pièce définie</td>',void t.appendChild(e)}for(const n in e.pieces)e.pieces[n].forEach((i=>{const o=document.createElement("tr");o.dataset.model=n,o.dataset.length=i.length,o.innerHTML=`\n                    <td class="editable-cell" data-field="model">${n}</td>\n                    <td class="editable-cell" data-field="length">${i.length}</td>\n                    <td class="editable-cell" data-field="quantity">${i.quantity}</td>\n                    <td>\n                        <div class="action-buttons">\n                            <button class="btn btn-sm btn-danger delete-piece-btn">✕</button>\n                        </div>\n                    </td>\n                `,t.appendChild(o),o.querySelector(".delete-piece-btn").addEventListener("click",(()=>{s.deletePiece(n,i.length,e)&&this.renderPiecesTable(e)})),o.querySelectorAll(".editable-cell").forEach((t=>{t.addEventListener("click",(()=>{if(document.querySelector(".editing"))return;const n=t.dataset.field,i=t.textContent;t.classList.add("editing"),t.innerHTML=`<input type="text" value="${i}">`;const s=t.querySelector("input");s.focus(),s.select(),s.addEventListener("keypress",(t=>{"Enter"===t.key&&this.updatePieceValue(o,n,s.value,e)})),s.addEventListener("blur",(()=>{this.updatePieceValue(o,n,s.value,e)}))}))}))}))},updatePieceValue:function(e,t,n,i){const o=e.dataset.model,a=parseInt(e.dataset.length);let r=o,l=a,c=0;if("model"===t){if(r=n.trim(),!r)return alert("Le modèle ne peut pas être vide"),void this.renderPiecesTable(i)}else if("length"===t){if(l=parseInt(n),!l||l<=0)return alert("La longueur doit être un nombre positif"),void this.renderPiecesTable(i)}else if("quantity"===t&&(c=parseInt(n),!c||c<=0))return alert("La quantité doit être un nombre positif"),void this.renderPiecesTable(i);if(s.deletePiece(o,a,i)){if("quantity"===t)s.addPiece(o,a,c,i);else if("model"===t){const e=i.pieces[o]?.find((e=>e.length===a))?.quantity||1;s.addPiece(r,a,e,i)}else if("length"===t){const e=i.pieces[o]?.find((e=>e.length===a))?.quantity||1;s.addPiece(o,l,e,i)}this.renderPiecesTable(i)}else alert("Erreur lors de la mise à jour"),this.renderPiecesTable(i)},createInputSections:function(e,t){const{manualPiecesSection:n,motherBarsSection:i,data:s}=t;n.innerHTML="<h2>Ajouter des Barres à Découper</h2>",i.innerHTML="<h2>Ajouter des Barres Mères</h2>";const o=this.createModelSelector("piece-model",e),a=this.createModelSelector("mother-model",e),r=document.createElement("div");r.className="form-row",r.innerHTML='\n            <label for="piece-model">Modèle:</label>\n            <label for="piece-length">Longueur:</label>\n            <input type="number" id="piece-length" min="1" step="1">\n            <label for="piece-quantity">Quantité:</label>\n            <input type="number" id="piece-quantity" min="1" step="1" value="1">\n            <button id="add-piece" class="secondary-btn">Ajouter</button>\n        ',r.insertBefore(o,r.firstChild),n.appendChild(r);const l=document.createElement("div");l.className="form-row",l.innerHTML='\n            <label for="mother-model">Modèle:</label>\n            <label for="mother-length">Longueur:</label>\n            <input type="number" id="mother-length" min="1" step="1">\n            <label for="mother-quantity">Quantité:</label>\n            <input type="number" id="mother-quantity" min="1" step="1" value="100000">\n            <button id="add-mother" class="secondary-btn">Ajouter</button>\n        ',l.insertBefore(a,l.firstChild),i.appendChild(l),this.setupEventHandlers(s)},createModelSelector:function(e,t){const n=document.createElement("select");return n.id=e,t.forEach((e=>{const t=document.createElement("option");t.value=e,t.textContent=e,n.appendChild(t)})),n},setupEventHandlers:function(e){const t=document.getElementById("add-piece"),n=(document.getElementById("piece-model"),document.getElementById("piece-length"));document.getElementById("piece-quantity"),t.addEventListener("click",(()=>{this.addPieceFromForm(e)})),n.addEventListener("keypress",(t=>{"Enter"===t.key&&(t.preventDefault(),this.addPieceFromForm(e))}));const i=document.getElementById("add-mother"),s=document.getElementById("mother-length");i.addEventListener("click",(()=>{this.addMotherBarFromForm(e)})),s.addEventListener("keypress",(t=>{"Enter"===t.key&&(t.preventDefault(),this.addMotherBarFromForm(e))}))},addPieceFromForm:function(e){const t=document.getElementById("piece-model").value,n=parseInt(document.getElementById("piece-length").value,10),i=parseInt(document.getElementById("piece-quantity").value,10)||1;s.addPiece(t,n,i,e)&&(document.getElementById("piece-length").value="",document.getElementById("piece-quantity").value="1",document.getElementById("piece-length").focus(),this.updateAllDisplays(e))},addMotherBarFromForm:function(e){const t=document.getElementById("mother-model").value,n=parseInt(document.getElementById("mother-length").value,10),i=parseInt(document.getElementById("mother-quantity").value,10)||1e5;s.addMotherBar(t,n,i,e)&&(document.getElementById("mother-length").value="",document.getElementById("mother-quantity").value="100000",document.getElementById("mother-length").focus(),this.updateAllDisplays(e))},showDataSections:function(e,t,n,i){e.classList.remove("hidden"),t.classList.remove("hidden"),n.classList.remove("hidden"),i.classList.remove("hidden")},updateAllDisplays:function(e){this.updateDataOverview(e)},createDataOverviewSection:function(e,t){e.innerHTML='\n            <h2>Aperçu des Données</h2>\n            <div class="tabs">\n                <button class="tab-btn active" data-tab="pieces-tab">Barres à Découper</button>\n                <button class="tab-btn" data-tab="mother-bars-tab">Barres Mères</button>\n            </div>\n            <div id="pieces-tab" class="tab-content active">\n                <div id="pieces-overview"></div>\n            </div>\n            <div id="mother-bars-tab" class="tab-content">\n                <div id="mother-bars-overview"></div>\n            </div>\n        ';const n=e.querySelectorAll(".tab-btn"),i=e.querySelectorAll(".tab-content");n.forEach((e=>{e.addEventListener("click",(()=>{n.forEach((e=>e.classList.remove("active"))),i.forEach((e=>e.classList.remove("active"))),e.classList.add("active");const t=e.dataset.tab;document.getElementById(t).classList.add("active")}))})),this.updateDataOverview(t)},updateDataOverview:function(e){const t=document.getElementById("pieces-overview"),n=document.getElementById("mother-bars-overview");t&&n&&(t.innerHTML="",0===Object.keys(e.pieces).length?t.innerHTML="<p>Aucune donnée de barres disponible.</p>":Object.keys(e.pieces).forEach((n=>{const i=document.createElement("div");i.className="model-section";const o=document.createElement("div");o.className="model-header",o.textContent=`Modèle: ${n}`,i.appendChild(o);const a=document.createElement("table");a.className="data-table";const r=document.createElement("tr");["Longueur","Quantité",""].forEach((e=>{const t=document.createElement("th");t.textContent=e,""===e&&(t.className="delete-cell"),r.appendChild(t)})),a.appendChild(r),e.pieces[n].forEach((t=>{const i=document.createElement("tr"),o=document.createElement("td");o.textContent=t.length,i.appendChild(o);const r=document.createElement("td");r.textContent=t.quantity,i.appendChild(r);const l=document.createElement("td");l.className="delete-cell";const c=document.createElement("span");c.className="delete-icon",c.innerHTML="&#10005;",c.addEventListener("click",(()=>{s.deletePiece(n,t.length,e)&&(this.updateAllDisplays(e),this.updatePieceModelDropdown(e))})),l.appendChild(c),i.appendChild(l),a.appendChild(i)})),i.appendChild(a),t.appendChild(i)})),n.innerHTML="",0===Object.keys(e.motherBars).length?n.innerHTML="<p>Aucune donnée de barres mères disponible.</p>":Object.keys(e.motherBars).forEach((t=>{const i=document.createElement("div");i.className="model-section";const o=document.createElement("div");o.className="model-header",o.textContent=`Modèle: ${t}`,i.appendChild(o);const a=document.createElement("table");a.className="data-table";const r=document.createElement("tr");["Longueur","Quantité",""].forEach((e=>{const t=document.createElement("th");t.textContent=e,""===e&&(t.className="delete-cell"),r.appendChild(t)})),a.appendChild(r),e.motherBars[t].forEach((n=>{const i=document.createElement("tr"),o=document.createElement("td");o.textContent=n.length,i.appendChild(o);const r=document.createElement("td");r.textContent=n.quantity,i.appendChild(r);const l=document.createElement("td");l.className="delete-cell";const c=document.createElement("span");c.className="delete-icon",c.innerHTML="&#10005;",c.addEventListener("click",(()=>{s.deleteMotherBar(t,n.length,e)&&this.updateAllDisplays(e)})),l.appendChild(c),i.appendChild(l),a.appendChild(i)})),i.appendChild(a),n.appendChild(i)})))},updatePieceModelDropdown:function(e){const t=document.getElementById("piece-model");t&&(t.innerHTML="",Object.keys(e.pieces).forEach((e=>{const n=document.createElement("option");n.value=e,n.textContent=e,t.appendChild(n)})))}},s={data:{pieces:{},motherBars:{}},initData:function(){return this.data={pieces:{},motherBars:{}},this.data},getData:function(){return this.data},parsePiecesCSV:function(e,t){const n=t||this.initData(),i=e.split("\n");for(let e=1;e<i.length;e++){const t=i[e].trim();if(!t)continue;const s=t.split(",").map((e=>e.trim()));if(s.length<4)continue;const o=s[0].toLowerCase(),a=s[1],r=parseInt(s[2]),l=parseInt(s[3]);isNaN(r)||isNaN(l)||("mere"===o?this.addMotherBar(a,r,l,n):"fille"===o&&this.addPiece(a,r,l,n))}return t||(this.data=n),n},addPiece:function(e,t,n,i){if(!e)return console.error("Model is required"),!1;if(!t||t<=0)return console.error("Length must be a positive number"),!1;const s=i||this.data;s.pieces[e]||(s.pieces[e]=[]);const o=s.pieces[e].find((e=>e.length===t));return o?o.quantity=n:s.pieces[e].push({length:t,quantity:n}),!0},addMotherBar:function(e,t,n,i){if(!e)return console.error("Model is required"),!1;if(!t||t<=0)return console.error("Length must be a positive number"),!1;const s=i||this.data;s.motherBars[e]||(s.motherBars[e]=[]);const o=s.motherBars[e].find((e=>e.length===t));return o?o.quantity=n:s.motherBars[e].push({length:t,quantity:n}),!0},deletePiece:function(e,t,n){const i=n||this.data;if(i.pieces[e]){const n=i.pieces[e].findIndex((e=>e.length===t));if(-1!==n)return i.pieces[e].splice(n,1),0===i.pieces[e].length&&delete i.pieces[e],!0}return!1},deleteMotherBar:function(e,t,n){const i=n||this.data;if(i.motherBars[e]){const n=i.motherBars[e].findIndex((e=>e.length===t));if(-1!==n)return i.motherBars[e].splice(n,1),0===i.motherBars[e].length&&delete i.motherBars[e],!0}return!1}};function o(e,t,n){let i=0,s=0,o=0,a=0,r=!1,l=!1,c=[],d=[],h=0,u=0;const p=new Map;for(const e of n)i+=e.length*e.quantity,p.set(e.length,e.quantity);for(const e of t)s+=e.length*e.quantity;if(e.rawData&&e.rawData.usedBars){const t=new Map;for(const n of e.rawData.usedBars){const e=n.cuts||[];for(const n of e){const e=t.get(n)||0;t.set(n,e+1)}o+=e.reduce(((e,t)=>e+t),0),a+=n.remainingLength||0}for(const[e,n]of t.entries()){const t=n-(p.get(e)||0);t>0?(r=!0,h+=t,c.push(`${t} pièces de longueur ${e}`)):t<0&&(l=!0,u+=Math.abs(t),d.push(`${Math.abs(t)} pièces de longueur ${e}`))}}return{totalDemandLength:i,totalStockLength:s,totalUsedLength:o,totalWasteLength:a,utilizationRate:s>0?((s-a)/s*100).toFixed(3):0,overproductionDetails:r?c.join(", "):null,underproductionDetails:l?d.join(", "):null,hasOverproduction:r,hasUnderproduction:l,totalOverproduced:h,totalUnderproduced:u}}var a=n(61),r=n.n(a);function l(e,t,n){const i={};for(const t of e.pieces)i[t]=(i[t]||0)+1;const s={...e,pieces:[],waste:e.waste,isModifiedPattern:!0};let o=!1;const a=[];for(const[e,n]of Object.entries(i)){const i=parseInt(e,10),r=t.get(i)||0,l=Math.min(n,r);for(let e=0;e<l;e++)s.pieces.push(i);if(l>0&&(t.set(i,r-l),a.push(`${l}x${i}`)),n>r){if(o=!0,s.originInfo&&s.originInfo.removedPieces)for(let e=0;e<n-l;e++)s.originInfo.removedPieces.push(i);s.waste+=(n-l)*i}}const r=e.pieces.reduce(((e,t)=>e+t),0),l=s.pieces.reduce(((e,t)=>e+t),0)/(r||1);return s.originalPatternIndex=e.originalPatternIndex||e.id||-1,s.originInfo={originalPieces:[...e.pieces],removedPieces:o?[]:null},l<.5&&s.pieces.length>0?(s.hasUsablePieces=!1,s):(s.isModified=o,s.hasUsablePieces=a.length>0,s)}function c(e){const t=[];for(const n of e)t.push({length:parseInt(n.length,10),quantity:parseInt(n.quantity,10)});return t.sort(((e,t)=>t.length-e.length)),t}function d(e){const t=[];for(const n of e)t.push({length:parseInt(n.length,10),quantity:parseInt(n.quantity,10)});return t.sort(((e,t)=>t.length-e.length)),t}function h(e,t){const n=[];for(const i of e){const e=i.length,s=u(t,e,3e3);if(s.forEach((t=>{t.stockLength=e,t.stockBarId=i.id||null})),n.push(...s),n.length>=1e4){console.warn("⚠️ Nombre maximum de patterns atteint (10000), certains patterns ignorés");break}}return n}function u(e,t,n=3e3){const i=e.filter((e=>e.length<=t));if(0===i.length)return[{pieces:[],waste:t,composition:{}}];const s=function(e,t,n){const i=new Map,s=[],o=new Set;return function t(a,r,l={}){const c=`${a}:${r}`;if(i.has(c))return i.get(c);if(r>=e.length||a<e[e.length-1].length){const e=(d=l,Object.entries(d).sort((([e],[t])=>parseInt(e)-parseInt(t))).map((([e,t])=>`${e}:${t}`)).join(","));if(!o.has(e)&&s.length<n){const t=[];for(const[e,n]of Object.entries(l))for(let i=0;i<n;i++)t.push(parseInt(e,10));s.push({pieces:t,waste:a,composition:{...l}}),o.add(e)}return[]}var d;const h=e[r],u=[];for(let e=Math.min(Math.floor(a/h.length),h.quantity);e>=0;e--){const n={...l};e>0&&(n[h.length]=(n[h.length]||0)+e);const i=t(a-e*h.length,r+1,n);if(u.push(...i),u.length>100)break}return i.set(c,u),u}(t,0),function(e,t,n,i){if(n.length>=i)return;const s=[...e].sort(((e,t)=>t.length-e.length));let o=t;const a={},r=[];for(const e of s){const t=Math.min(Math.floor(o/e.length),e.quantity);if(t>0){a[e.length]=t;for(let n=0;n<t;n++)r.push(e.length);o-=t*e.length}}r.length>0&&n.push({pieces:r,waste:o,composition:a}),function(e,t,n){for(let i=0;i<Math.min(e.length,5);i++){const s=e[i],o=Math.min(Math.floor(t/s.length),s.quantity);if(o>0){const e=Array(o).fill(s.length),i=t-o*s.length,a={[s.length]:o};n.push({pieces:e,waste:i,composition:a})}}}(e,t,n),function(e,t,n){const i=[...e].sort(((e,t)=>t.quantity-e.quantity)).slice(0,3);for(const e of i){const i=Math.min(Math.floor(t/e.length),e.quantity);if(i>0){const s=Array(i).fill(e.length),o=t-i*e.length,a={[e.length]:i};n.push({pieces:s,waste:o,composition:a})}}}(e,t,n)}(e,t,s,n),s}(i,t,n);return s.sort(((e,t)=>e.waste!==t.waste?e.waste-t.waste:t.pieces.length-e.pieces.length)),s.slice(0,n)}function p(e,t,n){console.log(`Tentative de résolution ILP avec ${n.length} patterns`);const{patterns:i,maxUsage:s}=function(e,t){console.log("Génération de patterns sans risque de surproduction...");const n=h(e,t),i=[],s=new Map;for(const e of n){const n={};for(const t of e.pieces)n[t]=(n[t]||0)+1;let o=1/0,a=!1;for(const[e,i]of Object.entries(n)){a=!0;const n=parseInt(e,10),s=t.find((e=>e.length===n));if(!s){o=0;break}{const e=Math.floor(s.quantity/i);o=Math.min(o,e)}}o>0&&a&&(i.push(e),s.set(e,o))}return console.log(`${i.length} patterns sûrs générés (sur ${n.length} patterns initiaux)`),{patterns:i,maxUsage:s}}(e,t);if(0===i.length)return console.warn("⚠️ Aucun pattern sécurisé n'a pu être généré, utilisation de l'algorithme de secours"),m(n,e,t);const o=Math.min(800,i.length),a=[...i].sort(((e,t)=>e.waste-t.waste)).slice(0,o);console.log(`Utilisation des ${a.length} meilleurs patterns sécurisés`);const l=function(e,t,n,i=null){const s={optimize:"bars",opType:"min",constraints:{},variables:{},ints:{}};for(const e of n)s.constraints[`demand_${e.length}`]={equal:e.quantity};const o=new Map;for(const e of t)o.has(e.length)?o.set(e.length,o.get(e.length)+e.quantity):o.set(e.length,e.quantity);for(const[e,t]of o.entries())s.constraints[`stock_${e}`]={max:t};for(let t=0;t<e.length;t++){const n=e[t],a=`pattern_${t}`;s.variables[a]={bars:1},s.ints[a]=1,i&&n.maxUsage&&(s.constraints[`max_usage_${t}`]={max:n.maxUsage},s.variables[a][`max_usage_${t}`]=1);const r={};for(const e of n.pieces)r[e]=(r[e]||0)+1;for(const[e,t]of Object.entries(r))s.variables[a][`demand_${e}`]=t;o.has(n.stockLength)&&(s.variables[a][`stock_${n.stockLength}`]=1)}return console.log("Modèle ILP créé:"),console.log("- Contraintes:",Object.keys(s.constraints).length),console.log("- Variables:",Object.keys(s.variables).length),s}(a,e,t,s);try{const e={timeout:1e4,strategy:0,msg:!0};console.log("Lancement du solveur ILP...");const t=r().Solve(l,e);if(console.log("Solution ILP obtenue:",t.feasible,"valeur:",t.result),t.feasible&&!isNaN(t.result)&&t.result>0){let e=!1;for(const n in t)if(n.startsWith("pattern_")&&!isNaN(t[n])&&t[n]>0){e=!0;break}if(e)return console.log("Solution ILP valide, utilisation de cette solution"),{method:"ILP",solution:t,patterns:a};console.warn("⚠️ Solution ILP sans patterns utilisés, utilisation du fallback")}else console.warn("⚠️ Solution ILP non valide, utilisation du fallback")}catch(e){console.error("Erreur lors de la résolution ILP:",e)}return console.log("Utilisation de l'algorithme de secours..."),m(a,e,t)}function m(e,t,n){console.log("Exécution de la génération de colonnes...");const i={feasible:!0,result:0},s=new Map,o=new Map;console.log("\n📋 RÉSUMÉ DES PIÈCES À DÉCOUPER:"),console.log("─────────────────────────────────────────────────────");for(const e of n)o.set(e.length,e.quantity),console.log(`  • Pièce de longueur ${e.length}: ${e.quantity} unités demandées`);console.log("─────────────────────────────────────────────────────\n");const a=new Map;for(const e of t)a.has(e.length)?a.set(e.length,a.get(e.length)+e.quantity):a.set(e.length,e.quantity);const r=new Map,c=new Map;for(let t=0;t<e.length;t++){const n=e[t],i={};for(const e of n.pieces)i[e]=(i[e]||0)+1;let s=1/0;for(const[e,t]of Object.entries(i)){const n=parseInt(e,10),i=o.get(n)||0;t>0&&(s=Math.min(s,Math.floor(i/t)))}r.set(t,s),c.set(t,0)}let d=0;for(console.log("\n🔄 DÉMARRAGE DES ITÉRATIONS"),console.log("─────────────────────────────────────────────────────");Array.from(o.values()).some((e=>e>0))&&d<100;){d++,console.log(`\n📌 ITÉRATION ${d} :`);let n=[];for(const[e,t]of o.entries())t>0&&n.push(`${t}x${e}`);if(0===n.length){console.log("✅ Toutes les pièces ont été satisfaites!");break}console.log(`  • Demande restante: ${n.join(", ")}`);let h=null,u=-1/0,p=-1;for(let t=0;t<e.length;t++){const n=e[t];if((c.get(t)||0)>=(r.get(t)||0))continue;let i=0,s=!1;const a={};for(const e of n.pieces)a[e]=(a[e]||0)+1;for(const[e,t]of Object.entries(a)){const n=parseInt(e,10),a=o.get(n)||0;a>0&&(s=!0,i+=Math.min(t,a)*n)}let l=!0,d=0,m=0,f=!1;for(const[e,t]of Object.entries(a)){const n=parseInt(e,10),i=o.get(n)||0;t>i&&(d+=1,m+=t-i,0===i&&(f=!0,l=!1))}l?i-=2*n.waste+15*d+10*m+(f?200:0):i=-1e3,s&&i>u&&(u=i,h=n,p=t)}if(null===h){if(h=f(o,t),p=e.length,!h){console.warn(`⚠️ Impossible de satisfaire toute la demande à l'itération ${d}`);break}e.push(h),console.log(`Nouveau pattern généré à l'itération ${d}`)}if(h){const t=h.stockLength,n=a.get(t)||0;if(n<=0){console.log(`⚠️ Plus de barres mères de longueur ${t} disponibles`),e.splice(p,1);continue}const r=l(h,o);if(!r.hasUsablePieces){console.log("  • Pattern ignoré car aucune pièce n'est nécessaire après adaptation");continue}a.set(t,n-1);const u=`modified_${p}_${d}`,m=`pattern_${u}`;i[m]=(i[m]||0)+1,c.set(p,(c.get(p)||0)+1),h=r,e[u]=r,s.has(u)?s.set(u,s.get(u)+1):s.set(u,1),i.result++}}const h=Array.from(o.entries()).filter((([e,t])=>t>0)).map((([e,t])=>({length:e,quantity:t})));if(h.length>0){console.warn(`⚠️ ${h.length} types de pièces non satisfaites après column generation`);const e=function(e,t){console.log("Résolution des pièces restantes avec algorithme glouton");const n=new Map;for(const e of t)n.has(e.length)?n.set(e.length,n.get(e.length)+e.quantity):n.set(e.length,e.quantity);if(0===Array.from(n.values()).reduce(((e,t)=>e+t),0))return console.warn("⚠️ Plus aucune barre mère disponible pour les pièces restantes"),{feasible:!1,result:0};Array.from(n.entries()).sort(((e,t)=>t[0]-e[0]))[0][0];const i=[];for(const t of e)for(let e=0;e<t.quantity;e++)i.push(t.length);i.sort(((e,t)=>t-e));const s=[],o={feasible:!0,result:0};for(const e of i){let t=!1;for(let n=0;n<s.length;n++)if(s[n].remainingSpace>=e){s[n].pieces.push(e),s[n].remainingSpace-=e,t=!0;break}if(!t){let t=null;for(const[i,s]of n.entries())s>0&&i>=e&&(null===t||i<t)&&(t=i);if(null===t){console.warn(`⚠️ Plus de barres disponibles pour la pièce de longueur ${e}`);continue}n.set(t,n.get(t)-1),s.push({pieces:[e],remainingSpace:t-e,stockLength:t}),o.result++}}for(let e=0;e<s.length;e++)o[`pattern_extra_${e}`]=1;return o}(h,t);for(const[t,n]of Object.entries(e))"result"===t?i.result+=n:t.startsWith("pattern_")&&(i[t]=(i[t]||0)+n)}return console.log(`Column Generation terminée: ${i.result} barres utilisées`),{method:"ColumnGeneration",solution:i,patterns:e}}function f(e,t){t[0];const n=[];for(const[t,i]of e.entries())i>0&&n.push({length:parseInt(t,10),quantity:i});if(0===n.length)return null;n.sort(((e,t)=>t.length-e.length));let i=null,s=-1/0;for(const e of t){const t=e.length,o=g(n,t);if(o&&o.pieces.length>0){const e=(t-o.waste)/t;e>.5&&e>s&&(s=e,i=o,i.stockLength=t)}}return i}function g(e,t){const n=e.length,i=Array(t+1).fill(0),s=Array(t+1).fill().map((()=>[]));for(let o=0;o<n;o++){const n=e[o];for(let e=t;e>=n.length;e--)for(let t=1;t<=n.quantity;t++)if(e>=t*n.length){const o=i[e-t*n.length]+t*n.length;if(o>i[e]){i[e]=o,s[e]=[...s[e-t*n.length]];for(let i=0;i<t;i++)s[e].push(n.length)}}}const o=s[t],a=t-i[t],r={};for(const e of o)r[e]=(r[e]||0)+1;return{pieces:o,waste:a,composition:r}}function v(e,t){console.log("Utilisation de l'algorithme glouton simple");const n=new Map;for(const t of e)n.has(t.length)?n.set(t.length,n.get(t.length)+t.quantity):n.set(t.length,t.quantity);if(0===Array.from(n.values()).reduce(((e,t)=>e+t),0))return console.warn("⚠️ Aucune barre mère disponible"),{rawData:{usedBars:[],wasteLength:0,totalMotherBarsUsed:0,remainingPieces:t,motherBarLength:0},layouts:[]};const i=Array.from(n.keys()).sort(((e,t)=>t-e)),s=i[0],o=[];for(const e of t)for(let t=0;t<e.quantity;t++)o.push(e.length);o.sort(((e,t)=>t-e));const a=[];let r=-1;for(const e of o){let t=!1;for(let n=0;n<=r;n++)if(a[n].remainingSpace>=e){a[n].pieces.push(e),a[n].cuts.push(e),a[n].remainingSpace-=e,a[n].remainingLength-=e,t=!0;break}if(!t){let t=null;for(const s of i)n.get(s)>0&&s>=e&&(null===t||s<t)&&(t=s);if(null===t){console.warn(`⚠️ Plus de barres disponibles pour la pièce de longueur ${e}`);continue}n.set(t,n.get(t)-1),r++,a[r]={id:r+1,pieces:[e],remainingSpace:t-e,originalLength:t,cuts:[e],remainingLength:t-e}}}let l=0;for(const e of a)l+=e.remainingSpace;const c={};for(const e of a){const t=e.pieces.slice().sort(((e,t)=>t-e)).join(",");c[t]?c[t].count++:c[t]={count:1,pieces:e.pieces.slice().sort(((e,t)=>t-e)),waste:e.remainingSpace,totalLength:e.originalLength-e.remainingSpace,cuts:e.pieces.slice().sort(((e,t)=>t-e)),remainingLength:e.remainingSpace,originalLength:e.originalLength}}const d=Object.values(c);return d.sort(((e,t)=>t.count-e.count)),{rawData:{usedBars:a,wasteLength:l,totalMotherBarsUsed:a.length,remainingPieces:[],motherBarLength:s},layouts:d}}function b(e,t,n){const{method:i,solution:s,patterns:o}=e;if(!o||0===o.length)return{rawData:{usedBars:[],wasteLength:0,totalMotherBarsUsed:0,remainingPieces:n,motherBarLength:t.length>0?t[0].length:0},layouts:[]};console.log(`Traitement des résultats (méthode: ${i})`);const a=[],r=new Map;let l=0,c=1;for(const e of n)r.set(e.length,0);for(const[e,n]of Object.entries(s))if(e.startsWith("pattern_")&&!isNaN(n)&&n>0){let i;if(e.startsWith("pattern_extra_"))continue;i=e.startsWith("pattern_modified_")?e.replace("pattern_",""):parseInt(e.replace("pattern_",""),10);const s=o[i];if(!s){console.warn(`⚠️ Pattern ${i} non trouvé dans la collection de patterns`);continue}s.isModifiedPattern&&s.originInfo&&(console.log(`Application du pattern modifié ${i}:`),console.log(`  • Pièces d'origine: ${s.originInfo.originalPieces.join(", ")}`),console.log(`  • Pièces conservées: ${s.pieces.join(", ")}`),s.originInfo.removedPieces&&s.originInfo.removedPieces.length>0&&console.log(`  • Pièces supprimées: ${s.originInfo.removedPieces.join(", ")}`));for(let e=0;e<n;e++){const e={id:c++,pieces:[...s.pieces],waste:s.waste||0,originalLength:s.stockLength||t[0].length,cuts:[...s.pieces],remainingLength:s.waste||0};a.push(e),l+=s.waste||0;for(const e of s.pieces)r.set(e,(r.get(e)||0)+1)}}const d=[];for(const e of n){const t=r.get(e.length)||0,n=e.quantity-t;n>0&&d.push({length:e.length,quantity:n})}if(d.length>0&&("ColumnGeneration"===i||s.greedy)){console.warn(`⚠️ Il reste ${d.length} types de pièces non découpées`);const e=v(t,d);a.push(...e.rawData.usedBars),l+=e.rawData.wasteLength,d.length=0}const h={};for(const e of a){const t=e.pieces.slice().sort(((e,t)=>t-e)).join(",");h[t]?h[t].count++:h[t]={count:1,pieces:e.pieces.slice().sort(((e,t)=>t-e)),waste:e.waste||e.remainingLength||0,totalLength:e.originalLength-(e.waste||e.remainingLength||0),cuts:e.pieces.slice().sort(((e,t)=>t-e)),remainingLength:e.waste||e.remainingLength||0,originalLength:e.originalLength}}const u=Object.values(h);return u.sort(((e,t)=>t.count-e.count)),{rawData:{usedBars:a,wasteLength:l,totalMotherBarsUsed:a.length,remainingPieces:d,motherBarLength:t.length>0?t[0].length:0},layouts:u}}function y(e,t,n){let i=0,s=0,o=0,a=0,r=!1,l=!1,c=[],d=[],h=0,u=0;const p=new Map;for(const e of n)i+=e.length*e.quantity,p.set(e.length,e.quantity);for(const e of t)s+=e.length*e.quantity;if(e.layouts&&e.layouts.length>0){const t=new Map;a=0;for(const n of e.layouts){const e=n.count||1,i=n.cuts||n.pieces||[];for(const n of i){const i=t.get(n)||0;t.set(n,i+e)}o+=i.reduce(((e,t)=>e+t),0)*e,a+=(n.remainingLength||n.waste||0)*e}for(const[e,n]of t.entries()){const t=n-(p.get(e)||0);t>0?(r=!0,h+=t,c.push(`${t} pièces de longueur ${e}`)):t<0&&(l=!0,u+=Math.abs(t),d.push(`${Math.abs(t)} pièces de longueur ${e}`))}r&&console.warn(`⚠️ SURPRODUCTION: ${h} pièces au total`),l&&console.warn(`⚠️ PRODUCTION INCOMPLÈTE: ${u} pièces manquantes`)}return{totalDemandLength:i,totalStockLength:s,totalUsedLength:o,totalWasteLength:a,utilizationRate:s>0?((s-a)/s*100).toFixed(3):0,overproductionDetails:r?c.join(", "):null,underproductionDetails:l?d.join(", "):null,hasOverproduction:r,hasUnderproduction:l,totalOverproduced:h,totalUnderproduced:u}}const x={solveGreedyFFD:function(e,t){const n={};let i={totalBarsUsed:0,totalWaste:0,totalRemainingPieces:0};for(const s in t){if(0===t[s].length||!e[s]||0===e[s].length)continue;const a={rawData:{usedBars:[],wasteLength:0,totalMotherBarsUsed:0,remainingPieces:[],motherBarLength:0},layouts:[],availableStock:{totalBars:0,bars:[]}};a.availableStock.bars=e[s].map((e=>({model:s,length:e.length,quantity:e.quantity})));const r=e[s][0].length;a.rawData.motherBarLength=r;let l=0;e[s].forEach((e=>{l+=e.quantity,a.availableStock.totalBars+=e.quantity}));const c=[];t[s].forEach((e=>{for(let t=0;t<e.quantity;t++)c.push(e.length)})),c.sort(((e,t)=>t-e));const d=[];let h=-1;for(const e of c){let t=!1;for(let n=0;n<=h;n++)if(d[n].remainingLength>=e){d[n].cuts.push(e),d[n].remainingLength-=e,t=!0;break}t||(l>0?(h++,l--,d.push({barId:h+1,cuts:[e],remainingLength:r-e,originalLength:r,model:s})):a.rawData.remainingPieces.push(e))}let u=0;d.forEach((e=>{u+=e.remainingLength})),a.rawData.usedBars=d,a.rawData.wasteLength=u,a.rawData.totalMotherBarsUsed=d.length,a.stats=o(a,e[s],t[s]),i.totalBarsUsed+=d.length,i.totalWaste+=u,i.totalRemainingPieces+=a.rawData.remainingPieces.length;const p={};d.forEach((e=>{const t=[...e.cuts].sort(((e,t)=>t-e)),n=t.join(",")+"_"+e.remainingLength;p[n]?p[n].count++:p[n]={pattern:e,count:1,pieces:t,cuts:t,waste:e.remainingLength||0,remainingLength:e.remainingLength||0,originalLength:e.originalLength,totalLength:e.originalLength-(e.remainingLength||0)}}));const m=Object.values(p);m.sort(((e,t)=>t.count-e.count)),a.layouts=m,console.log(`📊 Modèle ${s}: ${d.length} barres utilisées, taux d'utilisation: ${a.stats.utilizationRate}%`),n[s]=a}let s=0,a=0,r=0,l=0;for(const e in n){const t=n[e].stats;t&&(s+=t.totalStockLength||0,a+=t.totalDemandLength||0,r+=t.totalUsedLength||0,l+=t.totalWasteLength||0)}return i.statistics={totalStockLength:s,totalDemandLength:a,totalUsedLength:r,totalWasteLength:l,utilizationRate:s>0?((s-l)/s*100).toFixed(3):0},console.log(`📈 GLOBAL: ${i.totalBarsUsed} barres utilisées, taux d'utilisation: ${i.statistics.utilizationRate}%`),{modelResults:n,globalStats:i}},solveWithILP:function(e,t,n=()=>{}){if(void 0===r())throw new Error("Le solveur jsLPSolver n'est pas défini. Assurez-vous qu'il est correctement importé.");const i={},s={totalBarsUsed:0,totalWaste:0,totalRemainingPieces:0};console.log("Début de l'exécution ILP optimisée");for(const o in t){if(0===t[o].length||!e[o]||0===e[o].length)continue;n({step:`Traitement du modèle ${o}`,percentage:10});const a={rawData:{usedBars:[],wasteLength:0,totalMotherBarsUsed:0,remainingPieces:[],motherBarLength:0},layouts:[]};try{console.log(`Optimisation du modèle ${o}`);const i=c(e[o]),r=d(t[o]);if(0===r.length){console.log(`Modèle ${o} : aucune pièce à découper`);continue}if(0===i.length){console.log(`Modèle ${o} : aucune barre mère disponible`);continue}n({step:`Génération des patterns pour ${o}`,percentage:30});const l=h(i,r);console.log(`${l.length} patterns générés pour le modèle ${o}`),n({step:`Résolution ILP pour ${o}`,percentage:70});const u=b(p(i,r,l),i,r);s.totalBarsUsed+=u.rawData.totalMotherBarsUsed,s.totalWaste+=u.rawData.wasteLength,s.totalRemainingPieces+=u.rawData.remainingPieces.length,a.rawData=u.rawData,a.layouts=u.layouts,console.log(`Modèle ${o} traité : ${u.rawData.totalMotherBarsUsed} barres utilisées`),u.rawData.remainingPieces.length>0&&console.warn(`⚠️ ${u.rawData.remainingPieces.length} pièces non découpées pour le modèle ${o}`)}catch(n){console.error(`Erreur lors du traitement du modèle ${o}:`,n);const i=v(c(e[o]),d(t[o]));a.rawData=i.rawData,a.layouts=i.layouts,s.totalBarsUsed+=i.rawData.totalMotherBarsUsed,s.totalWaste+=i.rawData.wasteLength,s.totalRemainingPieces+=i.rawData.remainingPieces.length,console.warn(`⚠️ Utilisation de l'algorithme de secours pour le modèle ${o}`)}const r=y(a,c(e[o]),d(t[o]));console.log(`📊 Modèle ${o}: ${a.rawData.totalMotherBarsUsed} barres utilisées, taux d'utilisation: ${r.utilizationRate}%`),i[o]={...a,stats:r},n({step:`Modèle ${o} terminé`,percentage:100})}const o={totalDemandLength:0,totalStockLength:0,totalUsedLength:0,totalWasteLength:0};for(const e in i)i[e].stats&&(o.totalDemandLength+=i[e].stats.totalDemandLength,o.totalStockLength+=i[e].stats.totalStockLength,o.totalUsedLength+=i[e].stats.totalUsedLength,o.totalWasteLength+=i[e].stats.totalWasteLength);return o.utilizationRate=o.totalStockLength>0?((o.totalStockLength-o.totalWasteLength)/o.totalStockLength*100).toFixed(3):0,console.log(`📈 GLOBAL: ${s.totalBarsUsed} barres utilisées, taux d'utilisation: ${o.utilizationRate}%`),{modelResults:i,globalStats:{...s,statistics:o}}}};document.addEventListener("DOMContentLoaded",(()=>{const e=s.initData();t.init(e),window.appData=e}))})()})();</script></body></html>
