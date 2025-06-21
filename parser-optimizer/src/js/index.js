@@ -1,24 +1,43 @@
 import '../css/style.css';
 import { DataManager } from './data-manager.js';
-import { UIComponents } from './ui-components.js';
-import { AlgorithmHandler } from './algorithm-handler.js';
+import { UIController } from './ui-controller.js';
+import { AlgorithmService } from './algorithm-service.js';
+import { ResultsRenderer } from './results-renderer.js';
 import { solveGreedyFFD } from './algorithms/First-Fit-Decreasing.js';
 import { solveWithILP } from './algorithms/Integer-Linear-Programming.js';
 
-// Exporter les algorithmes pour le gestionnaire d'algorithmes
+// Export algorithms for the algorithm service
 export const algorithms = {
   solveGreedyFFD,
   solveWithILP
 };
 
-// Initialisation au chargement du DOM
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialiser le DataManager avec des données vides
-  const data = DataManager.initData();
+  // Initialize services
+  const dataManager = DataManager;
+  const algorithmService = AlgorithmService;
+  const resultsRenderer = ResultsRenderer;
   
-  // Initialiser l'interface utilisateur
-  UIComponents.init(data);
+  // Initialize data
+  const data = dataManager.initData();
   
-  // Exposer les données pour le débogage
-  window.appData = data;
+  // Initialize UI with dependencies
+  UIController.init({
+    dataManager,
+    algorithmService,
+    resultsRenderer,
+    data
+  });
+  
+  // Expose data for debugging
+  if (process.env.NODE_ENV !== 'production') {
+    window.appData = data;
+    window.debug = {
+      dataManager,
+      algorithmService,
+      resultsRenderer,
+      uiController: UIController
+    };
+  }
 });
