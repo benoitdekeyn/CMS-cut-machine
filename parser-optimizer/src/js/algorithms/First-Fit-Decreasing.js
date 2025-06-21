@@ -163,6 +163,7 @@ export function solveGreedyFFD(motherBars, pieces) {
     let totalDemandLength = 0;
     let totalUsedLength = 0;
     let totalWasteLength = 0;
+    let totalBarsLength = 0;
     
     for (const model in results) {
         const modelStats = results[model].stats;
@@ -172,6 +173,10 @@ export function solveGreedyFFD(motherBars, pieces) {
             totalUsedLength += modelStats.totalUsedLength || 0;
             totalWasteLength += modelStats.totalWasteLength || 0;
         }
+        
+        if (results[model].rawData && results[model].rawData.usedBars) {
+            totalBarsLength += results[model].rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0);
+        }
     }
     
     // Ajouter les statistiques globales
@@ -180,7 +185,7 @@ export function solveGreedyFFD(motherBars, pieces) {
         totalDemandLength,
         totalUsedLength,
         totalWasteLength,
-        utilizationRate: totalStockLength > 0 ? (((totalStockLength - totalWasteLength) / totalStockLength) * 100).toFixed(3) : 0
+        utilizationRate: totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3) : 0
     };
     
     // Afficher uniquement une ligne de statistique importante globale
@@ -265,6 +270,17 @@ function calculateModelStats(modelResult, stockBars, demandPieces) {
                 underproductionDetails.push(`${Math.abs(diff)} pièces de longueur ${pieceLength}`);
             }
         }
+
+        // Calculer la longueur totale utilisée par les barres mères
+        const totalBarsLength = modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0);
+        
+        // CORRECTION: Ne pas recalculer totalUsedLength et totalWasteLength ici
+        // Il y avait une référence à une variable 'pieces' non définie
+        // Suppression des deux lignes suivantes qui sont erronées:
+        // totalUsedLength = pieces.reduce((sum, piece) => sum + piece, 0);
+        // totalWasteLength = wasteLength;
+        
+        // Le taux d'utilisation est déjà calculé correctement par la valeur accumulée de totalUsedLength
     }
 
     return {
@@ -272,7 +288,10 @@ function calculateModelStats(modelResult, stockBars, demandPieces) {
         totalStockLength,
         totalUsedLength,
         totalWasteLength,
-        utilizationRate: totalStockLength > 0 ? (((totalStockLength - totalWasteLength) / totalStockLength) * 100).toFixed(3) : 0,
+        // Le taux d'utilisation est déjà calculé correctement ici
+        utilizationRate: totalUsedLength > 0 && modelResult.rawData.usedBars.length > 0 
+            ? ((totalUsedLength / modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0)) * 100).toFixed(3) 
+            : 0,
         overproductionDetails: hasOverproduction ? overproductionDetails.join(', ') : null,
         underproductionDetails: hasUnderproduction ? underproductionDetails.join(', ') : null,
         hasOverproduction,

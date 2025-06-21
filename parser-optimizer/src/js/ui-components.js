@@ -25,6 +25,24 @@ export const UIComponents = {
                 // Show corresponding section
                 const sectionId = btn.dataset.section;
                 
+                // Validation des données lors du passage à l'onglet optimizer
+                if (sectionId === 'optimize-section') {
+                    // Vérifier si nous avons des données à traiter
+                    const data = DataManager.getData();
+                    
+                    if (Object.keys(data.pieces).length === 0) {
+                        alert("Veuillez d'abord ajouter des pièces à découper.");
+                        // Rester sur l'onglet actuel
+                        return;
+                    }
+                    
+                    if (Object.keys(data.motherBars).length === 0) {
+                        alert("Veuillez définir des barres mères avant de continuer.");
+                        // Rester sur l'onglet actuel
+                        return;
+                    }
+                }
+                
                 document.querySelectorAll('.content-section').forEach(section => {
                     section.classList.remove('active');
                 });
@@ -172,18 +190,22 @@ export const UIComponents = {
     },
 
     setupAlgorithmButtons: function(data) {
-        // Single algorithm buttons
+        // First Fit Decreasing algorithm button
         document.getElementById('run-ffd-btn').addEventListener('click', () => {
-            AlgorithmHandler.runAlgorithm('greedy', DataManager.getData());
+            const resultsSection = document.getElementById('result-section');
+            AlgorithmHandler.runAlgorithm('greedy', DataManager.getData(), resultsSection);
         });
 
+        // ILP algorithm button
         document.getElementById('run-ilp-btn').addEventListener('click', () => {
-            AlgorithmHandler.runAlgorithm('ilp', DataManager.getData());
+            const resultsSection = document.getElementById('result-section');
+            AlgorithmHandler.runAlgorithm('ilp', DataManager.getData(), resultsSection);
         });
         
-        // Compare button
+        // Add compare button event listener
         document.getElementById('run-compare-btn').addEventListener('click', () => {
-            AlgorithmHandler.runAlgorithm('compare', DataManager.getData());
+            const resultsSection = document.getElementById('result-section');
+            AlgorithmHandler.runAlgorithm('compare', DataManager.getData(), resultsSection);
         });
     },
 

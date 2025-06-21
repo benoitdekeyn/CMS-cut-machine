@@ -221,7 +221,8 @@ export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
         totalDemandLength: 0,
         totalStockLength: 0,
         totalUsedLength: 0,
-        totalWasteLength: 0
+        totalWasteLength: 0,
+        totalBarsLength: 0  // Ajouter cette ligne
     };
     
     for (const model in results) {
@@ -230,12 +231,19 @@ export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
             globalStatistics.totalStockLength += results[model].stats.totalStockLength;
             globalStatistics.totalUsedLength += results[model].stats.totalUsedLength;
             globalStatistics.totalWasteLength += results[model].stats.totalWasteLength;
+            
+            // Ajouter le calcul de la longueur totale des barres
+            if (results[model].rawData && results[model].rawData.usedBars) {
+                globalStatistics.totalBarsLength += results[model].rawData.usedBars.reduce(
+                    (sum, bar) => sum + bar.originalLength, 0
+                );
+            }
         }
     }
     
-    // Calculer le taux d'utilisation global basé sur les chutes
-    globalStatistics.utilizationRate = globalStatistics.totalStockLength > 0 
-        ? (((globalStatistics.totalStockLength - globalStatistics.totalWasteLength) / globalStatistics.totalStockLength) * 100).toFixed(3) 
+    // Calculer le taux d'utilisation global basé sur le ratio correct
+    globalStatistics.utilizationRate = globalStatistics.totalBarsLength > 0 
+        ? ((globalStatistics.totalUsedLength / globalStatistics.totalBarsLength) * 100).toFixed(3) 
         : 0;
     
     // Afficher uniquement une ligne de statistique importante globale
@@ -1637,6 +1645,15 @@ function calculateModelStats(modelResult, stockBars, demandPieces) {
             totalWasteLength += wasteLength * count;
         }
         
+        // Calculer la longueur totale des barres utilisées
+        let totalBarsLength = 0;
+        if (modelResult.rawData && modelResult.rawData.usedBars) {
+            totalBarsLength = modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0);
+        }
+        
+        // Le taux d'utilisation correct est:
+        const correctUtilizationRate = totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3) : 0;
+        
         // Vérifier s'il y a une surproduction
         for (const [pieceLength, cutCount] of cutPiecesByLength.entries()) {
             const demandCount = demandByPieceLength.get(pieceLength) || 0;
@@ -1668,7 +1685,10 @@ function calculateModelStats(modelResult, stockBars, demandPieces) {
         totalStockLength,
         totalUsedLength,
         totalWasteLength,
-        utilizationRate: totalStockLength > 0 ? (((totalStockLength - totalWasteLength) / totalStockLength) * 100).toFixed(3) : 0,
+        // Correction du calcul du taux d'utilisation
+        utilizationRate: totalUsedLength > 0 && modelResult.rawData && modelResult.rawData.usedBars && modelResult.rawData.usedBars.length > 0 
+            ? ((totalUsedLength / modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0)) * 100).toFixed(3) 
+            : 0,
         overproductionDetails: hasOverproduction ? overproductionDetails.join(', ') : null,
         underproductionDetails: hasUnderproduction ? underproductionDetails.join(', ') : null,
         hasOverproduction,

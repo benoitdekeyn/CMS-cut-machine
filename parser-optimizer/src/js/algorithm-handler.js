@@ -157,11 +157,11 @@ export const AlgorithmHandler = {
         }, 100);
     },
 
-    // Nouvelle fonction pour comparer les résultats et sélectionner le meilleur
+    // Fonction corrigée pour comparer les résultats et sélectionner le meilleur
     compareAndSelectBest: function(ffdResults, ilpResults) {
         console.log("Comparaison des résultats des deux algorithmes");
         
-        // Extraire les efficacités globales
+        // Utiliser directement les valeurs d'efficacité déjà calculées correctement par les algorithmes
         const ffdEfficiency = parseFloat(ffdResults.globalStats.statistics.utilizationRate);
         const ilpEfficiency = parseFloat(ilpResults.globalStats.statistics.utilizationRate);
         

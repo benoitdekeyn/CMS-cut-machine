@@ -6,6 +6,8 @@
     "start": "webpack serve --mode development",
     "build": "webpack --mode production && mv dist/index.html ../parser-optimizer.html && rm -rf dist",
     "build:dev": "webpack --mode development",
+    "watch": "webpack --watch --mode development",
+    "watch:prod": "webpack --watch --mode production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
