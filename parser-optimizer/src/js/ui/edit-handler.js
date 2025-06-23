@@ -69,7 +69,7 @@ export const EditHandler = {
         const id = button.getAttribute('data-id');
         if (this.dataManager.deletePiece(id)) {
           this.renderPiecesTable();
-          this.showNotification(`Pièce supprimée`, 'success');
+          // Suppression de la notification de succès
         }
       });
     });
@@ -126,7 +126,7 @@ export const EditHandler = {
         const id = button.getAttribute('data-id');
         if (this.dataManager.deleteMotherBar(id)) {
           this.renderStockBarsTable();
-          this.showNotification(`Barre mère supprimée`, 'success');
+          // Suppression de la notification de succès
         }
       });
     });
@@ -247,9 +247,10 @@ export const EditHandler = {
         if (this.dataManager.addBars([barData]).length > 0) {
           this.renderStockBarsTable();
           modal.classList.add('hidden');
-          this.showNotification(`Barre mère ajoutée`, 'success');
+          // Suppression de la notification de succès
         }
       } else {
+        // Garde la notification d'erreur
         this.showNotification('Valeurs incorrectes', 'warning');
       }
     });

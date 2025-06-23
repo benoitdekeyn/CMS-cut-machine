@@ -84,6 +84,7 @@ export const ImportHandler = {
         if (addedIds.length > 0) {
           // Passer à la section d'édition
           this.navigateToSection('edit-section');
+          // Pas de notification de succès
         } else {
           this.showError('Aucune nouvelle pièce ajoutée.');
         }

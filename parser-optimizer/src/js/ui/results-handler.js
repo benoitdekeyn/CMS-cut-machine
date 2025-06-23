@@ -100,7 +100,7 @@ export const ResultsHandler = {
       // Télécharger le ZIP
       UIUtils.downloadFile(blob, 'pgm_files.zip', 'application/zip');
       
-      this.showNotification('Fichiers PGM téléchargés avec succès', 'success');
+      // Suppression de la notification de succès
     } catch (error) {
       console.error('Error generating PGM files:', error);
       this.showNotification(`Erreur lors de la génération des fichiers PGM: ${error.message}`, 'error');
