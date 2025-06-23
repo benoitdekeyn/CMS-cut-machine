@@ -176,6 +176,8 @@
 /* Formulaires */
 .form-group {
   margin-bottom: 1rem;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .form-group label {

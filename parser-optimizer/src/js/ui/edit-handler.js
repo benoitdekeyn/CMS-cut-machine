@@ -81,9 +81,9 @@ export const EditHandler = {
         <tr data-id="${piece.id}">
           <td>${piece.profileFull || piece.model}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
-          <td>${piece.length}</td>
-          <td>${piece.angles?.start || 90}°</td>
-          <td>${piece.angles?.end || 90}°</td>
+          <td>${Math.round(piece.length)}</td>
+          <td>${parseFloat(piece.angles?.start || 90).toFixed(2)}°</td>
+          <td>${parseFloat(piece.angles?.end || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-piece-btn" 
@@ -167,7 +167,7 @@ export const EditHandler = {
       html += `
         <tr data-id="${bar.id}">
           <td>${bar.profileFull || bar.model}</td>
-          <td>${bar.length}</td>
+          <td>${Math.round(bar.length)}</td>
           <td>${bar.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-stock-btn" 
@@ -254,7 +254,7 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-length">Longueur :</label>
-          <input type="number" id="piece-length" min="1" step="0.1" value="${item.length}">
+          <input type="number" id="piece-length" min="1" step="1" value="${Math.round(item.length)}">
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
@@ -262,11 +262,11 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-angle-start">Angle début (°) :</label>
-          <input type="number" id="piece-angle-start" min="0" max="360" value="${item.angles?.start || 90}">
+          <input type="number" id="piece-angle-start" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.start || 90).toFixed(2)}">
         </div>
         <div class="form-group">
           <label for="piece-angle-end">Angle fin (°) :</label>
-          <input type="number" id="piece-angle-end" min="0" max="360" value="${item.angles?.end || 90}">
+          <input type="number" id="piece-angle-end" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.end || 90).toFixed(2)}">
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -319,7 +319,7 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-length">Longueur :</label>
-          <input type="number" id="piece-length" min="1" step="0.1">
+          <input type="number" id="piece-length" min="1" step="1">
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
@@ -327,11 +327,11 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-angle-start">Angle début (°) :</label>
-          <input type="number" id="piece-angle-start" min="0" max="360" value="90">
+          <input type="number" id="piece-angle-start" min="0" max="360" step="0.01" value="90.00">
         </div>
         <div class="form-group">
           <label for="piece-angle-end">Angle fin (°) :</label>
-          <input type="number" id="piece-angle-end" min="0" max="360" value="90">
+          <input type="number" id="piece-angle-end" min="0" max="360" step="0.01" value="90.00">
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -396,7 +396,7 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="stock-length">Longueur :</label>
-          <input type="number" id="stock-length" min="1" step="0.1" value="${item.length}">
+          <input type="number" id="stock-length" min="1" step="1" value="${Math.round(item.length)}">
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -416,7 +416,7 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="stock-length">Longueur :</label>
-          <input type="number" id="stock-length" min="1" step="0.1">
+          <input type="number" id="stock-length" min="1" step="1">
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -429,7 +429,7 @@ export const EditHandler = {
     panel.classList.add('visible');
     overlay.classList.add('visible');
   },
-  
+
   /**
    * Ferme le panneau d'édition actif
    */
@@ -462,10 +462,12 @@ export const EditHandler = {
     
     if (type === 'piece') {
       const profileValue = document.getElementById('piece-profile').value;
-      const length = parseFloat(document.getElementById('piece-length').value);
+      // Arrondir la longueur à l'entier
+      const length = Math.round(parseFloat(document.getElementById('piece-length').value));
       const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      const angleStart = parseInt(document.getElementById('piece-angle-start').value, 10);
-      const angleEnd = parseInt(document.getElementById('piece-angle-end').value, 10);
+      // Limiter les angles à 2 décimales
+      const angleStart = parseFloat(parseFloat(document.getElementById('piece-angle-start').value).toFixed(2));
+      const angleEnd = parseFloat(parseFloat(document.getElementById('piece-angle-end').value).toFixed(2));
       const orientation = document.getElementById('piece-orientation').value;
       
       if (profileValue && length && quantity) {
@@ -484,8 +486,8 @@ export const EditHandler = {
             quantity,
             orientation,
             angles: {
-              start: angleStart || 90,
-              end: angleEnd || 90
+              start: angleStart,
+              end: angleEnd
             }
           };
           
@@ -499,8 +501,8 @@ export const EditHandler = {
             type: 'fille',
             orientation,
             angles: {
-              start: angleStart || 90,
-              end: angleEnd || 90
+              start: angleStart,
+              end: angleEnd
             }
           };
           
@@ -521,7 +523,8 @@ export const EditHandler = {
       }
     } else if (type === 'stock') {
       const profileValue = document.getElementById('stock-profile').value;
-      const length = parseFloat(document.getElementById('stock-length').value);
+      // Arrondir la longueur à l'entier
+      const length = Math.round(parseFloat(document.getElementById('stock-length').value));
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
       if (profileValue && length && quantity) {
