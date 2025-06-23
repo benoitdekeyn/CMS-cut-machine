@@ -381,3 +381,98 @@
   justify-content: flex-end;
   gap: 0.75rem;
 }
+
+/* Styles pour les panneaux latéraux */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 950;
+  display: none;
+}
+
+.panel-overlay.visible {
+  display: block;
+}
+
+.side-panel {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 35%;
+  max-width: 450px;
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  z-index: 960;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Panneau des barres filles - entre par la droite */
+.piece-panel {
+  right: 0;
+  transform: translateX(100%);
+}
+
+.piece-panel.visible {
+  transform: translateX(0);
+}
+
+/* Panneau des barres mères - entre par la gauche */
+.stock-panel {
+  left: 0;
+  transform: translateX(-100%);
+}
+
+.stock-panel.visible {
+  transform: translateX(0);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.panel-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.panel-form {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.panel-actions {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .side-panel {
+    width: 85%;
+    max-width: none;
+  }
+}

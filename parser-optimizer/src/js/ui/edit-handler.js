@@ -9,6 +9,7 @@ export const EditHandler = {
   // État interne
   editingId: null,
   editingType: null,
+  editingMode: null, // 'edit' ou 'create'
   
   /**
    * Initialise le handler d'édition
@@ -17,8 +18,9 @@ export const EditHandler = {
     this.dataManager = options.dataManager;
     this.showNotification = options.showNotification;
     
-    // Créer le panneau latéral d'édition s'il n'existe pas
-    this.createEditSidebar();
+    // Créer les panneaux latéraux s'ils n'existent pas
+    this.createPiecePanel();
+    this.createStockPanel();
   },
   
   /**
@@ -27,8 +29,6 @@ export const EditHandler = {
   renderSection: function() {
     this.renderPiecesTable();
     this.renderStockBarsTable();
-    this.initAddMotherBarModal();
-    this.initAddPieceModal();
   },
   
   /**
@@ -122,13 +122,13 @@ export const EditHandler = {
     tableContainer.querySelectorAll('.edit-piece-btn').forEach(button => {
       button.addEventListener('click', () => {
         const id = button.getAttribute('data-id');
-        this.openEditSidebar('piece', id);
+        this.openPiecePanel('edit', id);
       });
     });
     
     // Ajouter le gestionnaire pour le bouton d'ajout de pièce
     document.getElementById('add-piece-btn').addEventListener('click', () => {
-      document.getElementById('add-piece-modal').classList.remove('hidden');
+      this.openPiecePanel('create');
     });
   },
   
@@ -206,205 +206,310 @@ export const EditHandler = {
     tableContainer.querySelectorAll('.edit-stock-btn').forEach(button => {
       button.addEventListener('click', () => {
         const id = button.getAttribute('data-id');
-        this.openEditSidebar('stock', id);
+        this.openStockPanel('edit', id);
       });
     });
     
     // Ajouter le gestionnaire pour le bouton d'ajout
     document.getElementById('add-mother-bar-btn').addEventListener('click', () => {
-      document.getElementById('add-mother-bar-modal').classList.remove('hidden');
+      this.openStockPanel('create');
     });
   },
   
   /**
-   * Ouvre le panneau latéral d'édition
-   * @param {string} type - Type d'élément ('piece' ou 'stock')
-   * @param {string} id - ID de l'élément à éditer
+   * Ouvre le panneau des barres filles (édition ou création)
+   * @param {string} mode - Mode du panneau ('edit' ou 'create')
+   * @param {string} id - ID de la pièce à éditer (seulement en mode 'edit')
    */
-  openEditSidebar: function(type, id) {
-    this.editingType = type;
+  openPiecePanel: function(mode, id = null) {
+    this.editingMode = mode;
     this.editingId = id;
+    this.editingType = 'piece';
     
-    const sidebar = document.getElementById('edit-sidebar');
-    const overlay = document.getElementById('edit-sidebar-overlay');
-    const form = sidebar.querySelector('.edit-form');
+    const panel = document.getElementById('piece-panel');
+    const overlay = document.getElementById('panel-overlay');
+    const form = panel.querySelector('.panel-form');
+    const title = panel.querySelector('.panel-title');
     
     // Vider le formulaire
     form.innerHTML = '';
     
-    // Définir la position du panneau
-    sidebar.className = 'edit-form-sidebar';
-    sidebar.classList.add(type); // Ajoute la classe 'piece' ou 'stock'
-    
-    let item = null;
-    
-    // Récupérer l'élément à éditer
-    if (type === 'piece') {
-      item = this.dataManager.getPieceById(id);
+    if (mode === 'edit') {
+      const item = this.dataManager.getPieceById(id);
+      if (!item) return;
       
-      if (item) {
-        const title = sidebar.querySelector('.edit-form-title');
-        title.textContent = `Éditer la barre ${item.profileFull || item.model}`;
-        
-        // Générer le formulaire pour une barre fille
-        form.innerHTML = `
-          <div class="form-group">
-            <label for="edit-piece-profile">Profil :</label>
-            <div class="profile-input-group">
-              <select id="edit-piece-profile-select">
-                <option value="custom">Saisie personnalisée</option>
-                ${this.getProfileOptions(item.model)}
-              </select>
-              <input type="text" id="edit-piece-profile" 
-                     value="${item.profileFull || item.model}">
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="edit-piece-length">Longueur :</label>
-            <input type="number" id="edit-piece-length" min="1" step="0.1"
-                   value="${item.length}">
-          </div>
-          <div class="form-group">
-            <label for="edit-piece-quantity">Quantité :</label>
-            <input type="number" id="edit-piece-quantity" min="1"
-                   value="${item.quantity}">
-          </div>
-          <div class="form-group">
-            <label for="edit-piece-angle-start">Angle début (°) :</label>
-            <input type="number" id="edit-piece-angle-start" min="0" max="360"
-                   value="${item.angles?.start || 90}">
-          </div>
-          <div class="form-group">
-            <label for="edit-piece-angle-end">Angle fin (°) :</label>
-            <input type="number" id="edit-piece-angle-end" min="0" max="360"
-                   value="${item.angles?.end || 90}">
-          </div>
-          <div class="form-group">
-            <label for="edit-piece-orientation">Orientation :</label>
-            <select id="edit-piece-orientation">
-              <option value="a-plat" ${item.orientation === 'a-plat' ? 'selected' : ''}>À plat</option>
-              <option value="debout" ${item.orientation === 'debout' ? 'selected' : ''}>Debout</option>
+      title.textContent = `Éditer la barre ${item.profileFull || item.model}`;
+      
+      // Générer le formulaire d'édition
+      form.innerHTML = `
+        <div class="form-group">
+          <label for="piece-profile">Profil :</label>
+          <div class="profile-input-group">
+            <select id="piece-profile-select">
+              <option value="custom">Saisie personnalisée</option>
+              ${this.getProfileOptions(item.profileFull)}
             </select>
+            <input type="text" id="piece-profile" value="${item.profileFull || item.model}">
           </div>
-        `;
-        
-        // Initialiser les contrôles spécifiques
-        const profileSelect = document.getElementById('edit-piece-profile-select');
-        const profileInput = document.getElementById('edit-piece-profile');
-        
-        profileSelect.addEventListener('change', () => {
-          if (profileSelect.value === 'custom') {
-            profileInput.removeAttribute('readonly');
-            profileInput.focus();
-          } else {
-            profileInput.value = profileSelect.value;
-            profileInput.setAttribute('readonly', 'readonly');
-          }
-        });
-        
-        // Si le profil actuel n'est pas dans la liste, sélectionner "custom"
-        const matchingOption = Array.from(profileSelect.options)
-          .find(option => option.value === item.profileFull);
-          
-        if (!matchingOption) {
-          profileSelect.value = 'custom';
+        </div>
+        <div class="form-group">
+          <label for="piece-length">Longueur :</label>
+          <input type="number" id="piece-length" min="1" step="0.1" value="${item.length}">
+        </div>
+        <div class="form-group">
+          <label for="piece-quantity">Quantité :</label>
+          <input type="number" id="piece-quantity" min="1" value="${item.quantity}">
+        </div>
+        <div class="form-group">
+          <label for="piece-angle-start">Angle début (°) :</label>
+          <input type="number" id="piece-angle-start" min="0" max="360" value="${item.angles?.start || 90}">
+        </div>
+        <div class="form-group">
+          <label for="piece-angle-end">Angle fin (°) :</label>
+          <input type="number" id="piece-angle-end" min="0" max="360" value="${item.angles?.end || 90}">
+        </div>
+        <div class="form-group">
+          <label for="piece-orientation">Orientation :</label>
+          <select id="piece-orientation">
+            <option value="a-plat" ${item.orientation === 'a-plat' ? 'selected' : ''}>À plat</option>
+            <option value="debout" ${item.orientation === 'debout' ? 'selected' : ''}>Debout</option>
+          </select>
+        </div>
+      `;
+      
+      // Initialiser les contrôles spécifiques
+      const profileSelect = document.getElementById('piece-profile-select');
+      const profileInput = document.getElementById('piece-profile');
+      
+      profileSelect.addEventListener('change', () => {
+        if (profileSelect.value === 'custom') {
           profileInput.removeAttribute('readonly');
+          profileInput.focus();
         } else {
-          profileSelect.value = item.profileFull;
+          profileInput.value = profileSelect.value;
           profileInput.setAttribute('readonly', 'readonly');
         }
-      }
-    } else if (type === 'stock') {
-      item = this.dataManager.getMotherBarById(id);
+      });
       
-      if (item) {
-        const title = sidebar.querySelector('.edit-form-title');
-        title.textContent = `Éditer la barre mère ${item.profileFull || item.model}`;
+      // Si le profil actuel n'est pas dans la liste, sélectionner "custom"
+      const matchingOption = Array.from(profileSelect.options)
+        .find(option => option.value === item.profileFull);
         
-        // Générer le formulaire pour une barre mère
-        form.innerHTML = `
-          <div class="form-group">
-            <label for="edit-stock-profile">Profil :</label>
-            <select id="edit-stock-profile">
-              ${this.getProfileOptions(item.model)}
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="edit-stock-length">Longueur :</label>
-            <input type="number" id="edit-stock-length" min="1" step="0.1"
-                   value="${item.length}">
-          </div>
-          <div class="form-group">
-            <label for="edit-stock-quantity">Quantité :</label>
-            <input type="number" id="edit-stock-quantity" min="1"
-                   value="${item.quantity}">
-          </div>
-        `;
+      if (!matchingOption) {
+        profileSelect.value = 'custom';
+        profileInput.removeAttribute('readonly');
+      } else {
+        profileSelect.value = item.profileFull;
+        profileInput.setAttribute('readonly', 'readonly');
       }
+    } else {
+      // Mode création
+      title.textContent = 'Nouvelle barre à découper';
+      
+      form.innerHTML = `
+        <div class="form-group">
+          <label for="piece-profile">Profil :</label>
+          <div class="profile-input-group">
+            <select id="piece-profile-select">
+              <option value="custom">Saisie personnalisée</option>
+              ${this.getProfileOptions()}
+            </select>
+            <input type="text" id="piece-profile" placeholder="Saisir le profil">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="piece-length">Longueur :</label>
+          <input type="number" id="piece-length" min="1" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="piece-quantity">Quantité :</label>
+          <input type="number" id="piece-quantity" min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label for="piece-angle-start">Angle début (°) :</label>
+          <input type="number" id="piece-angle-start" min="0" max="360" value="90">
+        </div>
+        <div class="form-group">
+          <label for="piece-angle-end">Angle fin (°) :</label>
+          <input type="number" id="piece-angle-end" min="0" max="360" value="90">
+        </div>
+        <div class="form-group">
+          <label for="piece-orientation">Orientation :</label>
+          <select id="piece-orientation">
+            <option value="a-plat">À plat</option>
+            <option value="debout">Debout</option>
+          </select>
+        </div>
+      `;
+      
+      // Initialiser les contrôles
+      const profileSelect = document.getElementById('piece-profile-select');
+      const profileInput = document.getElementById('piece-profile');
+      
+      profileSelect.addEventListener('change', () => {
+        if (profileSelect.value === 'custom') {
+          profileInput.removeAttribute('readonly');
+          profileInput.focus();
+        } else {
+          profileInput.value = profileSelect.value;
+          profileInput.setAttribute('readonly', 'readonly');
+        }
+      });
     }
     
     // Afficher le panneau et l'overlay
-    sidebar.classList.add('visible');
+    panel.classList.add('visible');
     overlay.classList.add('visible');
   },
   
   /**
-   * Ferme le panneau latéral d'édition
+   * Ouvre le panneau des barres mères (édition ou création)
+   * @param {string} mode - Mode du panneau ('edit' ou 'create')
+   * @param {string} id - ID de la barre à éditer (seulement en mode 'edit')
    */
-  closeEditSidebar: function() {
-    const sidebar = document.getElementById('edit-sidebar');
-    const overlay = document.getElementById('edit-sidebar-overlay');
+  openStockPanel: function(mode, id = null) {
+    this.editingMode = mode;
+    this.editingId = id;
+    this.editingType = 'stock';
     
-    sidebar.classList.remove('visible');
+    const panel = document.getElementById('stock-panel');
+    const overlay = document.getElementById('panel-overlay');
+    const form = panel.querySelector('.panel-form');
+    const title = panel.querySelector('.panel-title');
+    
+    // Vider le formulaire
+    form.innerHTML = '';
+    
+    if (mode === 'edit') {
+      const item = this.dataManager.getMotherBarById(id);
+      if (!item) return;
+      
+      title.textContent = `Éditer la barre mère ${item.profileFull || item.model}`;
+      
+      // Générer le formulaire d'édition
+      form.innerHTML = `
+        <div class="form-group">
+          <label for="stock-profile">Profil :</label>
+          <select id="stock-profile">
+            ${this.getProfileOptions(item.profileFull)}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="stock-length">Longueur :</label>
+          <input type="number" id="stock-length" min="1" step="0.1" value="${item.length}">
+        </div>
+        <div class="form-group">
+          <label for="stock-quantity">Quantité :</label>
+          <input type="number" id="stock-quantity" min="1" value="${item.quantity}">
+        </div>
+      `;
+    } else {
+      // Mode création
+      title.textContent = 'Nouvelle barre mère';
+      
+      form.innerHTML = `
+        <div class="form-group">
+          <label for="stock-profile">Profil :</label>
+          <select id="stock-profile">
+            ${this.getProfileOptions()}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="stock-length">Longueur :</label>
+          <input type="number" id="stock-length" min="1" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="stock-quantity">Quantité :</label>
+          <input type="number" id="stock-quantity" min="1" value="1000000">
+        </div>
+      `;
+    }
+    
+    // Afficher le panneau et l'overlay
+    panel.classList.add('visible');
+    overlay.classList.add('visible');
+  },
+  
+  /**
+   * Ferme le panneau d'édition actif
+   */
+  closePanel: function() {
+    const piecePanel = document.getElementById('piece-panel');
+    const stockPanel = document.getElementById('stock-panel');
+    const overlay = document.getElementById('panel-overlay');
+    
+    piecePanel.classList.remove('visible');
+    stockPanel.classList.remove('visible');
     overlay.classList.remove('visible');
     
     this.editingId = null;
     this.editingType = null;
+    this.editingMode = null;
   },
   
   /**
-   * Sauvegarde les modifications de l'élément en cours d'édition
+   * Enregistre les modifications ou crée un nouvel élément
    */
-  saveEditedItem: function() {
+  saveItem: function() {
     const type = this.editingType;
     const id = this.editingId;
+    const mode = this.editingMode;
     
-    if (!type || !id) return;
+    if (!type) return;
     
     let success = false;
     let updatedProfile = false;
     
     if (type === 'piece') {
-      const profileValue = document.getElementById('edit-piece-profile').value;
-      const length = parseFloat(document.getElementById('edit-piece-length').value);
-      const quantity = parseInt(document.getElementById('edit-piece-quantity').value, 10);
-      const angleStart = parseInt(document.getElementById('edit-piece-angle-start').value, 10);
-      const angleEnd = parseInt(document.getElementById('edit-piece-angle-end').value, 10);
-      const orientation = document.getElementById('edit-piece-orientation').value;
+      const profileValue = document.getElementById('piece-profile').value;
+      const length = parseFloat(document.getElementById('piece-length').value);
+      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
+      const angleStart = parseInt(document.getElementById('piece-angle-start').value, 10);
+      const angleEnd = parseInt(document.getElementById('piece-angle-end').value, 10);
+      const orientation = document.getElementById('piece-orientation').value;
       
       if (profileValue && length && quantity) {
-        const piece = this.dataManager.getPieceById(id);
-        
-        // Vérifier si c'est un nouveau profil
-        if (piece && piece.profileFull !== profileValue) {
-          updatedProfile = true;
+        if (mode === 'edit') {
+          const piece = this.dataManager.getPieceById(id);
+          
+          // Vérifier si c'est un nouveau profil
+          if (piece && piece.profileFull !== profileValue) {
+            updatedProfile = true;
+          }
+          
+          const updatedPiece = {
+            profileFull: profileValue,
+            model: profileValue.split(' ')[0] || profileValue,
+            length,
+            quantity,
+            orientation,
+            angles: {
+              start: angleStart || 90,
+              end: angleEnd || 90
+            }
+          };
+          
+          success = this.dataManager.updatePiece(id, updatedPiece);
+        } else {
+          const pieceData = {
+            profileFull: profileValue,
+            model: profileValue.split(' ')[0] || profileValue,
+            length,
+            quantity,
+            type: 'fille',
+            orientation,
+            angles: {
+              start: angleStart || 90,
+              end: angleEnd || 90
+            }
+          };
+          
+          if (this.dataManager.addBars([pieceData]).length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
         }
         
-        const updatedPiece = {
-          profileFull: profileValue,
-          model: profileValue.split(' ')[0] || profileValue,
-          length,
-          quantity,
-          orientation,
-          angles: {
-            start: angleStart || 90,
-            end: angleEnd || 90,
-            originalStart: piece?.angles?.originalStart,
-            originalEnd: piece?.angles?.originalEnd
-          }
-        };
-        
-        success = this.dataManager.updatePiece(id, updatedPiece);
         if (success) {
           this.renderPiecesTable();
           
@@ -415,26 +520,42 @@ export const EditHandler = {
         }
       }
     } else if (type === 'stock') {
-      const profileValue = document.getElementById('edit-stock-profile').value;
-      const length = parseFloat(document.getElementById('edit-stock-length').value);
-      const quantity = parseInt(document.getElementById('edit-stock-quantity').value, 10);
+      const profileValue = document.getElementById('stock-profile').value;
+      const length = parseFloat(document.getElementById('stock-length').value);
+      const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
       if (profileValue && length && quantity) {
-        const bar = this.dataManager.getMotherBarById(id);
-        
-        // Vérifier si c'est un nouveau profil
-        if (bar && bar.profileFull !== profileValue) {
-          updatedProfile = true;
+        if (mode === 'edit') {
+          const bar = this.dataManager.getMotherBarById(id);
+          
+          // Vérifier si c'est un nouveau profil
+          if (bar && bar.profileFull !== profileValue) {
+            updatedProfile = true;
+          }
+          
+          const updatedMotherBar = {
+            profileFull: profileValue,
+            model: profileValue.split(' ')[0] || profileValue,
+            length,
+            quantity
+          };
+          
+          success = this.dataManager.updateMotherBar(id, updatedMotherBar);
+        } else {
+          const barData = {
+            profileFull: profileValue,
+            model: profileValue.split(' ')[0] || profileValue,
+            length,
+            quantity,
+            type: 'mother'
+          };
+          
+          if (this.dataManager.addBars([barData]).length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
         }
         
-        const updatedMotherBar = {
-          profileFull: profileValue,
-          model: profileValue.split(' ')[0] || profileValue,
-          length,
-          quantity
-        };
-        
-        success = this.dataManager.updateMotherBar(id, updatedMotherBar);
         if (success) {
           this.renderStockBarsTable();
           
@@ -447,7 +568,7 @@ export const EditHandler = {
     }
     
     if (success) {
-      this.closeEditSidebar();
+      this.closePanel();
     } else {
       this.showNotification('Veuillez remplir correctement tous les champs', 'warning');
     }
@@ -457,32 +578,23 @@ export const EditHandler = {
    * Met à jour toutes les listes déroulantes de profils dans l'interface
    */
   updateAllProfileSelects: function() {
-    // Mettre à jour la liste des profils dans le modal d'ajout de barre mère
-    const motherBarSelect = document.getElementById('mother-bar-profile');
-    if (motherBarSelect) {
-      const currentValue = motherBarSelect.value;
-      motherBarSelect.innerHTML = this.getProfileOptions(currentValue);
+    // Mettre à jour la liste des profils dans le panneau d'ajout/édition de barre mère
+    const stockProfileSelect = document.getElementById('stock-profile');
+    if (stockProfileSelect) {
+      const currentValue = stockProfileSelect.value;
+      stockProfileSelect.innerHTML = this.getProfileOptions(currentValue);
     }
     
-    // Mettre à jour la liste des profils dans le modal d'ajout de barre fille
-    const pieceSelect = document.getElementById('piece-profile-select');
-    if (pieceSelect) {
-      const customOption = pieceSelect.querySelector('option[value="custom"]');
-      const currentValue = pieceSelect.value !== 'custom' ? pieceSelect.value : '';
-      pieceSelect.innerHTML = '';
+    // Mettre à jour la liste des profils dans le panneau d'ajout/édition de barre fille
+    const pieceProfileSelect = document.getElementById('piece-profile-select');
+    if (pieceProfileSelect) {
+      const customOption = pieceProfileSelect.querySelector('option[value="custom"]');
+      const currentValue = pieceProfileSelect.value !== 'custom' ? pieceProfileSelect.value : '';
       
-      // Remettre l'option "Saisie personnalisée" en premier
-      if (customOption) {
-        pieceSelect.appendChild(customOption);
-      } else {
-        const option = document.createElement('option');
-        option.value = 'custom';
-        option.textContent = 'Saisie personnalisée';
-        pieceSelect.appendChild(option);
-      }
+      // Sauvegarder l'option "Saisie personnalisée"
+      const customHtml = customOption ? customOption.outerHTML : '<option value="custom">Saisie personnalisée</option>';
       
-      // Ajouter les autres options
-      pieceSelect.innerHTML += this.getProfileOptions(currentValue);
+      pieceProfileSelect.innerHTML = customHtml + this.getProfileOptions(currentValue);
     }
   },
   
@@ -520,263 +632,92 @@ export const EditHandler = {
   },
   
   /**
-   * Initialise le modal d'ajout de barre mère
+   * Crée le panneau des barres filles
    */
-  initAddMotherBarModal: function() {
-    const modal = document.getElementById('add-mother-bar-modal');
-    
-    // Créer le modal s'il n'existe pas
-    if (!modal) {
-      this.createMotherBarModal();
-      return;
-    }
-    
-    // Fermer le modal
-    modal.querySelectorAll('.close-modal').forEach(button => {
-      button.addEventListener('click', () => modal.classList.add('hidden'));
-    });
-    
-    // Remplir la liste des profils
-    const select = document.getElementById('mother-bar-profile');
-    select.innerHTML = this.getProfileOptions();
-    
-    // Définir la quantité par défaut à 1000000
-    document.getElementById('mother-bar-quantity').value = 1000000;
-    
-    // Ajouter une barre mère
-    document.getElementById('confirm-add-mother-bar').addEventListener('click', () => {
-      const profile = select.value;
-      const length = parseFloat(document.getElementById('mother-bar-length').value);
-      const quantity = parseInt(document.getElementById('mother-bar-quantity').value, 10);
-      
-      if (profile && length && quantity) {
-        const barData = {
-          profileFull: profile,
-          model: profile.split(' ')[0] || profile,
-          length,
-          quantity,
-          type: 'mother'
-        };
-        
-        if (this.dataManager.addBars([barData]).length > 0) {
-          this.renderStockBarsTable();
-          modal.classList.add('hidden');
-          
-          // Mettre à jour les listes déroulantes de profils
-          this.updateAllProfileSelects();
-        }
-      } else {
-        this.showNotification('Valeurs incorrectes', 'warning');
-      }
-    });
-  },
-  
-  /**
-   * Initialise le modal d'ajout de pièce
-   */
-  initAddPieceModal: function() {
-    const modal = document.getElementById('add-piece-modal');
-    
-    // Créer le modal s'il n'existe pas
-    if (!modal) {
-      this.createPieceModal();
-      return;
-    }
-    
-    // Fermer le modal
-    modal.querySelectorAll('.close-modal').forEach(button => {
-      button.addEventListener('click', () => modal.classList.add('hidden'));
-    });
-    
-    // Remplir la liste des profils
-    const select = document.getElementById('piece-profile-select');
-    select.innerHTML = '<option value="custom">Saisie personnalisée</option>' + this.getProfileOptions();
-    
-    // Gérer le changement de sélection de profil
-    const profileInput = document.getElementById('piece-profile');
-    select.addEventListener('change', () => {
-      if (select.value === 'custom') {
-        profileInput.removeAttribute('readonly');
-        profileInput.value = '';
-        profileInput.focus();
-      } else {
-        profileInput.value = select.value;
-        profileInput.setAttribute('readonly', 'readonly');
-      }
-    });
-    
-    // Ajouter une pièce
-    document.getElementById('confirm-add-piece').addEventListener('click', () => {
-      const profile = profileInput.value;
-      const length = parseFloat(document.getElementById('piece-length').value);
-      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      const angleStart = parseInt(document.getElementById('piece-angle-start').value, 10);
-      const angleEnd = parseInt(document.getElementById('piece-angle-end').value, 10);
-      const orientation = document.getElementById('piece-orientation').value;
-      
-      if (profile && length && quantity) {
-        const pieceData = {
-          profileFull: profile,
-          model: profile.split(' ')[0] || profile,
-          length,
-          quantity,
-          type: 'fille',
-          orientation,
-          angles: {
-            start: angleStart || 90,
-            end: angleEnd || 90
-          }
-        };
-        
-        if (this.dataManager.addBars([pieceData]).length > 0) {
-          this.renderPiecesTable();
-          modal.classList.add('hidden');
-          
-          // Mettre à jour les listes déroulantes de profils
-          this.updateAllProfileSelects();
-        }
-      } else {
-        this.showNotification('Valeurs incorrectes', 'warning');
-      }
-    });
-  },
-  
-  /**
-   * Crée le modal d'ajout de barre mère s'il n'existe pas
-   */
-  createMotherBarModal: function() {
-    // Créer le modal
-    const modal = document.createElement('div');
-    modal.id = 'add-mother-bar-modal';
-    modal.className = 'modal hidden';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Ajouter une barre mère</h3>
-          <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="mother-bar-profile">Profil :</label>
-            <select id="mother-bar-profile"></select>
-          </div>
-          <div class="form-group">
-            <label for="mother-bar-length">Longueur :</label>
-            <input type="number" id="mother-bar-length" min="1" step="0.1">
-          </div>
-          <div class="form-group">
-            <label for="mother-bar-quantity">Quantité :</label>
-            <input type="number" id="mother-bar-quantity" min="1" value="1000000">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary close-modal">Annuler</button>
-          <button id="confirm-add-mother-bar" class="btn btn-primary">Ajouter</button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    this.initAddMotherBarModal();
-  },
-  
-  /**
-   * Crée le modal d'ajout de pièce s'il n'existe pas
-   */
-  createPieceModal: function() {
-    // Créer le modal
-    const modal = document.createElement('div');
-    modal.id = 'add-piece-modal';
-    modal.className = 'modal hidden';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Ajouter une barre à découper</h3>
-          <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="piece-profile">Profil :</label>
-            <div class="profile-input-group">
-              <select id="piece-profile-select">
-                <option value="custom">Saisie personnalisée</option>
-              </select>
-              <input type="text" id="piece-profile" placeholder="Saisir le profil">
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="piece-length">Longueur :</label>
-            <input type="number" id="piece-length" min="1" step="0.1">
-          </div>
-          <div class="form-group">
-            <label for="piece-quantity">Quantité :</label>
-            <input type="number" id="piece-quantity" min="1" value="1">
-          </div>
-          <div class="form-group">
-            <label for="piece-angle-start">Angle début (°) :</label>
-            <input type="number" id="piece-angle-start" min="0" max="360" value="90">
-          </div>
-          <div class="form-group">
-            <label for="piece-angle-end">Angle fin (°) :</label>
-            <input type="number" id="piece-angle-end" min="0" max="360" value="90">
-          </div>
-          <div class="form-group">
-            <label for="piece-orientation">Orientation :</label>
-            <select id="piece-orientation">
-              <option value="a-plat">À plat</option>
-              <option value="debout">Debout</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary close-modal">Annuler</button>
-          <button id="confirm-add-piece" class="btn btn-primary">Ajouter</button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    this.initAddPieceModal();
-  },
-  
-  /**
-   * Crée le panneau latéral d'édition
-   */
-  createEditSidebar: function() {
+  createPiecePanel: function() {
     // Vérifier si le panneau existe déjà
-    if (document.getElementById('edit-sidebar')) return;
+    if (document.getElementById('piece-panel')) return;
     
-    // Créer l'overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'edit-sidebar-overlay';
-    overlay.className = 'edit-form-sidebar-overlay';
+    // S'assurer que l'overlay existe
+    if (!document.getElementById('panel-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.id = 'panel-overlay';
+      overlay.className = 'panel-overlay';
+      document.body.appendChild(overlay);
+      
+      // Fermer le panneau quand on clique sur l'overlay
+      overlay.addEventListener('click', () => this.closePanel());
+    }
     
     // Créer le panneau
-    const sidebar = document.createElement('div');
-    sidebar.id = 'edit-sidebar';
-    sidebar.className = 'edit-form-sidebar';
-    sidebar.innerHTML = `
-      <div class="edit-form-header">
-        <h3 class="edit-form-title">Éditer un élément</h3>
-        <button class="close-sidebar">&times;</button>
+    const panel = document.createElement('div');
+    panel.id = 'piece-panel';
+    panel.className = 'side-panel piece-panel';
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h3 class="panel-title">Barre à découper</h3>
+        <button class="panel-close">&times;</button>
       </div>
-      <form class="edit-form">
+      <div class="panel-form">
         <!-- Le contenu du formulaire sera généré dynamiquement -->
-      </form>
-      <div class="edit-form-actions">
-        <button class="btn btn-secondary cancel-edit">Annuler</button>
-        <button class="btn btn-primary save-edit">Enregistrer</button>
+      </div>
+      <div class="panel-actions">
+        <button class="btn btn-secondary cancel-btn">Annuler</button>
+        <button class="btn btn-primary save-btn">Enregistrer</button>
       </div>
     `;
     
     // Ajouter au DOM
-    document.body.appendChild(overlay);
-    document.body.appendChild(sidebar);
+    document.body.appendChild(panel);
     
     // Ajouter les gestionnaires d'événements
-    document.querySelector('.close-sidebar').addEventListener('click', () => this.closeEditSidebar());
-    document.querySelector('.cancel-edit').addEventListener('click', () => this.closeEditSidebar());
-    document.querySelector('.save-edit').addEventListener('click', () => this.saveEditedItem());
-    overlay.addEventListener('click', () => this.closeEditSidebar());
+    panel.querySelector('.panel-close').addEventListener('click', () => this.closePanel());
+    panel.querySelector('.cancel-btn').addEventListener('click', () => this.closePanel());
+    panel.querySelector('.save-btn').addEventListener('click', () => this.saveItem());
+  },
+  
+  /**
+   * Crée le panneau des barres mères
+   */
+  createStockPanel: function() {
+    // Vérifier si le panneau existe déjà
+    if (document.getElementById('stock-panel')) return;
+    
+    // S'assurer que l'overlay existe
+    if (!document.getElementById('panel-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.id = 'panel-overlay';
+      overlay.className = 'panel-overlay';
+      document.body.appendChild(overlay);
+      
+      // Fermer le panneau quand on clique sur l'overlay
+      overlay.addEventListener('click', () => this.closePanel());
+    }
+    
+    // Créer le panneau
+    const panel = document.createElement('div');
+    panel.id = 'stock-panel';
+    panel.className = 'side-panel stock-panel';
+    panel.innerHTML = `
+      <div class="panel-header">
+        <h3 class="panel-title">Barre mère</h3>
+        <button class="panel-close">&times;</button>
+      </div>
+      <div class="panel-form">
+        <!-- Le contenu du formulaire sera généré dynamiquement -->
+      </div>
+      <div class="panel-actions">
+        <button class="btn btn-secondary cancel-btn">Annuler</button>
+        <button class="btn btn-primary save-btn">Enregistrer</button>
+      </div>
+    `;
+    
+    // Ajouter au DOM
+    document.body.appendChild(panel);
+    
+    // Ajouter les gestionnaires d'événements
+    panel.querySelector('.panel-close').addEventListener('click', () => this.closePanel());
+    panel.querySelector('.cancel-btn').addEventListener('click', () => this.closePanel());
+    panel.querySelector('.save-btn').addEventListener('click', () => this.saveItem());
   }
 };
