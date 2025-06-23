@@ -220,7 +220,6 @@ const Parser = {
    * @returns {Array} - Tableau 3D des valeurs AK
    */
   construireTableauAK3D: function(lignes) {
-    console.log("Construction du tableau AK 3D...");
     
     // Initialiser le tableau AK_valeurs
     const AK_valeurs = new Array(this.AK_index.paragraphes);
@@ -286,7 +285,6 @@ const Parser = {
       }
     }
     
-    console.log("Construction du tableau AK 3D terminée");
     return AK_valeurs;
   },
   
@@ -296,7 +294,6 @@ const Parser = {
    * @returns {number} - Numéro du cas (1-5)
    */
   detecterCas: function(AK_valeurs) {
-    console.log("Détection du cas...");
     
     let cas_possibles = [];
     
@@ -330,11 +327,9 @@ const Parser = {
     const paraIdx = cas_possibles[0] - 1;
     if (AK_valeurs[paraIdx][3][1] * AK_valeurs[paraIdx][3][3] > 0) {
       // Même sens
-      console.log("Angles de même sens");
       return cas_possibles[0];
     } else {
       // Sens opposé
-      console.log("Angles de sens opposé");
       return cas_possibles[1];
     }
   }

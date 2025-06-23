@@ -1,5 +1,6 @@
 /**
  * Contrôleur d'interface utilisateur
+ * Responsable de la coordination entre le DataManager et l'interface
  */
 export const UIController = {
   // Références aux services
@@ -94,7 +95,7 @@ export const UIController = {
   },
   
   /**
-   * Traite les fichiers importés
+   * Traite les fichiers importés et met à jour l'interface
    * @param {FileList} files - Liste des fichiers à traiter
    */
   processImportedFiles: async function(files) {
@@ -104,27 +105,39 @@ export const UIController = {
     document.getElementById('loading-overlay').classList.remove('hidden');
     
     try {
-      // Utiliser ImportManager pour traiter les fichiers
+      // Utiliser ImportManager pour parser les fichiers
       const importedBars = await this.importManager.processMultipleFiles(files);
-      console.log('Imported bars:', importedBars);
+      console.log('Parsed bars from files:', importedBars);
       
       if (importedBars && importedBars.length > 0) {
         // Ajouter les barres importées au DataManager
-        this.dataManager.addBars(importedBars);
+        const addedIds = this.dataManager.addBars(importedBars);
         
         // Naviguer vers la section d'édition et afficher les données
         this.navigateToSection('edit-section');
         this.renderEditSection();
         
-        console.log(`${importedBars.length} pièce(s) importée(s) avec succès`);
+        // Afficher un message de succès
+        this.showNotification(`${addedIds.length} pièce(s) importée(s) avec succès`, 'success');
       } else {
-        console.warn('Aucune pièce valide n\'a été trouvée dans les fichiers');
+        this.showNotification('Aucune pièce valide n\'a été trouvée dans les fichiers', 'warning');
       }
     } catch (error) {
       console.error('Import error:', error);
+      this.showNotification(`Erreur lors de l'import: ${error.message}`, 'error');
     } finally {
       document.getElementById('loading-overlay').classList.add('hidden');
     }
+  },
+  
+  /**
+   * Affiche une notification à l'utilisateur
+   * @param {string} message - Message à afficher
+   * @param {string} type - Type de notification ('success', 'warning', 'error')
+   */
+  showNotification: function(message, type = 'info') {
+    // Implémentation simple d'alerte, à remplacer par un système de notification plus élégant
+    alert(`${type.toUpperCase()}: ${message}`);
   },
   
   /**
@@ -207,8 +220,15 @@ export const UIController = {
       button.addEventListener('click', () => {
         const model = button.getAttribute('data-model');
         const length = parseFloat(button.getAttribute('data-length'));
-        this.dataManager.deletePiece(model, length);
-        this.renderPiecesTable();
+        
+        // Supprimer la pièce via le DataManager
+        if (this.dataManager.deletePiece(model, length)) {
+          // Mettre à jour l'interface
+          this.renderPiecesTable();
+          this.showNotification(`Pièce ${model} de longueur ${length} supprimée`, 'success');
+        } else {
+          this.showNotification(`Erreur lors de la suppression de la pièce`, 'error');
+        }
       });
     });
   },
@@ -259,8 +279,15 @@ export const UIController = {
       button.addEventListener('click', () => {
         const model = button.getAttribute('data-model');
         const length = parseFloat(button.getAttribute('data-length'));
-        this.dataManager.removeMotherBar(model, length);
-        this.renderStockBarsTable();
+        
+        // Supprimer la barre mère via le DataManager
+        if (this.dataManager.deleteMotherBar(model, length)) {
+          // Mettre à jour l'interface
+          this.renderStockBarsTable();
+          this.showNotification(`Barre mère ${model} de longueur ${length} supprimée`, 'success');
+        } else {
+          this.showNotification(`Erreur lors de la suppression de la barre mère`, 'error');
+        }
       });
     });
     
@@ -307,24 +334,46 @@ export const UIController = {
           
           // Si la valeur a changé, mettre à jour les données
           if (newValue !== value && newValue !== '') {
+            let success = false;
+            
             if (type === 'piece') {
               if (field === 'quantity') {
-                this.dataManager.updatePieceQuantity(model, length, parseInt(newValue, 10));
+                // Mettre à jour la quantité de la pièce
+                success = this.dataManager.updatePieceQuantity(model, length, parseInt(newValue, 10));
               } else if (field === 'length') {
-                this.dataManager.updatePieceLength(model, length, parseFloat(newValue));
+                // Mettre à jour la longueur de la pièce
+                success = this.dataManager.updatePieceLength(model, length, parseFloat(newValue));
               } else if (field === 'model') {
-                this.dataManager.updatePieceModel(model, length, newValue);
+                // Mettre à jour le modèle de la pièce
+                success = this.dataManager.updatePieceModel(model, length, newValue);
               }
-              this.renderPiecesTable();
+              
+              // Mettre à jour l'interface si succès
+              if (success) {
+                this.renderPiecesTable();
+              } else {
+                this.showNotification(`Erreur lors de la mise à jour de la pièce`, 'error');
+                cell.textContent = value; // Restaurer l'ancienne valeur
+              }
             } else if (type === 'stock') {
               if (field === 'quantity') {
-                this.dataManager.updateMotherBarQuantity(model, length, parseInt(newValue, 10));
+                // Mettre à jour la quantité de la barre mère
+                success = this.dataManager.updateMotherBarQuantity(model, length, parseInt(newValue, 10));
               } else if (field === 'length') {
-                this.dataManager.updateMotherBarLength(model, length, parseFloat(newValue));
+                // Mettre à jour la longueur de la barre mère
+                success = this.dataManager.updateMotherBarLength(model, length, parseFloat(newValue));
               } else if (field === 'model') {
-                this.dataManager.updateMotherBarModel(model, length, newValue);
+                // Mettre à jour le modèle de la barre mère
+                success = this.dataManager.updateMotherBarModel(model, length, newValue);
               }
-              this.renderStockBarsTable();
+              
+              // Mettre à jour l'interface si succès
+              if (success) {
+                this.renderStockBarsTable();
+              } else {
+                this.showNotification(`Erreur lors de la mise à jour de la barre mère`, 'error');
+                cell.textContent = value; // Restaurer l'ancienne valeur
+              }
             }
           } else {
             // Si la valeur n'a pas changé, restaurer le texte
@@ -390,11 +439,29 @@ export const UIController = {
       const quantity = parseInt(document.getElementById('mother-bar-quantity').value, 10);
       
       if (model && length && quantity) {
-        this.dataManager.addMotherBar(model, length, quantity);
-        this.renderStockBarsTable();
-        modal.classList.add('hidden');
+        try {
+          // Créer la nouvelle barre mère via le DataManager
+          const barData = {
+            model,
+            length, 
+            quantity,
+            type: 'mother',
+            profileFull: model // Par défaut, utiliser le modèle comme nom complet
+          };
+          
+          const id = this.dataManager.createOrUpdateMotherBar(barData);
+          
+          if (id) {
+            // Mettre à jour l'interface
+            this.renderStockBarsTable();
+            modal.classList.add('hidden');
+            this.showNotification(`Barre mère ${model} de longueur ${length} ajoutée`, 'success');
+          }
+        } catch (error) {
+          this.showNotification(`Erreur: ${error.message}`, 'error');
+        }
       } else {
-        alert('Veuillez remplir tous les champs correctement.');
+        this.showNotification('Veuillez remplir tous les champs correctement', 'warning');
       }
     });
   },
@@ -416,48 +483,51 @@ export const UIController = {
    * @param {string} type - Type d'algorithme ('ffd', 'ilp', 'compare')
    */
   runOptimization: function(type) {
-    try {
-      // Valider les données
-      this.dataManager.validateData();
-      
-      const data = this.dataManager.getData();
-      console.log('Running optimization with data:', data);
-      
-      document.getElementById('loading-overlay').classList.remove('hidden');
-      
-      setTimeout(() => {
-        try {
-          let result;
-          
-          if (type === 'ffd') {
-            result = this.algorithmService.runAlgorithm('ffd', data);
-          } else if (type === 'ilp') {
-            result = this.algorithmService.runAlgorithm('ilp', data);
-          } else if (type === 'compare') {
-            result = this.algorithmService.compareAlgorithms(data);
-          } else {
-            throw new Error("Type d'algorithme inconnu");
-          }
-          
-          console.log('Optimization result:', result);
-          
-          // Naviguer vers la section des résultats
-          this.navigateToSection('results-section');
-          
-          // Afficher les résultats
-          this.resultsRenderer.renderResults(result, type);
-          
-          // Générer les aperçus PGM
-          this.generatePgmPreviews(result);
-        } catch (error) {
-          console.error('Optimization error:', error);
-        } finally {
-          document.getElementById('loading-overlay').classList.add('hidden');
-        }
-      }, 100);
-    } catch (error) {
-      console.error(error.message);
+    // Valider les données avant optimisation
+    const validation = this.dataManager.validateData();
+    
+    if (!validation.valid) {
+      this.showNotification(validation.message, 'warning');
+      return;
     }
+    
+    const data = this.dataManager.getData();
+    console.log('Running optimization with data:', data);
+    
+    document.getElementById('loading-overlay').classList.remove('hidden');
+    
+    setTimeout(() => {
+      try {
+        // Exécuter l'algorithme approprié
+        let result;
+        
+        if (type === 'ffd') {
+          result = this.algorithmService.runAlgorithm('ffd', data);
+        } else if (type === 'ilp') {
+          result = this.algorithmService.runAlgorithm('ilp', data);
+        } else if (type === 'compare') {
+          result = this.algorithmService.compareAlgorithms(data);
+        } else {
+          throw new Error("Type d'algorithme inconnu");
+        }
+        
+        console.log('Optimization result:', result);
+        
+        // Naviguer vers la section des résultats
+        this.navigateToSection('results-section');
+        
+        // Afficher les résultats
+        this.resultsRenderer.renderResults(result, type);
+        
+        // Générer les aperçus PGM
+        this.generatePgmPreviews(result);
+      } catch (error) {
+        console.error('Optimization error:', error);
+        this.showNotification(`Erreur d'optimisation: ${error.message}`, 'error');
+      } finally {
+        document.getElementById('loading-overlay').classList.add('hidden');
+      }
+    }, 100);
   },
   
   /**
@@ -526,7 +596,7 @@ export const UIController = {
       // Obtenir les résultats actuels
       const resultsContainer = document.getElementById('results-display');
       if (!resultsContainer.dataset.results) {
-        console.error('Aucun résultat disponible');
+        this.showNotification('Aucun résultat disponible', 'warning');
         return;
       }
       
@@ -538,9 +608,10 @@ export const UIController = {
       // Télécharger le ZIP
       this.downloadFile(blob, 'pgm_files.zip', 'application/zip');
       
-      console.log('Fichiers PGM téléchargés avec succès');
+      this.showNotification('Fichiers PGM téléchargés avec succès', 'success');
     } catch (error) {
       console.error('Error generating PGM files:', error);
+      this.showNotification(`Erreur lors de la génération des fichiers PGM: ${error.message}`, 'error');
     } finally {
       document.getElementById('loading-overlay').classList.add('hidden');
     }

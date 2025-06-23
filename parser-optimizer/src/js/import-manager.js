@@ -1,5 +1,6 @@
 /**
  * Gestionnaire d'import pour fichiers NC2 et ZIP
+ * Se concentre uniquement sur le parsing des fichiers, sans manipulation des données
  */
 import JSZip from 'jszip';
 import { Parser } from './index.js';
@@ -98,7 +99,7 @@ const ImportManager = {
         end: parsedData.angles?.end || 90
       },
       cas: parsedData.cas || 0,                    // Conserver le numéro du cas
-      id: `${filename}_${Date.now()}`,
+      id: `${filename.replace(/\W/g, '_')}_${Date.now()}`,
       originalData: parsedData.originalData || null
     }];
   }
