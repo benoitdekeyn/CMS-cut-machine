@@ -19,9 +19,26 @@ async function createOptimizedBundle() {
   const css = fs.readFileSync(cssPath, 'utf8');
   
   // Create output directory
-  const outputDir = path.join(__dirname, '../../executable');
+  const outputDir = path.join(__dirname, '../executable');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
+  }
+  
+  // Create assets directory in executable
+  const assetsDir = path.join(outputDir, 'assets');
+  if (!fs.existsSync(assetsDir)) {
+    fs.mkdirSync(assetsDir, { recursive: true });
+  }
+  
+  // Copy assets from dist to executable
+  const distAssetsDir = path.join(__dirname, '../dist/assets');
+  if (fs.existsSync(distAssetsDir)) {
+    const assets = fs.readdirSync(distAssetsDir);
+    assets.forEach(asset => {
+      const srcPath = path.join(distAssetsDir, asset);
+      const destPath = path.join(assetsDir, asset);
+      fs.copyFileSync(srcPath, destPath);
+    });
   }
   
   // Minify JS further
@@ -33,6 +50,38 @@ async function createOptimizedBundle() {
     },
     mangle: true
   });
+  
+  // Inline assets as data URLs
+  function inlineAssets(htmlContent) {
+    return htmlContent.replace(/href="assets\/([^"]+)"|src="assets\/([^"]+)"/g, (match, hrefAsset, srcAsset) => {
+      const assetName = hrefAsset || srcAsset;
+      const assetPath = path.join(__dirname, '../dist/assets', assetName);
+      
+      if (fs.existsSync(assetPath)) {
+        const ext = path.extname(assetName).toLowerCase();
+        const mimeTypes = {
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.gif': 'image/gif',
+          '.svg': 'image/svg+xml',
+          '.ico': 'image/x-icon'
+        };
+        const mimeType = mimeTypes[ext] || 'application/octet-stream';
+        
+        const data = fs.readFileSync(assetPath);
+        const base64 = data.toString('base64');
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+        
+        return match.includes('href=') ? 
+          `href="${dataUrl}"` : 
+          `src="${dataUrl}"`;
+      }
+      
+      console.warn(`Asset not found: ${assetName}`);
+      return match;
+    });
+  }
   
   // Create the inlined HTML with properly positioned CSS and JS
   let inlinedHTML = html;
@@ -54,6 +103,9 @@ async function createOptimizedBundle() {
     // If no script tag is found, add it before the closing body tag
     inlinedHTML = inlinedHTML.replace('</body>', `<script>${minified.code}</script></body>`);
   }
+  
+  // Inline any referenced assets (including the favicon)
+  inlinedHTML = inlineAssets(inlinedHTML);
 
   // Write the output
   const outputPath = path.join(outputDir, 'index.html');

@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
@@ -8,7 +9,7 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: ''
+    publicPath: ''  // This is important for asset paths
   },
   resolve: {
     alias: {
@@ -41,6 +42,14 @@ module.exports = {
             presets: ['@babel/preset-env']
           }
         }
+      },
+      // This is the key change for handling assets in dev mode
+      {
+        test: /\.(png|jpg|jpeg|gif|ico|svg)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name][ext]'
+        }
       }
     ],
   },
@@ -60,6 +69,16 @@ module.exports = {
         removeStyleLinkTypeAttributes: true,
         useShortDoctype: true
       } : false
+    }),
+    // Make sure assets are copied
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'src/assets',
+          to: 'assets',
+          noErrorOnMissing: true
+        }
+      ]
     })
   ],
   optimization: {
@@ -68,9 +87,13 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
+      publicPath: '/' // This ensures paths start from root in dev mode
     },
     compress: true,
     port: 9000,
-    hot: true
+    hot: true,
+    devMiddleware: {
+      writeToDisk: true // This writes files to disk, helpful for debugging
+    },
   }
 };
