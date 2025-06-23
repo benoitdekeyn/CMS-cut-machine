@@ -439,13 +439,25 @@ p {
   color: var(--text-secondary);
 }
 
-.data-table tbody tr:last-child td {
-  border-bottom: none;
+/* Ajouter cette règle pour les inputs d'édition inline */
+.inline-edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  padding: 2px 4px;
+  font-size: inherit;
+  font-family: inherit;
+  margin: 0;
+  height: auto;
+}
+
+.editable-cell {
+  position: relative;
+  cursor: pointer;
 }
 
 .editable-cell:hover {
-  background-color: var(--bg-tertiary);
-  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .editable-cell.editing {
@@ -470,6 +482,8 @@ p {
 /* Formulaires */
 .form-group {
   margin-bottom: 1rem;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .form-group label {
@@ -587,6 +601,188 @@ p {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Style pour les en-têtes de tableau */
+.data-table thead th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  text-align: left;
+  padding: 8px;
+  border-bottom: 2px solid #ddd;
+}
+
+/* Groupe d'entrée pour le profil avec sélection/saisie */
+.profile-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.profile-input-group select {
+  flex: 1;
+  min-width: 150px;
+}
+
+.profile-input-group input {
+  flex: 2;
+}
+
+/* Styles pour le formulaire d'édition */
+.edit-form-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 45%;
+  height: 100vh;
+  background-color: var(--bg-primary);
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  z-index: 950;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.edit-form-sidebar.visible {
+  transform: translateX(0);
+}
+
+.edit-form-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 949;
+  display: none;
+}
+
+.edit-form-sidebar-overlay.visible {
+  display: block;
+}
+
+.edit-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.edit-form-header h3 {
+  margin: 0;
+}
+
+.close-sidebar {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.edit-form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Styles pour les panneaux latéraux */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 950;
+  display: none;
+}
+
+.panel-overlay.visible {
+  display: block;
+}
+
+.side-panel {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 35%;
+  max-width: 450px;
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  z-index: 960;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Panneau des barres filles - entre par la droite */
+.piece-panel {
+  right: 0;
+  transform: translateX(100%);
+}
+
+.piece-panel.visible {
+  transform: translateX(0);
+}
+
+/* Panneau des barres mères - entre par la gauche */
+.stock-panel {
+  left: 0;
+  transform: translateX(-100%);
+}
+
+.stock-panel.visible {
+  transform: translateX(0);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.panel-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.panel-form {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.panel-actions {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .side-panel {
+    width: 85%;
+    max-width: none;
+  }
 }
 /*!************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js!./src/css/sections.css ***!
@@ -952,5 +1148,220 @@ p {
 @media (min-width: 768px) {
   .model-results {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Ajuster les proportions des panneaux */
+.panels-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2/3 pour barres filles, 1/3 pour barres mères */
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .panels-container {
+    grid-template-columns: 1fr; /* En mode mobile, empiler les panneaux */
+  }
+}
+
+/* Style pour le formulaire d'édition côté */
+.edit-form-sidebar {
+  position: fixed;
+  top: 0;
+  width: 35%; /* Réduction de la largeur de 45% à 35% */
+  height: 100vh;
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  z-index: 950;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.edit-form-sidebar.piece {
+  left: 0; /* S'affiche à gauche pour les barres filles */
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+  transform: translateX(-100%);
+}
+
+.edit-form-sidebar.piece.visible {
+  transform: translateX(0);
+}
+
+.edit-form-sidebar.stock {
+  right: 0; /* S'affiche à droite pour les barres mères */
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+}
+
+.edit-form-sidebar.stock.visible {
+  transform: translateX(0);
+}
+
+.edit-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.edit-form-header h3 {
+  margin: 0;
+}
+
+.close-sidebar {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.edit-form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Import section styles */
+.file-drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.file-drop-zone.active {
+  border-color: #007bff;
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.file-drop-zone p {
+  margin-bottom: 15px;
+}
+
+.file-drop-zone .upload-icon {
+  font-size: 48px;
+  color: #6c757d;
+  margin-bottom: 15px;
+}
+
+.file-input-wrapper {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.file-input-wrapper input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  outline: none;
+  background: white;
+  cursor: pointer;
+  display: block;
+}
+
+/* Style pour le message d'erreur */
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.error-message.hidden {
+  display: none;
+}
+
+/* Style pour les notifications */
+#notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  width: 300px;
+}
+
+.notification {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: notification-in 0.3s ease-out;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.notification.hiding {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.notification-message {
+  flex: 1;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 0 0 10px;
+}
+
+.notification.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.notification.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.notification.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.notification.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+@keyframes notification-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

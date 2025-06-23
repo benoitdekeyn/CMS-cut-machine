@@ -5,7 +5,7 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "clean": "rm -rf dist",
-    "build": "npm run clean && webpack --mode development && mv dist ../web-files && rm -rf dist"
+    "build": "npm run clean && webpack --mode development && mkdir -p ../web-files && cp -a dist/. ../web-files/ && rm -rf dist"
   },
   "keywords": [],
   "author": "",
