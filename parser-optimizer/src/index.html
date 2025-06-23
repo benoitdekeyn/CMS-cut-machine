@@ -16,55 +16,28 @@
                 <p class="tagline">Optimisation intelligente des découpes de profilés</p>
             </div>
             <nav class="main-nav">
-                <button class="nav-btn active" data-section="import-section">Import</button>
-                <button class="nav-btn" data-section="edit-section">Édition</button>
+                <button class="nav-btn active" data-section="data-section">Données</button>
                 <button class="nav-btn" data-section="result-section">Résultats</button>
             </nav>
         </header>
 
         <main class="main-content">
-            <!-- Section 1: Import des fichiers NC2 -->
-            <section id="import-section" class="content-section active">
-                <div class="section-header">
-                    <h2>Import des fichiers NC2</h2>
-                </div>
+            <!-- Section 1: Données (Import + Édition) -->
+            <section id="data-section" class="content-section active">
                 
+                <!-- Zone d'import -->
                 <div class="import-container">
                     <div class="file-drop-zone">
                         <input type="file" id="nc2-files-input" accept=".nc1,.nc2,.zip" multiple class="file-input">
                         <label for="nc2-files-input" class="file-label">
                             <div class="file-icon">📁</div>
-                            <span class="file-prompt">Déposer des fichiers NC1/NC2 ou un ZIP</span>
-                            <span class="file-hint">ou cliquer pour sélectionner</span>
+                            <span class="file-prompt">Déposez vos fichiers NC1/NC2 ou ZIP ici</span>
+                            <span class="file-hint">ou cliquez pour sélectionner des fichiers</span>
                         </label>
-                    </div>
-                    
-                    <div id="import-summary" class="hidden">
-                        <div class="panel">
-                            <div class="panel-header">
-                                <h3>Résumé de l'import</h3>
-                            </div>
-                            <div class="panel-content">
-                                <p><strong id="import-count">0</strong> fichiers importés</p>
-                                <p><strong id="bars-count">0</strong> barres créées</p>
-                                <div class="action-buttons">
-                                    <button id="proceed-to-edit" class="btn btn-primary">Passer à l'édition</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section 2: Édition des barres -->
-            <section id="edit-section" class="content-section">
-                <div class="section-header">
-                    <h2>Édition des barres</h2>
-                    <div class="section-actions">
-                        <button id="import-more-btn" class="btn btn-outline">Importer plus</button>
                     </div>
                 </div>
                 
+                <!-- Zone d'édition -->
                 <div class="panels-container">
                     <!-- Panneau des barres filles -->
                     <div class="panel">
@@ -75,10 +48,13 @@
                             <table id="pieces-table" class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Modèle</th>
+                                        <th>Profil</th>
+                                        <th>Orientation</th>
                                         <th>Longueur</th>
+                                        <th>Angle début</th>
+                                        <th>Angle fin</th>
                                         <th>Quantité</th>
-                                        <th></th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -97,10 +73,10 @@
                             <table id="stock-bars-table" class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Modèle</th>
+                                        <th>Profil</th>
                                         <th>Longueur</th>
                                         <th>Quantité</th>
-                                        <th></th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -111,24 +87,18 @@
                     </div>
                 </div>
                 
+                <!-- Bouton de génération -->
                 <div class="optimization-actions">
-                    <h3>Optimiser la découpe</h3>
-                    <p>Générez le plan de coupe optimal pour les barres disponibles.</p>
-                    <div class="algorithm-buttons">
-                        <button id="run-ffd-btn" class="btn btn-secondary">First-Fit Decreasing</button>
-                        <button id="run-ilp-btn" class="btn btn-secondary">Programmation Linéaire</button>
-                        <button id="run-compare-btn" class="btn btn-success">Comparer les deux</button>
-                    </div>
+                    <button id="generate-cuts-btn" class="btn btn-success btn-lg">Générer les fichiers de découpe</button>
                 </div>
             </section>
 
-            <!-- Section 3: Résultats d'optimisation -->
+            <!-- Section 2: Résultats d'optimisation -->
             <section id="result-section" class="content-section">
                 <div class="section-header">
                     <h2>Résultats d'optimisation</h2>
-                    <span id="result-algorithm" class="algorithm-name"></span>
                     <div class="section-actions">
-                        <button id="back-to-edit-btn" class="btn btn-outline">Retour à l'édition</button>
+                        <button id="back-to-data-btn" class="btn btn-outline">Retour aux données</button>
                         <button id="download-all-pgm" class="btn btn-primary">Télécharger tous les PGM</button>
                     </div>
                 </div>
@@ -147,38 +117,6 @@
                 </div>
             </section>
         </main>
-
-        <!-- Modal pour ajouter une barre mère -->
-        <div id="add-mother-bar-modal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Ajouter une barre mère</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="add-mother-bar-form">
-                        <div class="form-group">
-                            <label for="mother-bar-profile">Profil</label>
-                            <select id="mother-bar-profile" required>
-                                <!-- Options générées dynamiquement -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="mother-bar-length">Longueur</label>
-                            <input type="number" id="mother-bar-length" min="100" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="mother-bar-quantity">Quantité</label>
-                            <input type="number" id="mother-bar-quantity" min="1" value="1" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button id="confirm-add-mother-bar" class="btn btn-primary">Ajouter</button>
-                    <button class="btn btn-outline close-modal">Annuler</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Loading overlay -->

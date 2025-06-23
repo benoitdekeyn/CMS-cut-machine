@@ -42,17 +42,19 @@ export const UIController = {
     
     // Initialiser les handlers de sections
     this.importHandler = ImportHandler;
+    this.editHandler = EditHandler;
+    
+    this.editHandler.init({
+      dataManager: this.dataManager,
+      showNotification: this.notificationService.show.bind(this.notificationService)
+    });
+    
     this.importHandler.init({
       dataManager: this.dataManager,
       importManager: this.importManager,
       showNotification: this.notificationService.show.bind(this.notificationService),
-      navigateToSection: this.navigateToSection.bind(this)
-    });
-    
-    this.editHandler = EditHandler;
-    this.editHandler.init({
-      dataManager: this.dataManager,
-      showNotification: this.notificationService.show.bind(this.notificationService)
+      navigateToSection: this.navigateToSection.bind(this),
+      editHandler: this.editHandler  // Ajouter une référence directe à editHandler
     });
     
     this.resultsHandler = ResultsHandler;
@@ -64,6 +66,9 @@ export const UIController = {
     
     // Initialiser les gestionnaires d'événements
     this.initEventHandlers();
+    
+    // Rendre la section d'édition immédiatement
+    this.editHandler.renderSection();
   },
   
   /**
@@ -78,16 +83,11 @@ export const UIController = {
       });
     });
     
-    // Boutons d'optimisation
-    document.getElementById('run-ffd-btn').addEventListener('click', () => this.runOptimization('ffd'));
-    document.getElementById('run-ilp-btn').addEventListener('click', () => this.runOptimization('ilp'));
-    document.getElementById('run-compare-btn').addEventListener('click', () => this.runOptimization('compare'));
+    // Bouton de génération des fichiers de découpe
+    document.getElementById('generate-cuts-btn').addEventListener('click', () => this.generateOptimalCuts());
     
-    // Bouton de retour à l'édition
-    document.getElementById('back-to-edit-btn').addEventListener('click', () => this.navigateToSection('edit-section'));
-    
-    // Bouton pour importer plus de fichiers
-    document.getElementById('import-more-btn').addEventListener('click', () => this.navigateToSection('import-section'));
+    // Bouton de retour aux données
+    document.getElementById('back-to-data-btn').addEventListener('click', () => this.navigateToSection('data-section'));
     
     // Bouton de téléchargement de tous les PGM
     document.getElementById('download-all-pgm').addEventListener('click', () => this.resultsHandler.downloadAllPgm());
@@ -98,7 +98,7 @@ export const UIController = {
    * @param {string} sectionId - ID de la section à afficher
    */
   navigateToSection: function(sectionId) {
-    // Masquer les erreurs d'import lors du changement de section
+    // Masquer les erreurs d'import
     if (this.importHandler) this.importHandler.hideError();
     
     // Mettre à jour les boutons de navigation
@@ -114,11 +114,6 @@ export const UIController = {
     document.querySelectorAll('.content-section').forEach(section => {
       if (section.id === sectionId) {
         section.classList.add('active');
-        
-        // Si c'est la section d'édition, mettre à jour le rendu
-        if (sectionId === 'edit-section' && this.editHandler) {
-          this.editHandler.renderSection();
-        }
       } else {
         section.classList.remove('active');
       }
@@ -126,10 +121,9 @@ export const UIController = {
   },
   
   /**
-   * Exécute l'algorithme d'optimisation
-   * @param {string} type - Type d'algorithme ('ffd', 'ilp', 'compare')
+   * Génère les découpes optimales et affiche les résultats
    */
-  runOptimization: function(type) {
+  generateOptimalCuts: function() {
     // Valider les données avant optimisation
     const validation = this.dataManager.validateData();
     
@@ -139,32 +133,21 @@ export const UIController = {
     }
     
     const data = this.dataManager.getData();
-    console.log('Running optimization with data:', data);
     
     UIUtils.showLoadingOverlay();
     
     setTimeout(() => {
       try {
-        // Exécuter l'algorithme approprié
-        let result;
-        
-        if (type === 'ffd') {
-          result = this.algorithmService.runAlgorithm('ffd', data);
-        } else if (type === 'ilp') {
-          result = this.algorithmService.runAlgorithm('ilp', data);
-        } else if (type === 'compare') {
-          result = this.algorithmService.compareAlgorithms(data);
-        } else {
-          throw new Error("Type d'algorithme inconnu");
-        }
+        // Comparaison automatique des algorithmes pour choisir le meilleur
+        const result = this.algorithmService.compareAlgorithms(data);
         
         console.log('Optimization result:', result);
         
         // Naviguer vers la section des résultats
-        this.navigateToSection('results-section');
+        this.navigateToSection('result-section');
         
         // Afficher les résultats
-        this.resultsRenderer.renderResults(result, type);
+        this.resultsRenderer.renderResults(result, this.algorithmService);
         
         // Générer les aperçus PGM
         this.resultsHandler.generatePgmPreviews(result);

@@ -8,6 +8,7 @@ export const ImportHandler = {
   // Dépendances
   dataManager: null,
   importManager: null,
+  editHandler: null,
   
   // Callbacks
   showNotification: null,
@@ -21,6 +22,7 @@ export const ImportHandler = {
     this.importManager = options.importManager;
     this.showNotification = options.showNotification;
     this.navigateToSection = options.navigateToSection;
+    this.editHandler = options.editHandler;
     
     this.initDropZone();
   },
@@ -82,9 +84,21 @@ export const ImportHandler = {
         const addedIds = this.dataManager.addBars(importedBars);
         
         if (addedIds.length > 0) {
-          // Passer à la section d'édition
-          this.navigateToSection('edit-section');
-          // Pas de notification de succès
+          // Rester sur la même section et montrer un message de succès
+          this.showNotification(`${addedIds.length} barres importées avec succès.`, 'success');
+          
+          // Mettre à jour les tableaux d'édition
+          if (this.editHandler) {
+            this.editHandler.renderSection();
+            
+            // Faire défiler jusqu'à la zone d'édition après un court délai
+            setTimeout(() => {
+              const editPanel = document.querySelector('.panels-container');
+              if (editPanel) {
+                editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 300); // Délai court pour laisser le temps au DOM de se mettre à jour
+          }
         } else {
           this.showError('Aucune nouvelle pièce ajoutée.');
         }
