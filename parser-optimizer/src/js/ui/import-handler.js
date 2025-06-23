@@ -15,7 +15,6 @@ export const ImportHandler = {
   
   /**
    * Initialise le handler d'import
-   * @param {Object} options - Options d'initialisation
    */
   init: function(options) {
     this.dataManager = options.dataManager;
@@ -23,18 +22,17 @@ export const ImportHandler = {
     this.showNotification = options.showNotification;
     this.navigateToSection = options.navigateToSection;
     
-    this.initImportSection();
+    this.initDropZone();
   },
   
   /**
-   * Initialise la section d'import
+   * Initialise la zone de drop
    */
-  initImportSection: function() {
-    // Configurer le drag & drop pour l'import
+  initDropZone: function() {
     const dropZone = document.querySelector('.file-drop-zone');
     const fileInput = document.getElementById('nc2-files-input');
     
-    // S'assurer que le conteneur d'erreur existe
+    // Ajouter un conteneur pour les erreurs s'il n'existe pas
     if (!document.getElementById('import-error')) {
       const errorDiv = document.createElement('div');
       errorDiv.id = 'import-error';
@@ -42,6 +40,7 @@ export const ImportHandler = {
       dropZone.parentNode.insertBefore(errorDiv, dropZone.nextSibling);
     }
     
+    // Prévenir les comportements par défaut du navigateur
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
       dropZone.addEventListener(eventName, e => {
         e.preventDefault();
@@ -49,73 +48,64 @@ export const ImportHandler = {
       });
     });
     
+    // Ajouter/retirer la classe active pendant le drag
     ['dragenter', 'dragover'].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => {
-        dropZone.classList.add('active');
-      });
+      dropZone.addEventListener(eventName, () => dropZone.classList.add('active'));
     });
     
     ['dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => {
-        dropZone.classList.remove('active');
-      });
+      dropZone.addEventListener(eventName, () => dropZone.classList.remove('active'));
     });
     
-    dropZone.addEventListener('drop', async e => {
-      const files = e.dataTransfer.files;
-      await this.processImportedFiles(files);
-    });
+    // Gérer le drop
+    dropZone.addEventListener('drop', e => this.processImportedFiles(e.dataTransfer.files));
     
-    fileInput.addEventListener('change', async () => {
-      const files = fileInput.files;
-      await this.processImportedFiles(files);
-    });
+    // Gérer le clic sur l'input file
+    fileInput.addEventListener('change', () => this.processImportedFiles(fileInput.files));
   },
   
   /**
-   * Traite les fichiers importés et met à jour l'interface
-   * @param {FileList} files - Liste des fichiers à traiter
+   * Traite les fichiers importés
    */
   processImportedFiles: async function(files) {
     if (files.length === 0) return;
     
-    console.log('Processing files:', files);
     UIUtils.showLoadingOverlay();
-    
-    // Masquer les erreurs précédentes
     this.hideError();
     
     try {
       // Utiliser ImportManager pour parser les fichiers
       const importedBars = await this.importManager.processMultipleFiles(files);
-      console.log('Parsed bars from files:', importedBars);
       
       if (importedBars && importedBars.length > 0) {
-        // Ajouter les barres importées au DataManager
+        // Ajouter les barres au DataManager
         const addedIds = this.dataManager.addBars(importedBars);
         
         if (addedIds.length > 0) {
-          // Passer directement à la section d'édition sans alerte
+          // Passer à la section d'édition
           this.navigateToSection('edit-section');
         } else {
-          // Aucune barre ajoutée (probablement déjà existantes)
-          this.showError('Aucune nouvelle pièce ajoutée. Vérifiez que les fichiers sont valides et uniques.');
+          this.showError('Aucune nouvelle pièce ajoutée.');
         }
       } else {
-        // Aucune barre valide trouvée
-        this.showError('Aucune pièce valide n\'a été trouvée dans les fichiers importés.');
+        this.showError('Aucune pièce valide trouvée dans les fichiers.');
       }
     } catch (error) {
       console.error('Import error:', error);
-      this.showError(`Erreur lors de l'import: ${error.message}`);
+      this.showError(`Erreur d'import: ${error.message}`);
     } finally {
       UIUtils.hideLoadingOverlay();
+      
+      // Réinitialiser l'élément input file pour permettre la réimportation du même fichier
+      const fileInput = document.getElementById('nc2-files-input');
+      if (fileInput) {
+        fileInput.value = '';
+      }
     }
   },
   
   /**
-   * Affiche un message d'erreur sous la zone d'import
-   * @param {string} message - Message d'erreur à afficher
+   * Affiche une erreur d'import
    */
   showError: function(message) {
     const errorDiv = document.getElementById('import-error');
@@ -126,7 +116,7 @@ export const ImportHandler = {
   },
   
   /**
-   * Masque le message d'erreur d'import
+   * Masque l'erreur d'import
    */
   hideError: function() {
     const errorDiv = document.getElementById('import-error');
