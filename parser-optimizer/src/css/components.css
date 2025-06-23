@@ -133,13 +133,25 @@
   color: var(--text-secondary);
 }
 
-.data-table tbody tr:last-child td {
-  border-bottom: none;
+/* Ajouter cette règle pour les inputs d'édition inline */
+.inline-edit-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  padding: 2px 4px;
+  font-size: inherit;
+  font-family: inherit;
+  margin: 0;
+  height: auto;
+}
+
+.editable-cell {
+  position: relative;
+  cursor: pointer;
 }
 
 .editable-cell:hover {
-  background-color: var(--bg-tertiary);
-  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .editable-cell.editing {
@@ -281,4 +293,13 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Style pour les en-têtes de tableau */
+.data-table thead th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  text-align: left;
+  padding: 8px;
+  border-bottom: 2px solid #ddd;
 }

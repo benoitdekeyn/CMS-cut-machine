@@ -22,13 +22,14 @@ export const EditHandler = {
     this.renderPiecesTable();
     this.renderStockBarsTable();
     this.initAddMotherBarModal();
+    this.initAddPieceModal(); // Nouvelle fonction pour initialiser le modal d'ajout de pièce
   },
   
   /**
    * Rend le tableau des barres filles
    */
   renderPiecesTable: function() {
-    const tableBody = document.querySelector('#pieces-table tbody');
+    const tableContainer = document.querySelector('#pieces-table');
     const data = this.dataManager.getData();
     
     // Récupérer toutes les barres filles
@@ -40,8 +41,24 @@ export const EditHandler = {
     // Trier les barres
     allPieces.sort((a, b) => a.model.localeCompare(b.model) || a.length - b.length);
     
-    // Générer le HTML
-    let html = '';
+    // Générer l'en-tête du tableau
+    let html = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Profil</th>
+            <th>Orientation</th>
+            <th>Longueur</th>
+            <th>Angle début</th>
+            <th>Angle fin</th>
+            <th>Quantité</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    
+    // Générer les lignes du tableau
     for (const piece of allPieces) {
       html += `
         <tr data-id="${piece.id}">
@@ -59,19 +76,34 @@ export const EditHandler = {
       `;
     }
     
-    tableBody.innerHTML = html;
+    // Ajouter une ligne pour le bouton d'ajout
+    html += `
+        <tr class="add-row">
+          <td colspan="7">
+            <button id="add-piece-btn" class="btn btn-sm btn-primary">+ Ajouter une barre à découper</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    `;
+    
+    tableContainer.innerHTML = html;
     
     // Ajouter les gestionnaires d'événements
-    this.initEditableCells(tableBody, 'piece');
+    this.initEditableCells(tableContainer.querySelector('tbody'), 'piece');
     
-    tableBody.querySelectorAll('.delete-piece-btn').forEach(button => {
+    tableContainer.querySelectorAll('.delete-piece-btn').forEach(button => {
       button.addEventListener('click', () => {
         const id = button.getAttribute('data-id');
         if (this.dataManager.deletePiece(id)) {
           this.renderPiecesTable();
-          // Suppression de la notification de succès
         }
       });
+    });
+    
+    // Ajouter le gestionnaire pour le bouton d'ajout de pièce
+    document.getElementById('add-piece-btn').addEventListener('click', () => {
+      document.getElementById('add-piece-modal').classList.remove('hidden');
     });
   },
   
@@ -79,7 +111,7 @@ export const EditHandler = {
    * Rend le tableau des barres mères
    */
   renderStockBarsTable: function() {
-    const tableBody = document.querySelector('#stock-bars-table tbody');
+    const tableContainer = document.querySelector('#stock-bars-table');
     const data = this.dataManager.getData();
     
     // Récupérer toutes les barres mères
@@ -91,8 +123,21 @@ export const EditHandler = {
     // Trier les barres
     allMotherBars.sort((a, b) => a.model.localeCompare(b.model) || a.length - b.length);
     
-    // Générer le HTML
-    let html = '';
+    // Générer l'en-tête du tableau
+    let html = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Profil</th>
+            <th>Longueur</th>
+            <th>Quantité</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    
+    // Générer les lignes du tableau
     for (const bar of allMotherBars) {
       html += `
         <tr data-id="${bar.id}">
@@ -109,24 +154,25 @@ export const EditHandler = {
     
     // Ajouter une ligne pour le bouton d'ajout
     html += `
-      <tr class="add-row">
-        <td colspan="4">
-          <button id="add-mother-bar-btn" class="btn btn-sm btn-primary">+ Ajouter une barre mère</button>
-        </td>
-      </tr>
+        <tr class="add-row">
+          <td colspan="4">
+            <button id="add-mother-bar-btn" class="btn btn-sm btn-primary">+ Ajouter une barre mère</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
     `;
     
-    tableBody.innerHTML = html;
+    tableContainer.innerHTML = html;
     
     // Ajouter les gestionnaires d'événements
-    this.initEditableCells(tableBody, 'stock');
+    this.initEditableCells(tableContainer.querySelector('tbody'), 'stock');
     
-    tableBody.querySelectorAll('.delete-stock-btn').forEach(button => {
+    tableContainer.querySelectorAll('.delete-stock-btn').forEach(button => {
       button.addEventListener('click', () => {
         const id = button.getAttribute('data-id');
         if (this.dataManager.deleteMotherBar(id)) {
           this.renderStockBarsTable();
-          // Suppression de la notification de succès
         }
       });
     });
@@ -143,6 +189,9 @@ export const EditHandler = {
   initEditableCells: function(tableBody, type) {
     tableBody.querySelectorAll('.editable-cell').forEach(cell => {
       cell.addEventListener('click', () => {
+        // Si la cellule est déjà en édition, on ne fait rien
+        if (cell.querySelector('.inline-edit-input')) return;
+        
         const value = cell.textContent;
         const field = cell.getAttribute('data-field');
         const id = cell.closest('tr').getAttribute('data-id');
@@ -156,6 +205,11 @@ export const EditHandler = {
         // Remplacer le contenu
         cell.textContent = '';
         cell.appendChild(input);
+        
+        // Ajuster la taille de l'input à la cellule
+        input.style.width = '100%';
+        input.style.boxSizing = 'border-box';
+        
         input.focus();
         
         // Gérer la fin d'édition
@@ -206,6 +260,12 @@ export const EditHandler = {
   initAddMotherBarModal: function() {
     const modal = document.getElementById('add-mother-bar-modal');
     
+    // Créer le modal s'il n'existe pas
+    if (!modal) {
+      this.createMotherBarModal();
+      return;
+    }
+    
     // Fermer le modal
     modal.querySelectorAll('.close-modal').forEach(button => {
       button.addEventListener('click', () => modal.classList.add('hidden'));
@@ -229,6 +289,9 @@ export const EditHandler = {
       select.appendChild(option);
     }
     
+    // Définir la quantité par défaut à 1000000
+    document.getElementById('mother-bar-quantity').value = 1000000;
+    
     // Ajouter une barre mère
     document.getElementById('confirm-add-mother-bar').addEventListener('click', () => {
       const model = select.value;
@@ -247,12 +310,164 @@ export const EditHandler = {
         if (this.dataManager.addBars([barData]).length > 0) {
           this.renderStockBarsTable();
           modal.classList.add('hidden');
-          // Suppression de la notification de succès
         }
       } else {
         // Garde la notification d'erreur
         this.showNotification('Valeurs incorrectes', 'warning');
       }
     });
+  },
+  
+  /**
+   * Initialise le modal d'ajout de pièce
+   */
+  initAddPieceModal: function() {
+    const modal = document.getElementById('add-piece-modal');
+    
+    // Créer le modal s'il n'existe pas
+    if (!modal) {
+      this.createPieceModal();
+      return;
+    }
+    
+    // Fermer le modal
+    modal.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', () => modal.classList.add('hidden'));
+    });
+    
+    // Remplir la liste des modèles
+    const select = document.getElementById('piece-profile');
+    select.innerHTML = '';
+    
+    // Récupérer les modèles uniques
+    const data = this.dataManager.getData();
+    const models = new Set();
+    
+    for (const model in data.pieces) models.add(model);
+    for (const model in data.motherBars) models.add(model);
+    
+    for (const model of models) {
+      const option = document.createElement('option');
+      option.value = model;
+      option.textContent = model;
+      select.appendChild(option);
+    }
+    
+    // Ajouter une pièce
+    document.getElementById('confirm-add-piece').addEventListener('click', () => {
+      const model = select.value;
+      const length = parseFloat(document.getElementById('piece-length').value);
+      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
+      const angleStart = parseInt(document.getElementById('piece-angle-start').value, 10);
+      const angleEnd = parseInt(document.getElementById('piece-angle-end').value, 10);
+      
+      if (model && length && quantity) {
+        const pieceData = {
+          model,
+          profileFull: model,
+          length,
+          quantity,
+          type: 'fille',
+          orientation: 'a-plat',
+          angles: {
+            start: angleStart || 90,
+            end: angleEnd || 90
+          }
+        };
+        
+        if (this.dataManager.addBars([pieceData]).length > 0) {
+          this.renderPiecesTable();
+          modal.classList.add('hidden');
+        }
+      } else {
+        this.showNotification('Valeurs incorrectes', 'warning');
+      }
+    });
+  },
+  
+  /**
+   * Crée le modal d'ajout de barre mère s'il n'existe pas
+   */
+  createMotherBarModal: function() {
+    // Créer le modal
+    const modal = document.createElement('div');
+    modal.id = 'add-mother-bar-modal';
+    modal.className = 'modal hidden';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Ajouter une barre mère</h3>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="mother-bar-profile">Profil :</label>
+            <select id="mother-bar-profile"></select>
+          </div>
+          <div class="form-group">
+            <label for="mother-bar-length">Longueur :</label>
+            <input type="number" id="mother-bar-length" min="1" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="mother-bar-quantity">Quantité :</label>
+            <input type="number" id="mother-bar-quantity" min="1" value="1000000">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary close-modal">Annuler</button>
+          <button id="confirm-add-mother-bar" class="btn btn-primary">Ajouter</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    this.initAddMotherBarModal();
+  },
+  
+  /**
+   * Crée le modal d'ajout de pièce s'il n'existe pas
+   */
+  createPieceModal: function() {
+    // Créer le modal
+    const modal = document.createElement('div');
+    modal.id = 'add-piece-modal';
+    modal.className = 'modal hidden';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Ajouter une barre à découper</h3>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="piece-profile">Profil :</label>
+            <select id="piece-profile"></select>
+          </div>
+          <div class="form-group">
+            <label for="piece-length">Longueur :</label>
+            <input type="number" id="piece-length" min="1" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="piece-quantity">Quantité :</label>
+            <input type="number" id="piece-quantity" min="1" value="1">
+          </div>
+          <div class="form-group">
+            <label for="piece-angle-start">Angle début (°) :</label>
+            <input type="number" id="piece-angle-start" min="0" max="360" value="90">
+          </div>
+          <div class="form-group">
+            <label for="piece-angle-end">Angle fin (°) :</label>
+            <input type="number" id="piece-angle-end" min="0" max="360" value="90">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary close-modal">Annuler</button>
+          <button id="confirm-add-piece" class="btn btn-primary">Ajouter</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    this.initAddPieceModal();
   }
 };
