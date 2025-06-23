@@ -5,7 +5,7 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "clean": "rm -rf dist",
-    "build": "npm run clean && webpack --mode development && mv dist/* ../executable/multi-files-web && rm -rf dist",
+    "build": "npm run clean && webpack --mode development && mv dist/* ../web-files && rm -rf dist",
     "build:inline": "npm run clean && webpack --mode production && node scripts/optimize-bundle.js && echo 'Optimized single HTML file created in executable/'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
