@@ -4,8 +4,9 @@
 export const DataManager = {
   // Application data store
   data: {
-    pieces: {},
-    motherBars: {}
+    pieces: {},      // Format groupé par modèle pour l'UI classique
+    motherBars: {},  // Format groupé par modèle pour l'UI classique
+    barsList: []     // Liste complète des barres avec toutes les informations
   },
   
   /**
@@ -15,7 +16,8 @@ export const DataManager = {
   initData: function() {
     this.data = {
       pieces: {},
-      motherBars: {}
+      motherBars: {},
+      barsList: []
     };
     return this.data;
   },
@@ -26,6 +28,27 @@ export const DataManager = {
    */
   getData: function() {
     return this.data;
+  },
+  
+  /**
+   * Add bars to the data store
+   * @param {Array} bars - List of bar objects to add
+   */
+  addBars: function(bars) {
+    if (!Array.isArray(bars) || bars.length === 0) return;
+    
+    // For each bar in the list
+    bars.forEach(bar => {
+      // Add to barsList
+      this.data.barsList.push(bar);
+      
+      // Also add to the appropriate structure for UI compatibility
+      if (bar.type === 'fille') {
+        this.addPiece(bar.model, bar.length, bar.quantity, this.data, bar);
+      } else if (bar.type === 'mere' || bar.type === 'mother') {
+        this.addMotherBar(bar.model, bar.length, bar.quantity, this.data, bar);
+      }
+    });
   },
   
   /**
@@ -54,10 +77,23 @@ export const DataManager = {
       
       if (isNaN(length) || isNaN(quantity) || length <= 0 || quantity <= 0) continue;
       
+      const barObject = {
+        model,
+        length,
+        quantity,
+        type: type === 'mere' || type === 'mother' ? 'mother' : 'fille',
+        angles: { start: 90, end: 90 },
+        flatValue: 0,
+        id: `csv_${model}_${length}_${Date.now()}`
+      };
+      
+      // Add to barsList
+      data.barsList.push(barObject);
+      
       if (type === 'mere' || type === 'mother') {
-        this.addMotherBar(model, length, quantity, data);
+        this.addMotherBar(model, length, quantity, data, barObject);
       } else if (type === 'fille' || type === 'daughter' || type === 'piece') {
-        this.addPiece(model, length, quantity, data);
+        this.addPiece(model, length, quantity, data, barObject);
       }
     }
     
@@ -75,10 +111,11 @@ export const DataManager = {
    * @param {number} length - Piece length
    * @param {number} quantity - Piece quantity
    * @param {Object} [data] - Optional data object to update
+   * @param {Object} [fullBarObject] - Full bar object with additional properties
    * @returns {boolean} Success state
    * @throws {Error} If model or length is invalid
    */
-  addPiece: function(model, length, quantity, data) {
+  addPiece: function(model, length, quantity, data, fullBarObject = null) {
     if (!model) {
       throw new Error("Le modèle est requis pour ajouter une pièce.");
     }
@@ -100,12 +137,41 @@ export const DataManager = {
     if (existingPiece) {
       // Update quantity of existing piece
       existingPiece.quantity = quantity;
+      
+      // Update full bar properties if provided
+      if (fullBarObject) {
+        Object.assign(existingPiece, {
+          angles: fullBarObject.angles || existingPiece.angles,
+          flatValue: fullBarObject.flatValue || existingPiece.flatValue,
+          cas: fullBarObject.cas || existingPiece.cas,
+          originalData: fullBarObject.originalData || existingPiece.originalData,
+          originalFile: fullBarObject.originalFile || existingPiece.originalFile,
+          profileFull: fullBarObject.profileFull || existingPiece.profileFull || model
+        });
+      }
     } else {
       // Add new piece
-      targetData.pieces[model].push({
-        length,
-        quantity
-      });
+      if (fullBarObject) {
+        // Use the full bar object with all properties
+        targetData.pieces[model].push({
+          ...fullBarObject,
+          // S'assurer que le modèle correspond à la clé dans pieces[model]
+          model: model
+        });
+      } else {
+        // Create a minimal piece object
+        targetData.pieces[model].push({
+          length,
+          quantity,
+          model,
+          profileFull: model,    // Par défaut, utiliser le même nom pour le profil complet
+          angles: { start: 90, end: 90 },
+          flatValue: 0,
+          type: 'fille',
+          cas: 5,                // Cas par défaut (90 degrés)
+          id: `piece_${model}_${length}_${Date.now()}`
+        });
+      }
     }
     
     return true;
@@ -117,10 +183,11 @@ export const DataManager = {
    * @param {number} length - Bar length
    * @param {number} quantity - Bar quantity
    * @param {Object} [data] - Optional data object to update
+   * @param {Object} [fullBarObject] - Full bar object with additional properties
    * @returns {boolean} Success state
    * @throws {Error} If model or length is invalid
    */
-  addMotherBar: function(model, length, quantity, data) {
+  addMotherBar: function(model, length, quantity, data, fullBarObject = null) {
     if (!model) {
       throw new Error("Le modèle est requis pour ajouter une barre mère.");
     }
@@ -142,12 +209,38 @@ export const DataManager = {
     if (existingBar) {
       // Update quantity of existing bar
       existingBar.quantity = quantity;
+      
+      // Update full bar properties if provided
+      if (fullBarObject) {
+        Object.assign(existingBar, {
+          angles: fullBarObject.angles || existingBar.angles,
+          flatValue: fullBarObject.flatValue || existingBar.flatValue,
+          profileFull: fullBarObject.profileFull || existingBar.profileFull || model
+        });
+      }
     } else {
       // Add new bar
-      targetData.motherBars[model].push({
-        length,
-        quantity
-      });
+      if (fullBarObject) {
+        // Use the full bar object with all properties
+        targetData.motherBars[model].push({
+          ...fullBarObject,
+          // S'assurer que le modèle correspond à la clé dans motherBars[model]
+          model: model
+        });
+      } else {
+        // Create a minimal bar object
+        targetData.motherBars[model].push({
+          length,
+          quantity,
+          model,
+          profileFull: model,    // Par défaut, utiliser le même nom pour le profil complet
+          angles: { start: 90, end: 90 },
+          flatValue: 0,
+          type: 'mother',
+          cas: 5,                // Cas par défaut (90 degrés)
+          id: `mother_${model}_${length}_${Date.now()}`
+        });
+      }
     }
     
     return true;
@@ -163,6 +256,11 @@ export const DataManager = {
   deletePiece: function(model, length, data) {
     // Use provided data object or default to internal data
     const targetData = data || this.data;
+    
+    // Remove from barsList
+    targetData.barsList = targetData.barsList.filter(bar => 
+      !(bar.type === 'fille' && bar.model === model && bar.length === length)
+    );
     
     if (targetData.pieces[model]) {
       const index = targetData.pieces[model].findIndex(p => p.length === length);
@@ -191,6 +289,11 @@ export const DataManager = {
     // Use provided data object or default to internal data
     const targetData = data || this.data;
     
+    // Remove from barsList
+    targetData.barsList = targetData.barsList.filter(bar => 
+      !(bar.type === 'mother' && bar.model === model && bar.length === length)
+    );
+    
     if (targetData.motherBars[model]) {
       const index = targetData.motherBars[model].findIndex(b => b.length === length);
       if (index !== -1) {
@@ -205,6 +308,21 @@ export const DataManager = {
       }
     }
     return false;
+  },
+  
+  /**
+   * Get all bars of a specific model
+   * @param {string} model - Model name to filter
+   * @param {string} [type] - Optional type filter ('fille' or 'mother')
+   * @returns {Array} - List of bars matching the criteria
+   */
+  getBarsByModel: function(model, type = null) {
+    return this.data.barsList.filter(bar => {
+      if (type) {
+        return bar.model === model && bar.type === type;
+      }
+      return bar.model === model;
+    });
   },
   
   /**

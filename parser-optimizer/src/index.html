@@ -5,41 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CutOptimizer - Optimisation de découpe</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
-    <link rel="stylesheet" href="css/style.css">
+    <!-- CSS sera injecté automatiquement par webpack -->
 </head>
 <body>
     <div class="app-container">
         <header class="main-header">
             <div class="logo">
                 <h1>CutOptimizer</h1>
+                <p class="tagline">Optimisation intelligente des découpes de profilés</p>
             </div>
             <nav class="main-nav">
-                <button class="nav-btn active" data-section="data-section">Données</button>
+                <button class="nav-btn active" data-section="import-section">Import</button>
+                <button class="nav-btn" data-section="edit-section">Édition</button>
                 <button class="nav-btn" data-section="result-section">Résultats</button>
             </nav>
         </header>
 
         <main class="main-content">
-            <section id="data-section" class="content-section active">
+            <!-- Section 1: Import des fichiers NC2 -->
+            <section id="import-section" class="content-section active">
                 <div class="section-header">
-                    <h2>Données d'entrée</h2>
-                    <div class="section-actions">
-                        <button id="import-btn" class="btn btn-outline">Importer CSV</button>
-                        <input type="file" id="csv-upload" accept=".csv" class="hidden">
-                    </div>
+                    <h2>Import des fichiers NC2</h2>
                 </div>
-
-                <div class="panels-container">
-                    <!-- Stock Bars Panel -->
-                    <div class="panel">
-                        <div class="panel-header">
-                            <h3>Barres mères</h3>
-                            <div class="panel-actions">
-                                <button id="add-stock-bar-btn" class="btn btn-sm">+ Ajouter</button>
+                
+                <div class="import-container">
+                    <div class="file-drop-zone">
+                        <input type="file" id="nc2-files-input" accept=".nc1,.nc2,.zip" multiple class="file-input">
+                        <label for="nc2-files-input" class="file-label">
+                            <div class="file-icon">📁</div>
+                            <span class="file-prompt">Déposer des fichiers NC1/NC2 ou un ZIP</span>
+                            <span class="file-hint">ou cliquer pour sélectionner</span>
+                        </label>
+                    </div>
+                    
+                    <div id="import-summary" class="hidden">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3>Résumé de l'import</h3>
+                            </div>
+                            <div class="panel-content">
+                                <p><strong id="import-count">0</strong> fichiers importés</p>
+                                <p><strong id="bars-count">0</strong> barres créées</p>
+                                <div class="action-buttons">
+                                    <button id="proceed-to-edit" class="btn btn-primary">Passer à l'édition</button>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Édition des barres -->
+            <section id="edit-section" class="content-section">
+                <div class="section-header">
+                    <h2>Édition des barres</h2>
+                    <div class="section-actions">
+                        <button id="import-more-btn" class="btn btn-outline">Importer plus</button>
+                    </div>
+                </div>
+                
+                <div class="panels-container">
+                    <!-- Panneau des barres filles -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Barres filles</h3>
+                        </div>
                         <div class="panel-content">
-                            <table id="stock-bars-table" class="data-table editable-table">
+                            <table id="pieces-table" class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Modèle</th>
@@ -49,35 +81,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Stock bars will be dynamically added here -->
+                                    <!-- Contenu généré dynamiquement -->
                                 </tbody>
-                                <tfoot>
-                                    <tr id="add-stock-bar-row" class="add-row hidden">
-                                        <td><input type="text" id="new-stock-model" placeholder="Modèle"></td>
-                                        <td><input type="number" id="new-stock-length" placeholder="Longueur"></td>
-                                        <td><input type="number" id="new-stock-quantity" placeholder="Quantité" value="100000"></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button id="confirm-add-stock" class="btn btn-sm btn-success">✓</button>
-                                                <button id="cancel-add-stock" class="btn btn-sm btn-danger">✗</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                     </div>
-
-                    <!-- Pieces Panel -->
+                    
+                    <!-- Panneau des barres mères -->
                     <div class="panel">
                         <div class="panel-header">
-                            <h3>Pièces à découper</h3>
-                            <div class="panel-actions">
-                                <button id="add-piece-btn" class="btn btn-sm">+ Ajouter</button>
-                            </div>
+                            <h3>Barres mères</h3>
                         </div>
                         <div class="panel-content">
-                            <table id="pieces-table" class="data-table editable-table">
+                            <table id="stock-bars-table" class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Modèle</th>
@@ -87,93 +103,77 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Pieces will be dynamically added here -->
+                                    <!-- Contenu généré dynamiquement -->
                                 </tbody>
-                                <tfoot>
-                                    <tr id="add-piece-row" class="add-row hidden">
-                                        <td><input type="text" id="new-piece-model" placeholder="Modèle"></td>
-                                        <td><input type="number" id="new-piece-length" placeholder="Longueur"></td>
-                                        <td><input type="number" id="new-piece-quantity" placeholder="Quantité" value="1"></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button id="confirm-add-piece" class="btn btn-sm btn-success">✓</button>
-                                                <button id="cancel-add-piece" class="btn btn-sm btn-danger">✗</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Optimization buttons -->
                 <div class="optimization-actions">
-                    <h3>Lancer l'optimisation</h3>
-                    <p>Choisissez un algorithme d'optimisation ou lancez les deux pour comparer les résultats.</p>
+                    <h3>Optimiser la découpe</h3>
+                    <p>Générez le plan de coupe optimal pour les barres disponibles.</p>
                     <div class="algorithm-buttons">
-                        <button id="run-ffd-btn" class="btn btn-primary">
-                            <span class="algorithm-name">First-Fit Decreasing</span>
-                            <span class="algorithm-desc">Rapide et efficace pour des cas simples</span>
-                        </button>
-                        <button id="run-ilp-btn" class="btn btn-primary">
-                            <span class="algorithm-name">Programmation Linéaire (ILP)</span>
-                            <span class="algorithm-desc">Solution optimale mais plus lent</span>
-                        </button>
-                        <button id="run-compare-btn" class="btn btn-success">
-                            <span class="algorithm-name">Comparer les deux</span>
-                            <span class="algorithm-desc">Lancer les deux et garder le meilleur</span>
-                        </button>
+                        <button id="run-ffd-btn" class="btn btn-secondary">First-Fit Decreasing</button>
+                        <button id="run-ilp-btn" class="btn btn-secondary">Programmation Linéaire</button>
+                        <button id="run-compare-btn" class="btn btn-success">Comparer les deux</button>
                     </div>
                 </div>
             </section>
 
+            <!-- Section 3: Résultats d'optimisation -->
             <section id="result-section" class="content-section">
                 <div class="section-header">
-                    <h2>Résultats</h2>
+                    <h2>Résultats d'optimisation</h2>
+                    <span id="result-algorithm" class="algorithm-name"></span>
                     <div class="section-actions">
-                        <span id="result-algorithm" class="tag">Aucun calcul effectué</span>
+                        <button id="back-to-edit-btn" class="btn btn-outline">Retour à l'édition</button>
+                        <button id="download-all-pgm" class="btn btn-primary">Télécharger tous les PGM</button>
                     </div>
                 </div>
-
+                
                 <div id="results-container">
-                    <div class="no-results-message">
-                        <p>Aucun résultat disponible. Veuillez exécuter un algorithme d'optimisation.</p>
+                    <!-- Contenu généré dynamiquement -->
+                </div>
+                
+                <div id="pgm-generation" class="panel">
+                    <div class="panel-header">
+                        <h3>Fichiers PGM générés</h3>
+                    </div>
+                    <div id="pgm-files-list" class="panel-content">
+                        <!-- Liste générée dynamiquement -->
                     </div>
                 </div>
             </section>
         </main>
 
-        <!-- Modal for CSV import feedback -->
-        <div id="import-modal" class="modal hidden">
+        <!-- Modal pour ajouter une barre mère -->
+        <div id="add-mother-bar-modal" class="modal hidden">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Importer un fichier CSV</h3>
+                    <h3>Ajouter une barre mère</h3>
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <p>Sélectionnez un fichier CSV contenant vos données de barres mères et pièces.</p>
-                    <div class="file-drop-zone">
-                        <input type="file" id="csv-file-input" accept=".csv" class="file-input">
-                        <label for="csv-file-input" class="file-label">
-                            <span class="file-icon">📄</span>
-                            <span class="file-prompt">Glisser un fichier ou cliquer pour sélectionner</span>
-                            <span class="file-name"></span>
-                        </label>
-                    </div>
-                    
-                    <div class="csv-format-example">
-                        <h4>Format attendu:</h4>
-                        <pre><code>type,modele,longueur,quantite
-mere,ALU,6000,10
-mere,ALU,3000,15
-fille,ALU,2500,5
-fille,ALU,1800,3</code></pre>
-                        <p class="info-text">Les colonnes doivent être: type (mere/fille), modèle, longueur, quantité</p>
-                    </div>
+                    <form id="add-mother-bar-form">
+                        <div class="form-group">
+                            <label for="mother-bar-profile">Profil</label>
+                            <select id="mother-bar-profile" required>
+                                <!-- Options générées dynamiquement -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mother-bar-length">Longueur</label>
+                            <input type="number" id="mother-bar-length" min="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mother-bar-quantity">Quantité</label>
+                            <input type="number" id="mother-bar-quantity" min="1" value="1" required>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button id="confirm-import" class="btn btn-primary">Importer</button>
+                    <button id="confirm-add-mother-bar" class="btn btn-primary">Ajouter</button>
                     <button class="btn btn-outline close-modal">Annuler</button>
                 </div>
             </div>
@@ -186,13 +186,6 @@ fille,ALU,1800,3</code></pre>
         <p>Calcul en cours...</p>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/algorithms/First-Fit-Decreasing.js"></script>
-    <script src="js/algorithms/Integer-Linear-Programming.js"></script>
-    <script src="js/data-manager.js"></script>
-    <script src="js/algorithm-service.js"></script>
-    <script src="js/results-renderer.js"></script>
-    <script src="js/ui-controller.js"></script>
-    <script src="js/index.js"></script>
+    <!-- Les scripts sont désormais chargés via webpack -->
 </body>
 </html>

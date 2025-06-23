@@ -1,9 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlInlineCssPlugin = require('html-inline-css-webpack-plugin').default;
-const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: process.env.NODE_ENV || 'production',
@@ -11,16 +8,16 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: ''
   },
   resolve: {
     alias: {
-      // Chemins corrigés pour pointer vers le bon dossier
       '@algorithms': path.resolve(__dirname, 'src/js/algorithms'),
       '@ffd': path.resolve(__dirname, 'src/js/algorithms/First-Fit-Decreasing'),
-      '@ilp': path.resolve(__dirname, 'src/js/algorithms/Integer-Linear-Programming')
+      '@ilp': path.resolve(__dirname, 'src/js/algorithms/Integer-Linear-Programming'),
+      '@css': path.resolve(__dirname, 'src/css')
     },
     fallback: {
-      // Mocks pour les modules Node.js
       "fs": false,
       "child_process": false,
       "path": false
@@ -32,6 +29,16 @@ module.exports = {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
+      }
     ],
   },
   plugins: [
@@ -42,8 +49,22 @@ module.exports = {
       template: './src/index.html',
       filename: 'index.html',
       inject: 'body',
-    }),
-    new HtmlInlineScriptPlugin(),
-    new HtmlInlineCssPlugin(),
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        useShortDoctype: true
+      }
+    })
   ],
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    compress: true,
+    port: 9000,
+    hot: true
+  }
 };

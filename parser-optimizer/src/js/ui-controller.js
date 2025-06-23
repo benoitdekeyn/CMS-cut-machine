@@ -1,648 +1,566 @@
 /**
- * UIController - Manages user interface interactions and events
+ * Contrôleur d'interface utilisateur
  */
 export const UIController = {
-  // Dependencies
+  // Références aux services
   dataManager: null,
   algorithmService: null,
   resultsRenderer: null,
-  data: null,
+  importManager: null,
+  pgmGenerator: null,
   
   /**
-   * Initialize the UI controller
-   * @param {Object} options - Initialization options with dependencies
+   * Initialise le contrôleur UI avec les dépendances
+   * @param {Object} options - Options d'initialisation
    */
   init: function(options) {
-    // Set dependencies
+    // Stocke les références aux services
     this.dataManager = options.dataManager;
     this.algorithmService = options.algorithmService;
     this.resultsRenderer = options.resultsRenderer;
-    this.data = options.data;
+    this.importManager = options.importManager;
+    this.pgmGenerator = options.pgmGenerator;
     
-    // Initialize UI components
-    this.setupNavigation();
-    this.setupImportModal();
-    this.setupTableActions();
-    this.setupAlgorithmButtons();
-    this.renderTables();
+    // Initialiser les gestionnaires d'événements
+    this.initEventHandlers();
+    
+    // Initialiser les sections
+    this.initImportSection();
   },
   
   /**
-   * Set up navigation between sections
+   * Initialise tous les gestionnaires d'événements
    */
-  setupNavigation: function() {
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        // Remove active class from all buttons
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        
-        // Add active class to clicked button
-        btn.classList.add('active');
-        
-        // Hide all content sections
-        document.querySelectorAll('.content-section').forEach(section => {
-          section.classList.remove('active');
-        });
-        
-        // Show target content section
-        const targetSection = btn.getAttribute('data-section');
-        document.getElementById(targetSection).classList.add('active');
+  initEventHandlers: function() {
+    // Navigation entre sections
+    document.querySelectorAll('.nav-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const sectionId = button.getAttribute('data-section');
+        this.navigateToSection(sectionId);
       });
+    });
+    
+    // Boutons d'optimisation
+    document.getElementById('run-ffd-btn').addEventListener('click', () => this.runOptimization('ffd'));
+    document.getElementById('run-ilp-btn').addEventListener('click', () => this.runOptimization('ilp'));
+    document.getElementById('run-compare-btn').addEventListener('click', () => this.runOptimization('compare'));
+    
+    // Bouton de retour à l'édition
+    document.getElementById('back-to-edit-btn').addEventListener('click', () => this.navigateToSection('edit-section'));
+    
+    // Bouton pour importer plus de fichiers
+    document.getElementById('import-more-btn').addEventListener('click', () => this.navigateToSection('import-section'));
+    
+    // Bouton de téléchargement de tous les PGM
+    document.getElementById('download-all-pgm').addEventListener('click', () => this.downloadAllPgm());
+  },
+  
+  /**
+   * Initialise la section d'import
+   */
+  initImportSection: function() {
+    // Configurer le drag & drop pour l'import
+    const dropZone = document.querySelector('.file-drop-zone');
+    const fileInput = document.getElementById('nc2-files-input');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.add('active');
+      });
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.remove('active');
+      });
+    });
+    
+    dropZone.addEventListener('drop', async e => {
+      const files = e.dataTransfer.files;
+      await this.processImportedFiles(files);
+    });
+    
+    fileInput.addEventListener('change', async () => {
+      const files = fileInput.files;
+      await this.processImportedFiles(files);
     });
   },
   
   /**
-   * Set up the CSV import modal
+   * Traite les fichiers importés
+   * @param {FileList} files - Liste des fichiers à traiter
    */
-  setupImportModal: function() {
-    // Import button opens modal
-    document.getElementById('import-btn').addEventListener('click', () => {
-      document.getElementById('import-modal').classList.remove('hidden');
-    });
-
-    // Close modal buttons
-    document.querySelectorAll('.close-modal').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.getElementById('import-modal').classList.add('hidden');
-      });
-    });
-
-    // File input displays filename
-    document.getElementById('csv-file-input').addEventListener('change', (e) => {
-      const fileName = e.target.files[0]?.name || '';
-      if (fileName) {
-        e.target.nextElementSibling.querySelector('.file-prompt').textContent = fileName;
+  processImportedFiles: async function(files) {
+    if (files.length === 0) return;
+    
+    console.log('Processing files:', files);
+    document.getElementById('loading-overlay').classList.remove('hidden');
+    
+    try {
+      // Utiliser ImportManager pour traiter les fichiers
+      const importedBars = await this.importManager.processMultipleFiles(files);
+      console.log('Imported bars:', importedBars);
+      
+      if (importedBars && importedBars.length > 0) {
+        // Ajouter les barres importées au DataManager
+        this.dataManager.addBars(importedBars);
+        
+        // Naviguer vers la section d'édition et afficher les données
+        this.navigateToSection('edit-section');
+        this.renderEditSection();
+        
+        console.log(`${importedBars.length} pièce(s) importée(s) avec succès`);
+      } else {
+        console.warn('Aucune pièce valide n\'a été trouvée dans les fichiers');
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+    } finally {
+      document.getElementById('loading-overlay').classList.add('hidden');
+    }
+  },
+  
+  /**
+   * Affiche la section spécifiée
+   * @param {string} sectionId - ID de la section à afficher
+   */
+  navigateToSection: function(sectionId) {
+    // Mettre à jour les boutons de navigation
+    document.querySelectorAll('.nav-btn').forEach(button => {
+      if (button.getAttribute('data-section') === sectionId) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
       }
     });
-
-    // Import button in modal
-    document.getElementById('confirm-import').addEventListener('click', () => {
-      const fileInput = document.getElementById('csv-file-input');
-      const file = fileInput.files[0];
-      
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            // Parse CSV content
-            this.dataManager.parsePiecesCSV(e.target.result);
-            
-            // Update UI
-            this.renderTables();
-            
-            // Close modal
-            document.getElementById('import-modal').classList.add('hidden');
-          } catch (error) {
-            alert(`Erreur lors de l'importation: ${error.message}`);
+    
+    // Afficher la section correspondante
+    document.querySelectorAll('.content-section').forEach(section => {
+      if (section.id === sectionId) {
+        section.classList.add('active');
+        
+        // Si c'est la section d'édition, mettre à jour le rendu
+        if (sectionId === 'edit-section') {
+          this.renderEditSection();
+        }
+      } else {
+        section.classList.remove('active');
+      }
+    });
+  },
+  
+  /**
+   * Rend la section d'édition avec les données actuelles
+   */
+  renderEditSection: function() {
+    // Afficher les barres filles
+    this.renderPiecesTable();
+    
+    // Afficher les barres mères
+    this.renderStockBarsTable();
+    
+    // Initialiser le modal d'ajout de barre mère
+    this.initAddMotherBarModal();
+  },
+  
+  /**
+   * Rend le tableau des barres filles
+   */
+  renderPiecesTable: function() {
+    const tableBody = document.querySelector('#pieces-table tbody');
+    const data = this.dataManager.getData();
+    let html = '';
+    
+    // Générer une ligne pour chaque type de pièce
+    for (const model in data.pieces) {
+      for (const piece of data.pieces[model]) {
+        // Utiliser le nom complet du profil pour l'affichage
+        const displayName = piece.profileFull || model;
+        
+        html += `
+          <tr data-model="${model}" data-length="${piece.length}">
+            <td class="editable-cell" data-field="model" title="Modèle court: ${model}">${displayName}</td>
+            <td class="editable-cell" data-field="length">${piece.length}</td>
+            <td class="editable-cell" data-field="quantity">${piece.quantity}</td>
+            <td class="delete-cell">
+              <button class="btn btn-sm btn-danger delete-piece-btn" data-model="${model}" data-length="${piece.length}">×</button>
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    tableBody.innerHTML = html;
+    
+    // Ajouter les gestionnaires d'événements pour les cellules éditables
+    this.initEditableCells(tableBody, 'piece');
+    
+    // Ajouter les gestionnaires d'événements pour les boutons de suppression
+    tableBody.querySelectorAll('.delete-piece-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const model = button.getAttribute('data-model');
+        const length = parseFloat(button.getAttribute('data-length'));
+        this.dataManager.deletePiece(model, length);
+        this.renderPiecesTable();
+      });
+    });
+  },
+  
+  /**
+   * Rend le tableau des barres mères
+   */
+  renderStockBarsTable: function() {
+    const tableBody = document.querySelector('#stock-bars-table tbody');
+    const data = this.dataManager.getData();
+    let html = '';
+    
+    // Générer une ligne pour chaque type de barre mère
+    for (const model in data.motherBars) {
+      for (const bar of data.motherBars[model]) {
+        // Utiliser le nom complet du profil pour l'affichage
+        const displayName = bar.profileFull || model;
+        
+        html += `
+          <tr data-model="${model}" data-length="${bar.length}">
+            <td class="editable-cell" data-field="model" title="Modèle court: ${model}">${displayName}</td>
+            <td class="editable-cell" data-field="length">${bar.length}</td>
+            <td class="editable-cell" data-field="quantity">${bar.quantity}</td>
+            <td class="delete-cell">
+              <button class="btn btn-sm btn-danger delete-stock-btn" data-model="${model}" data-length="${bar.length}">×</button>
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    // Ajouter une ligne pour le bouton d'ajout
+    html += `
+      <tr class="add-row">
+        <td colspan="4">
+          <button id="add-mother-bar-btn" class="btn btn-sm btn-primary">+ Ajouter une barre mère</button>
+        </td>
+      </tr>
+    `;
+    
+    tableBody.innerHTML = html;
+    
+    // Ajouter les gestionnaires d'événements pour les cellules éditables
+    this.initEditableCells(tableBody, 'stock');
+    
+    // Ajouter les gestionnaires d'événements pour les boutons de suppression
+    tableBody.querySelectorAll('.delete-stock-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const model = button.getAttribute('data-model');
+        const length = parseFloat(button.getAttribute('data-length'));
+        this.dataManager.removeMotherBar(model, length);
+        this.renderStockBarsTable();
+      });
+    });
+    
+    // Ajouter le gestionnaire pour le bouton d'ajout
+    document.getElementById('add-mother-bar-btn').addEventListener('click', () => {
+      this.openAddMotherBarModal();
+    });
+  },
+  
+  /**
+   * Initialise les cellules éditables d'une table
+   * @param {HTMLElement} tableBody - Élément tbody de la table
+   * @param {string} type - Type d'élément ('piece' ou 'stock')
+   */
+  initEditableCells: function(tableBody, type) {
+    tableBody.querySelectorAll('.editable-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        // Ne pas rendre éditable si déjà en mode édition
+        if (cell.classList.contains('editing')) return;
+        
+        const value = cell.textContent;
+        const field = cell.getAttribute('data-field');
+        const row = cell.parentNode;
+        const model = row.getAttribute('data-model');
+        const length = parseFloat(row.getAttribute('data-length'));
+        
+        // Créer un champ de saisie
+        cell.classList.add('editing');
+        const input = document.createElement('input');
+        input.type = field === 'quantity' ? 'number' : field === 'length' ? 'number' : 'text';
+        input.value = value;
+        input.min = field === 'quantity' || field === 'length' ? '1' : '';
+        input.step = field === 'length' ? '0.1' : '1';
+        
+        // Remplacer le contenu par le champ
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+        
+        // Gérer la validation
+        const handleValidation = () => {
+          const newValue = input.value.trim();
+          cell.classList.remove('editing');
+          
+          // Si la valeur a changé, mettre à jour les données
+          if (newValue !== value && newValue !== '') {
+            if (type === 'piece') {
+              if (field === 'quantity') {
+                this.dataManager.updatePieceQuantity(model, length, parseInt(newValue, 10));
+              } else if (field === 'length') {
+                this.dataManager.updatePieceLength(model, length, parseFloat(newValue));
+              } else if (field === 'model') {
+                this.dataManager.updatePieceModel(model, length, newValue);
+              }
+              this.renderPiecesTable();
+            } else if (type === 'stock') {
+              if (field === 'quantity') {
+                this.dataManager.updateMotherBarQuantity(model, length, parseInt(newValue, 10));
+              } else if (field === 'length') {
+                this.dataManager.updateMotherBarLength(model, length, parseFloat(newValue));
+              } else if (field === 'model') {
+                this.dataManager.updateMotherBarModel(model, length, newValue);
+              }
+              this.renderStockBarsTable();
+            }
+          } else {
+            // Si la valeur n'a pas changé, restaurer le texte
+            cell.textContent = value;
           }
         };
-        reader.readAsText(file);
-      } else {
-        alert("Veuillez d'abord sélectionner un fichier.");
-      }
-    });
-  },
-  
-  /**
-   * Set up table actions (add, edit, delete)
-   */
-  setupTableActions: function() {
-    this.setupStockBarsTableActions();
-    this.setupPiecesTableActions();
-  },
-  
-  /**
-   * Set up actions for the stock bars table
-   */
-  setupStockBarsTableActions: function() {
-    const stockTable = document.getElementById('stock-bars-table');
-    
-    // Event delegation for clicks on the table
-    stockTable.addEventListener('click', (e) => {
-      // Delete button
-      if (e.target.classList.contains('delete-btn')) {
-        const tr = e.target.closest('tr');
-        const model = tr.getAttribute('data-model');
-        const length = parseInt(tr.getAttribute('data-length'), 10);
         
-        if (confirm(`Êtes-vous sûr de vouloir supprimer cette barre mère ${model} de longueur ${length}?`)) {
-          this.dataManager.deleteMotherBar(model, length);
-          this.renderTables();
-        }
-      }
-      
-      // Editable cell
-      if (e.target.classList.contains('editable-cell')) {
-        this.activateEditCell(e.target, 'stock');
-      }
-    });
-    
-    // Add new stock bar row at the end
-    const addRow = document.createElement('tr');
-    addRow.classList.add('add-row');
-    addRow.innerHTML = `
-      <td><input type="text" placeholder="Modèle" id="add-stock-model"></td>
-      <td><input type="number" placeholder="Longueur" id="add-stock-length"></td>
-      <td><input type="number" placeholder="Quantité" id="add-stock-quantity"></td>
-      <td class="delete-cell">
-        <button id="add-stock-bar-btn" class="btn btn-sm btn-success">+</button>
-      </td>
-    `;
-    stockTable.appendChild(addRow);
-    
-    // Add stock bar button
-    document.getElementById('add-stock-bar-btn').addEventListener('click', () => {
-      this.addMotherBarFromInputs();
-    });
-    
-    // Add on Enter key in the inputs
-    document.getElementById('add-stock-model').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addMotherBarFromInputs();
-    });
-    document.getElementById('add-stock-length').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addMotherBarFromInputs();
-    });
-    document.getElementById('add-stock-quantity').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addMotherBarFromInputs();
+        // Event listeners pour la validation
+        input.addEventListener('blur', handleValidation);
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            handleValidation();
+          }
+        });
+      });
     });
   },
   
   /**
-   * Add a mother bar from the input fields
+   * Initialise le modal d'ajout de barre mère
    */
-  addMotherBarFromInputs: function() {
-    const modelInput = document.getElementById('add-stock-model');
-    const lengthInput = document.getElementById('add-stock-length');
-    const quantityInput = document.getElementById('add-stock-quantity');
+  initAddMotherBarModal: function() {
+    const modal = document.getElementById('add-mother-bar-modal');
+    const closeButtons = modal.querySelectorAll('.close-modal');
     
-    const model = modelInput.value.trim();
-    const length = parseInt(lengthInput.value, 10);
-    const quantity = parseInt(quantityInput.value, 10);
-    
-    try {
-      if (this.dataManager.addMotherBar(model, length, quantity)) {
-        // Clear inputs
-        modelInput.value = '';
-        lengthInput.value = '';
-        quantityInput.value = '';
-        
-        // Update table
-        this.renderTables();
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  },
-  
-  /**
-   * Set up actions for the pieces table
-   */
-  setupPiecesTableActions: function() {
-    const piecesTable = document.getElementById('pieces-table');
-    
-    // Event delegation for clicks on the table
-    piecesTable.addEventListener('click', (e) => {
-      // Delete button
-      if (e.target.classList.contains('delete-btn')) {
-        const tr = e.target.closest('tr');
-        const model = tr.getAttribute('data-model');
-        const length = parseInt(tr.getAttribute('data-length'), 10);
-        
-        if (confirm(`Êtes-vous sûr de vouloir supprimer cette pièce ${model} de longueur ${length}?`)) {
-          this.dataManager.deletePiece(model, length);
-          this.renderTables();
-        }
-      }
-      
-      // Editable cell
-      if (e.target.classList.contains('editable-cell')) {
-        this.activateEditCell(e.target, 'pieces');
-      }
+    // Gestionnaires pour fermer le modal
+    closeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
     });
     
-    // Add new piece row at the end
-    const addRow = document.createElement('tr');
-    addRow.classList.add('add-row');
-    addRow.innerHTML = `
-      <td><input type="text" placeholder="Modèle" id="add-piece-model"></td>
-      <td><input type="number" placeholder="Longueur" id="add-piece-length"></td>
-      <td><input type="number" placeholder="Quantité" id="add-piece-quantity"></td>
-      <td class="delete-cell">
-        <button id="add-piece-btn" class="btn btn-sm btn-success">+</button>
-      </td>
-    `;
-    piecesTable.appendChild(addRow);
+    // Remplir le select avec les modèles disponibles
+    const select = document.getElementById('mother-bar-profile');
+    select.innerHTML = '';
     
-    // Add piece button
-    document.getElementById('add-piece-btn').addEventListener('click', () => {
-      this.addPieceFromInputs();
-    });
-    
-    // Add on Enter key in the inputs
-    document.getElementById('add-piece-model').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addPieceFromInputs();
-    });
-    document.getElementById('add-piece-length').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addPieceFromInputs();
-    });
-    document.getElementById('add-piece-quantity').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addPieceFromInputs();
-    });
-  },
-  
-  /**
-   * Add a piece from the input fields
-   */
-  addPieceFromInputs: function() {
-    const modelInput = document.getElementById('add-piece-model');
-    const lengthInput = document.getElementById('add-piece-length');
-    const quantityInput = document.getElementById('add-piece-quantity');
-    
-    const model = modelInput.value.trim();
-    const length = parseInt(lengthInput.value, 10);
-    const quantity = parseInt(quantityInput.value, 10);
-    
-    try {
-      if (this.dataManager.addPiece(model, length, quantity)) {
-        // Clear inputs
-        modelInput.value = '';
-        lengthInput.value = '';
-        quantityInput.value = '';
-        
-        // Update table
-        this.renderTables();
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  },
-  
-  /**
-   * Activate editing for a table cell
-   * @param {HTMLElement} cell - The cell to edit
-   * @param {string} type - Table type ('stock' or 'pieces')
-   */
-  activateEditCell: function(cell, type) {
-    const tr = cell.parentElement;
-    const currentValue = cell.textContent;
-    const fieldName = cell.getAttribute('data-field');
-    const model = tr.getAttribute('data-model');
-    const length = parseInt(tr.getAttribute('data-length'), 10);
-    
-    // Already editing
-    if (cell.classList.contains('editing')) return;
-    
-    // Add editing class
-    cell.classList.add('editing');
-    
-    // Save original content to restore if needed
-    cell.setAttribute('data-original', currentValue);
-    
-    // Create input element
-    const input = document.createElement('input');
-    input.type = fieldName === 'model' ? 'text' : 'number';
-    input.value = currentValue;
-    
-    // Clear cell and add input
-    cell.textContent = '';
-    cell.appendChild(input);
-    input.focus();
-    
-    // Handle input events
-    input.addEventListener('blur', () => {
-      this.saveEditCell(cell, type, model, length, fieldName);
-    });
-    
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        input.blur(); // Trigger blur to save
-      } else if (e.key === 'Escape') {
-        cell.textContent = cell.getAttribute('data-original');
-        cell.classList.remove('editing');
-      }
-    });
-  },
-  
-  /**
-   * Save the edited cell value
-   * @param {HTMLElement} cell - The edited cell
-   * @param {string} type - Table type ('stock' or 'pieces')
-   * @param {string} originalModel - Original model name
-   * @param {number} originalLength - Original length value
-   * @param {string} fieldName - Field name being edited
-   */
-  saveEditCell: function(cell, type, originalModel, originalLength, fieldName) {
-    if (!cell.classList.contains('editing')) return;
-    
-    const input = cell.querySelector('input');
-    const value = input.type === 'number' ? parseInt(input.value, 10) : input.value.trim();
-    
-    try {
-      if (type === 'stock') {
-        this.updateStockBarValue(originalModel, originalLength, fieldName, value);
-      } else {
-        this.updatePieceValue(originalModel, originalLength, fieldName, value);
-      }
-      
-      // Update UI
-      cell.textContent = value;
-      cell.classList.remove('editing');
-      this.renderTables();
-    } catch (error) {
-      alert(error.message);
-      cell.textContent = cell.getAttribute('data-original');
-      cell.classList.remove('editing');
-    }
-  },
-  
-  /**
-   * Update a stock bar value
-   * @param {string} model - Original model name
-   * @param {number} length - Original length
-   * @param {string} field - Field to update
-   * @param {string|number} value - New value
-   */
-  updateStockBarValue: function(model, length, field, value) {
+    // Récupérer tous les modèles uniques (barres filles et mères)
     const data = this.dataManager.getData();
+    const models = new Set();
     
-    // Validate input
-    if ((field === 'length' || field === 'quantity') && (isNaN(value) || value <= 0)) {
-      throw new Error("La valeur doit être un nombre positif.");
+    // Ajouter les modèles des barres filles
+    for (const model in data.pieces) {
+      models.add(model);
     }
     
-    if (field === 'model' && !value) {
-      throw new Error("Le modèle ne peut pas être vide.");
+    // Ajouter les modèles des barres mères
+    for (const model in data.motherBars) {
+      models.add(model);
     }
     
-    // Find the bar
-    if (!data.motherBars[model] || !data.motherBars[model].some(b => b.length === length)) {
-      throw new Error(`Barre mère ${model} de longueur ${length} non trouvée.`);
+    // Créer les options
+    for (const model of models) {
+      const option = document.createElement('option');
+      option.value = model;
+      option.textContent = model;
+      select.appendChild(option);
     }
     
-    // Special case: changing the model
-    if (field === 'model') {
-      // Create a copy with the new model
-      const bar = data.motherBars[model].find(b => b.length === length);
-      this.dataManager.addMotherBar(value, bar.length, bar.quantity);
+    // Gestionnaire pour le bouton d'ajout
+    document.getElementById('confirm-add-mother-bar').addEventListener('click', () => {
+      const model = select.value;
+      const length = parseFloat(document.getElementById('mother-bar-length').value);
+      const quantity = parseInt(document.getElementById('mother-bar-quantity').value, 10);
       
-      // Remove the old bar
-      this.dataManager.deleteMotherBar(model, length);
-    } 
-    // Special case: changing the length
-    else if (field === 'length') {
-      // Create a copy with the new length
-      const bar = data.motherBars[model].find(b => b.length === length);
-      this.dataManager.addMotherBar(model, value, bar.quantity);
-      
-      // Remove the old bar
-      this.dataManager.deleteMotherBar(model, length);
-    }
-    // Updating quantity
-    else if (field === 'quantity') {
-      const barIndex = data.motherBars[model].findIndex(b => b.length === length);
-      if (barIndex !== -1) {
-        data.motherBars[model][barIndex].quantity = value;
+      if (model && length && quantity) {
+        this.dataManager.addMotherBar(model, length, quantity);
+        this.renderStockBarsTable();
+        modal.classList.add('hidden');
+      } else {
+        alert('Veuillez remplir tous les champs correctement.');
       }
-    }
-  },
-  
-  /**
-   * Update a piece value
-   * @param {string} model - Original model name
-   * @param {number} length - Original length
-   * @param {string} field - Field to update
-   * @param {string|number} value - New value
-   */
-  updatePieceValue: function(model, length, field, value) {
-    const data = this.dataManager.getData();
-    
-    // Validate input
-    if ((field === 'length' || field === 'quantity') && (isNaN(value) || value <= 0)) {
-      throw new Error("La valeur doit être un nombre positif.");
-    }
-    
-    if (field === 'model' && !value) {
-      throw new Error("Le modèle ne peut pas être vide.");
-    }
-    
-    // Find the piece
-    if (!data.pieces[model] || !data.pieces[model].some(p => p.length === length)) {
-      throw new Error(`Pièce ${model} de longueur ${length} non trouvée.`);
-    }
-    
-    // Special case: changing the model
-    if (field === 'model') {
-      // Create a copy with the new model
-      const piece = data.pieces[model].find(p => p.length === length);
-      this.dataManager.addPiece(value, piece.length, piece.quantity);
-      
-      // Remove the old piece
-      this.dataManager.deletePiece(model, length);
-    } 
-    // Special case: changing the length
-    else if (field === 'length') {
-      // Create a copy with the new length
-      const piece = data.pieces[model].find(p => p.length === length);
-      this.dataManager.addPiece(model, value, piece.quantity);
-      
-      // Remove the old piece
-      this.dataManager.deletePiece(model, length);
-    }
-    // Updating quantity
-    else if (field === 'quantity') {
-      const pieceIndex = data.pieces[model].findIndex(p => p.length === length);
-      if (pieceIndex !== -1) {
-        data.pieces[model][pieceIndex].quantity = value;
-      }
-    }
-  },
-  
-  /**
-   * Set up event handlers for algorithm buttons
-   */
-  setupAlgorithmButtons: function() {
-    // First-Fit Decreasing button
-    document.getElementById('run-ffd-btn').addEventListener('click', () => {
-      this.executeAlgorithm('ffd');
-    });
-    
-    // ILP button
-    document.getElementById('run-ilp-btn').addEventListener('click', () => {
-      this.executeAlgorithm('ilp');
-    });
-    
-    // Compare button
-    document.getElementById('run-compare-btn').addEventListener('click', () => {
-      this.executeAlgorithm('compare');
     });
   },
   
   /**
-   * Execute an algorithm and handle results
-   * @param {string} type - Algorithm type ('ffd', 'ilp', 'compare')
+   * Ouvre le modal d'ajout de barre mère
    */
-  executeAlgorithm: function(type) {
+  openAddMotherBarModal: function() {
+    const modal = document.getElementById('add-mother-bar-modal');
+    modal.classList.remove('hidden');
+    
+    // Réinitialiser les champs
+    document.getElementById('mother-bar-length').value = '';
+    document.getElementById('mother-bar-quantity').value = '1';
+  },
+  
+  /**
+   * Exécute l'algorithme d'optimisation
+   * @param {string} type - Type d'algorithme ('ffd', 'ilp', 'compare')
+   */
+  runOptimization: function(type) {
     try {
-      // Validate data
+      // Valider les données
       this.dataManager.validateData();
       
-      // Show loading overlay
+      const data = this.dataManager.getData();
+      console.log('Running optimization with data:', data);
+      
       document.getElementById('loading-overlay').classList.remove('hidden');
       
-      // Navigate to results section if not comparing
-      if (type !== 'compare') {
-        document.querySelectorAll('.nav-btn')[1].click();
-      }
-      
-      // Set algorithm name in result header
-      const algorithmName = type === 'greedy' || type === 'ffd' ? 'First-Fit Decreasing' : 
-                           (type === 'ilp' ? 'Programmation Linéaire (ILP)' : 'Comparaison');
-      document.getElementById('result-algorithm').textContent = algorithmName;
-      
-      // Execute algorithm with a small delay to allow UI update
       setTimeout(() => {
         try {
-          // Get algorithm results
-          const results = this.algorithmService.runAlgorithm(type, this.dataManager.getData());
+          let result;
           
-          // Navigate to results tab if it was a comparison
-          if (type === 'compare') {
-            document.querySelectorAll('.nav-btn')[1].click();
-            
-            // Update algorithm name based on results
-            const bestAlgoName = results.bestAlgorithm === 'ffd' ? 
-                'First-Fit Decreasing (meilleur)' : 'Programmation Linéaire (meilleur)';
-            document.getElementById('result-algorithm').textContent = bestAlgoName;
+          if (type === 'ffd') {
+            result = this.algorithmService.runAlgorithm('ffd', data);
+          } else if (type === 'ilp') {
+            result = this.algorithmService.runAlgorithm('ilp', data);
+          } else if (type === 'compare') {
+            result = this.algorithmService.compareAlgorithms(data);
+          } else {
+            throw new Error("Type d'algorithme inconnu");
           }
           
-          // Render the results
-          this.resultsRenderer.renderResults(results, this.algorithmService);
+          console.log('Optimization result:', result);
           
+          // Naviguer vers la section des résultats
+          this.navigateToSection('results-section');
+          
+          // Afficher les résultats
+          this.resultsRenderer.renderResults(result, type);
+          
+          // Générer les aperçus PGM
+          this.generatePgmPreviews(result);
         } catch (error) {
-          console.error('Algorithm execution error:', error);
-          const container = document.getElementById('results-container');
-          this.resultsRenderer.renderErrorMessage(
-            container,
-            "Erreur lors de l'exécution",
-            error.message || "Une erreur s'est produite"
-          );
+          console.error('Optimization error:', error);
         } finally {
-          // Hide loading overlay
           document.getElementById('loading-overlay').classList.add('hidden');
         }
       }, 100);
     } catch (error) {
-      alert(error.message);
+      console.error(error.message);
     }
   },
   
   /**
-   * Render both tables with current data
+   * Génère les aperçus des fichiers PGM
+   * @param {Object} results - Résultats de l'optimisation
    */
-  renderTables: function() {
-    this.renderStockBarsTable();
-    this.renderPiecesTable();
-  },
-  
-  /**
-   * Render the stock bars table
-   */
-  renderStockBarsTable: function() {
-    const table = document.getElementById('stock-bars-table');
-    const data = this.dataManager.getData();
-    
-    // Create header
-    let html = `
-      <thead>
-        <tr>
-          <th>Modèle</th>
-          <th>Longueur</th>
-          <th>Quantité</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-    `;
-    
-    // Add rows for each mother bar
-    for (const model in data.motherBars) {
-      for (const bar of data.motherBars[model]) {
-        html += `
-          <tr data-model="${model}" data-length="${bar.length}">
-            <td class="editable-cell" data-field="model">${model}</td>
-            <td class="editable-cell" data-field="length">${bar.length}</td>
-            <td class="editable-cell" data-field="quantity">${bar.quantity}</td>
-            <td class="delete-cell">
-              <button class="btn btn-sm btn-danger delete-btn">×</button>
-            </td>
-          </tr>
-        `;
+  generatePgmPreviews: function(results) {
+    try {
+      const container = document.getElementById('pgm-files-list');
+      let html = '';
+      
+      // Pour chaque modèle
+      for (const model in results.modelResults) {
+        const modelResults = results.modelResults[model];
+        
+        // Pour chaque schéma de coupe
+        modelResults.layouts.forEach((layout, index) => {
+          const fileName = `${model}_${Math.round(layout.barLength)}.pgm`;
+          
+          html += `
+            <div class="pgm-file-item">
+              <div class="pgm-file-info">
+                <span class="pgm-file-name">${fileName}</span>
+                <span class="pgm-file-model">${model}</span>
+                <span class="pgm-file-length">Longueur: ${layout.barLength}</span>
+                <span class="pgm-file-pieces">Pièces: ${layout.cuts ? layout.cuts.length : 0}</span>
+              </div>
+              <button class="btn btn-sm btn-primary download-pgm-btn" 
+                      data-model="${model}" 
+                      data-index="${index}">
+                Télécharger
+              </button>
+            </div>
+          `;
+        });
       }
-    }
-    
-    // Close tbody
-    html += `</tbody>`;
-    
-    // Save add row
-    const addRow = table.querySelector('.add-row');
-    
-    // Update table
-    table.innerHTML = html;
-    
-    // Add back the add row
-    if (addRow) {
-      table.appendChild(addRow);
+      
+      container.innerHTML = html;
+      
+      // Configurer les boutons de téléchargement
+      container.querySelectorAll('.download-pgm-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const model = button.getAttribute('data-model');
+          const index = parseInt(button.getAttribute('data-index'), 10);
+          
+          const layout = results.modelResults[model].layouts[index];
+          const pgmContent = this.pgmGenerator.generatePgm(layout, model);
+          
+          // Télécharger le fichier
+          this.downloadFile(pgmContent, `${model}_${Math.round(layout.barLength)}.pgm`, 'text/plain');
+        });
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération des aperçus PGM:', error);
+      document.getElementById('pgm-files-list').innerHTML = '<p class="error-text">Une erreur est survenue lors de la génération des aperçus PGM.</p>';
     }
   },
   
   /**
-   * Render the pieces table
+   * Télécharge tous les fichiers PGM
    */
-  renderPiecesTable: function() {
-    const table = document.getElementById('pieces-table');
-    const data = this.dataManager.getData();
-    
-    // Create header
-    let html = `
-      <thead>
-        <tr>
-          <th>Modèle</th>
-          <th>Longueur</th>
-          <th>Quantité</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-    `;
-    
-    // Add rows for each piece
-    for (const model in data.pieces) {
-      for (const piece of data.pieces[model]) {
-        html += `
-          <tr data-model="${model}" data-length="${piece.length}">
-            <td class="editable-cell" data-field="model">${model}</td>
-            <td class="editable-cell" data-field="length">${piece.length}</td>
-            <td class="editable-cell" data-field="quantity">${piece.quantity}</td>
-            <td class="delete-cell">
-              <button class="btn btn-sm btn-danger delete-btn">×</button>
-            </td>
-          </tr>
-        `;
+  downloadAllPgm: async function() {
+    try {
+      document.getElementById('loading-overlay').classList.remove('hidden');
+      
+      // Obtenir les résultats actuels
+      const resultsContainer = document.getElementById('results-display');
+      if (!resultsContainer.dataset.results) {
+        console.error('Aucun résultat disponible');
+        return;
       }
+      
+      const results = JSON.parse(resultsContainer.dataset.results);
+      
+      // Générer le ZIP avec tous les fichiers PGM
+      const blob = await this.pgmGenerator.generateAllPgmFiles(results, this.dataManager);
+      
+      // Télécharger le ZIP
+      this.downloadFile(blob, 'pgm_files.zip', 'application/zip');
+      
+      console.log('Fichiers PGM téléchargés avec succès');
+    } catch (error) {
+      console.error('Error generating PGM files:', error);
+    } finally {
+      document.getElementById('loading-overlay').classList.add('hidden');
     }
-    
-    // Close tbody
-    html += `</tbody>`;
-    
-    // Save add row
-    const addRow = table.querySelector('.add-row');
-    
-    // Update table
-    table.innerHTML = html;
-    
-    // Add back the add row
-    if (addRow) {
-      table.appendChild(addRow);
-    }
+  },
+  
+  /**
+   * Télécharge un fichier
+   * @param {Blob|string} content - Contenu du fichier
+   * @param {string} filename - Nom du fichier
+   * @param {string} type - Type MIME
+   */
+  downloadFile: function(content, filename, type) {
+    const blob = content instanceof Blob ? content : new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 };

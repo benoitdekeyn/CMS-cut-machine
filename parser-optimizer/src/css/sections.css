@@ -1,0 +1,363 @@
+/* Styles spécifiques aux sections de contenu */
+
+/* Section Import */
+.import-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.file-drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.active {
+  border-color: var(--primary);
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.file-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.file-prompt {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.file-hint {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Résumé de l'import */
+#import-summary {
+  margin-top: 2rem;
+}
+
+.action-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+/* Section Édition */
+.optimization-actions {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.algorithm-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.add-row td {
+  padding: 0.5rem;
+}
+
+.add-row input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+/* Section Résultats */
+.algorithm-name {
+  font-weight: 500;
+  margin-left: 1rem;
+  color: var(--primary);
+}
+
+/* PGM Files */
+.pgm-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pgm-file-item:last-child {
+  border-bottom: none;
+}
+
+.pgm-file-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+
+.pgm-file-name {
+  font-weight: 600;
+  min-width: 200px;
+}
+
+.pgm-file-model,
+.pgm-file-length,
+.pgm-file-pieces {
+  color: var(--text-secondary);
+}
+
+/* Résultats d'optimisation */
+.results-summary {
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-card {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.efficiency-card {
+  background-color: var(--success);
+}
+
+.efficiency-card .stat-label,
+.efficiency-card .stat-value {
+  color: white;
+}
+
+.model-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.model-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.model-header {
+  padding: 1rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.model-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.model-content {
+  padding: 1rem;
+}
+
+.model-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.model-stat {
+  text-align: center;
+}
+
+.efficiency-tag {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.cut-schemes {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+.cut-scheme {
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cut-scheme-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.cut-pieces, .waste {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.waste-value {
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.cut-bar {
+  height: 30px;
+  background-color: #e5e5e5;
+  border-radius: var(--radius);
+  display: flex;
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.cut-piece {
+  height: 100%;
+  background-color: var(--primary);
+  color: white;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.cut-piece.last-piece {
+  background-color: var(--primary-hover);
+}
+
+.waste-piece {
+  height: 100%;
+  background-color: var(--danger);
+  color: white;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cut-count {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+/* Comparaison des algorithmes */
+.algorithm-comparison {
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.comparison-result {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.tag {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.algorithm-efficiencies {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.efficiency-comparison {
+  background-color: var(--bg-primary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  text-align: center;
+  flex: 1;
+}
+
+.efficiency-comparison.best {
+  border: 2px solid var(--success);
+}
+
+.algorithm-name {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.efficiency-value {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.difference-info {
+  text-align: center;
+  margin: 0;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .model-results {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
