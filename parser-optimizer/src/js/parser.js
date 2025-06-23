@@ -137,7 +137,7 @@ const Parser = {
       // Stockage des lignes du fichier
       const lignes = content.split('\n').map(ligne => ligne.trim());
       if (lignes.length < 10) {
-        throw new Error("Le fichier contient ");
+        throw new Error("Le fichier contient trop peu de lignes");
       }
       
       // Créer l'objet de données extraites
@@ -192,6 +192,16 @@ const Parser = {
         }
       }
       
+      // Déterminer l'orientation à partir du cas
+      let orientation;
+      if (donneesExtraites.cas === 1 || donneesExtraites.cas === 2) {
+        orientation = "a-plat";
+      } else if (donneesExtraites.cas === 3 || donneesExtraites.cas === 4) {
+        orientation = "debout";
+      } else {
+        orientation = "90-degres";
+      }
+      
       // Formatter les données pour le DataManager - structure unifiée des barres
       return {
         profile: donneesExtraites.general.profil, // Nom court pour F4C (ex: "HEA")
@@ -203,6 +213,7 @@ const Parser = {
           start: donneesExtraites.valeurs_specifiques.angle_54 || 90,
           end: donneesExtraites.valeurs_specifiques.angle_55 || 90
         },
+        orientation: orientation,                 // Orientation déterminée à partir du cas
         type: 'fille',
         cas: donneesExtraites.cas,                // Numéro du cas pour la génération F4C
         originalData: donneesExtraites            // Conservation des données brutes complètes

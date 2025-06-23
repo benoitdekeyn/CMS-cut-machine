@@ -499,16 +499,56 @@ export const DataManager = {
       structure[model] = [];
     }
     
-    // Vérifier si la barre existe déjà
-    const existingIndex = structure[model].findIndex(b => b.length === bar.length);
+    // Vérifier si la barre existe déjà avec exactement les mêmes caractéristiques
+    const existingIndex = structure[model].findIndex(b => 
+      b.length === bar.length && 
+      b.orientation === bar.orientation &&
+      this._haveEqualAngles(b.angles, bar.angles)
+    );
     
     if (existingIndex !== -1) {
-      // Mettre à jour la barre existante
-      structure[model][existingIndex] = { ...structure[model][existingIndex], ...bar };
+      // Mettre à jour la quantité de la barre existante
+      structure[model][existingIndex].quantity += bar.quantity || 1;
+      
+      // Conserver l'ID du nouvel élément s'il est plus récent
+      if (bar.id && (!structure[model][existingIndex].id || 
+          parseInt(bar.id.split('_').pop()) > parseInt(structure[model][existingIndex].id.split('_').pop()))) {
+        structure[model][existingIndex].id = bar.id;
+      }
+      
+      // Fusionner d'autres propriétés pertinentes
+      if (bar.originalFile) {
+        structure[model][existingIndex].originalFile = bar.originalFile;
+      }
+      
+      // Màj originalData si nécessaire
+      if (bar.originalData) {
+        structure[model][existingIndex].originalData = bar.originalData;
+      }
     } else {
       // Ajouter la nouvelle barre
-      structure[model].push(bar);
+      structure[model].push({...bar});
     }
+  },
+  
+  /**
+   * Compare deux objets angles pour vérifier s'ils sont identiques
+   * @private
+   * @param {Object} angles1 - Premier objet angles {start, end}
+   * @param {Object} angles2 - Second objet angles {start, end}
+   * @returns {boolean} true si les angles sont identiques
+   */
+  _haveEqualAngles: function(angles1, angles2) {
+    // Si l'un des objets est undefined, vérifier s'ils sont tous les deux undefined
+    if (!angles1 || !angles2) {
+      return (!angles1 && !angles2);
+    }
+    
+    // Comparer les angles start et end
+    return (
+      Math.abs(angles1.start - angles2.start) < 0.001 && 
+      Math.abs(angles1.end - angles2.end) < 0.001
+    );
   },
   
   /**

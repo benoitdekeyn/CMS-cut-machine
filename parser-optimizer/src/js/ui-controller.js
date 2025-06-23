@@ -64,6 +64,14 @@ export const UIController = {
     const dropZone = document.querySelector('.file-drop-zone');
     const fileInput = document.getElementById('nc2-files-input');
     
+    // S'assurer que le conteneur d'erreur existe
+    if (!document.getElementById('import-error')) {
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'import-error';
+      errorDiv.className = 'error-message hidden';
+      dropZone.parentNode.insertBefore(errorDiv, dropZone.nextSibling);
+    }
+    
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
       dropZone.addEventListener(eventName, e => {
         e.preventDefault();
@@ -104,6 +112,9 @@ export const UIController = {
     console.log('Processing files:', files);
     document.getElementById('loading-overlay').classList.remove('hidden');
     
+    // Masquer les erreurs précédentes
+    this.hideImportError();
+    
     try {
       // Utiliser ImportManager pour parser les fichiers
       const importedBars = await this.importManager.processMultipleFiles(files);
@@ -113,20 +124,45 @@ export const UIController = {
         // Ajouter les barres importées au DataManager
         const addedIds = this.dataManager.addBars(importedBars);
         
-        // Naviguer vers la section d'édition et afficher les données
-        this.navigateToSection('edit-section');
-        this.renderEditSection();
-        
-        // Afficher un message de succès
-        this.showNotification(`${addedIds.length} pièce(s) importée(s) avec succès`, 'success');
+        if (addedIds.length > 0) {
+          // Passer directement à la section d'édition sans alerte
+          this.navigateToSection('edit-section');
+          this.renderEditSection();
+        } else {
+          // Aucune barre ajoutée (probablement déjà existantes)
+          this.showImportError('Aucune nouvelle pièce ajoutée. Vérifiez que les fichiers sont valides et uniques.');
+        }
       } else {
-        this.showNotification('Aucune pièce valide n\'a été trouvée dans les fichiers', 'warning');
+        // Aucune barre valide trouvée
+        this.showImportError('Aucune pièce valide n\'a été trouvée dans les fichiers importés.');
       }
     } catch (error) {
       console.error('Import error:', error);
-      this.showNotification(`Erreur lors de l'import: ${error.message}`, 'error');
+      this.showImportError(`Erreur lors de l'import: ${error.message}`);
     } finally {
       document.getElementById('loading-overlay').classList.add('hidden');
+    }
+  },
+  
+  /**
+   * Affiche un message d'erreur sous la zone d'import
+   * @param {string} message - Message d'erreur à afficher
+   */
+  showImportError: function(message) {
+    const errorDiv = document.getElementById('import-error');
+    if (errorDiv) {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  },
+  
+  /**
+   * Masque le message d'erreur d'import
+   */
+  hideImportError: function() {
+    const errorDiv = document.getElementById('import-error');
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
     }
   },
   
@@ -136,8 +172,48 @@ export const UIController = {
    * @param {string} type - Type de notification ('success', 'warning', 'error')
    */
   showNotification: function(message, type = 'info') {
-    // Implémentation simple d'alerte, à remplacer par un système de notification plus élégant
-    alert(`${type.toUpperCase()}: ${message}`);
+    // Vérifier si un conteneur de notification existe
+    let notifContainer = document.getElementById('notification-container');
+    
+    // Créer le conteneur s'il n'existe pas
+    if (!notifContainer) {
+      notifContainer = document.createElement('div');
+      notifContainer.id = 'notification-container';
+      document.body.appendChild(notifContainer);
+    }
+    
+    // Créer la notification
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+      <span class="notification-message">${message}</span>
+      <button class="notification-close">&times;</button>
+    `;
+    
+    // Ajouter la notification au conteneur
+    notifContainer.appendChild(notification);
+    
+    // Configurer le bouton de fermeture
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+      notification.classList.add('hiding');
+      setTimeout(() => {
+        notifContainer.removeChild(notification);
+      }, 300);
+    });
+    
+    // Auto-fermeture après 5 secondes pour les notifications non-erreur
+    if (type !== 'error') {
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.classList.add('hiding');
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notifContainer.removeChild(notification);
+            }
+          }, 300);
+        }
+      }, 5000);
+    }
   },
   
   /**
@@ -145,6 +221,9 @@ export const UIController = {
    * @param {string} sectionId - ID de la section à afficher
    */
   navigateToSection: function(sectionId) {
+    // Masquer les erreurs d'import lors du changement de section
+    this.hideImportError();
+    
     // Mettre à jour les boutons de navigation
     document.querySelectorAll('.nav-btn').forEach(button => {
       if (button.getAttribute('data-section') === sectionId) {
@@ -191,24 +270,78 @@ export const UIController = {
     const data = this.dataManager.getData();
     let html = '';
     
-    // Générer une ligne pour chaque type de pièce
+    // Récupérer toutes les barres filles
+    const allPieces = [];
     for (const model in data.pieces) {
       for (const piece of data.pieces[model]) {
-        // Utiliser le nom complet du profil pour l'affichage
-        const displayName = piece.profileFull || model;
-        
-        html += `
-          <tr data-model="${model}" data-length="${piece.length}">
-            <td class="editable-cell" data-field="model" title="Modèle court: ${model}">${displayName}</td>
-            <td class="editable-cell" data-field="length">${piece.length}</td>
-            <td class="editable-cell" data-field="quantity">${piece.quantity}</td>
-            <td class="delete-cell">
-              <button class="btn btn-sm btn-danger delete-piece-btn" data-model="${model}" data-length="${piece.length}">×</button>
-            </td>
-          </tr>
-        `;
+        allPieces.push(piece);
       }
     }
+    
+    // Trier les barres filles selon les critères demandés
+    allPieces.sort((a, b) => {
+      // D'abord par modèle
+      if (a.model !== b.model) {
+        return a.model.localeCompare(b.model);
+      }
+      // Puis par orientation
+      if (a.orientation !== b.orientation) {
+        return a.orientation.localeCompare(b.orientation);
+      }
+      // Puis par longueur
+      if (a.length !== b.length) {
+        return a.length - b.length;
+      }
+      // Puis par angle de début
+      if (a.angles?.start !== b.angles?.start) {
+        return (a.angles?.start || 0) - (b.angles?.start || 0);
+      }
+      // Enfin par angle de fin
+      return (a.angles?.end || 0) - (b.angles?.end || 0);
+    });
+    
+    // Générer une ligne pour chaque pièce triée
+    for (const piece of allPieces) {
+      // Utiliser le nom complet du profil pour l'affichage
+      const displayName = piece.profileFull || piece.model;
+      const orientation = piece.orientation || "non-définie";
+      const startAngle = piece.angles?.start || 90;
+      const endAngle = piece.angles?.end || 90;
+      
+      html += `
+        <tr data-model="${piece.model}" data-length="${piece.length}" data-orientation="${orientation}" 
+            data-angle-start="${startAngle}" data-angle-end="${endAngle}">
+          <td>${displayName}</td>
+          <td>${orientation}</td>
+          <td class="editable-cell" data-field="length">${piece.length}</td>
+          <td>${startAngle}°</td>
+          <td>${endAngle}°</td>
+          <td class="editable-cell" data-field="quantity">${piece.quantity}</td>
+          <td class="delete-cell">
+            <button class="btn btn-sm btn-danger delete-piece-btn" 
+                    data-model="${piece.model}" 
+                    data-length="${piece.length}"
+                    data-orientation="${orientation}"
+                    data-angle-start="${startAngle}"
+                    data-angle-end="${endAngle}">×</button>
+          </td>
+        </tr>
+      `;
+    }
+    
+    // Mettre à jour l'en-tête du tableau
+    const tableHeader = document.querySelector('#pieces-table thead');
+    tableHeader.innerHTML = `
+      <tr>
+        <th>Modèle</th>
+        <th>Orientation</th>
+        <th>Longueur</th>
+        <th>Angle 1</th>
+        <th>Angle 2</th>
+        <th>Quantité</th>
+        <th></th>
+      </tr>
+    `;
     
     tableBody.innerHTML = html;
     
@@ -220,14 +353,27 @@ export const UIController = {
       button.addEventListener('click', () => {
         const model = button.getAttribute('data-model');
         const length = parseFloat(button.getAttribute('data-length'));
+        const orientation = button.getAttribute('data-orientation');
+        const startAngle = parseFloat(button.getAttribute('data-angle-start'));
+        const endAngle = parseFloat(button.getAttribute('data-angle-end'));
         
-        // Supprimer la pièce via le DataManager
-        if (this.dataManager.deletePiece(model, length)) {
-          // Mettre à jour l'interface
-          this.renderPiecesTable();
-          this.showNotification(`Pièce ${model} de longueur ${length} supprimée`, 'success');
-        } else {
-          this.showNotification(`Erreur lors de la suppression de la pièce`, 'error');
+        // Trouver la pièce exacte à supprimer
+        const pieceToDelete = data.pieces[model]?.find(p => 
+          p.length === length && 
+          p.orientation === orientation && 
+          p.angles?.start === startAngle && 
+          p.angles?.end === endAngle
+        );
+        
+        if (pieceToDelete) {
+          // Supprimer la pièce via le DataManager
+          if (this.dataManager.deletePiece(pieceToDelete.id)) {
+            // Mettre à jour l'interface
+            this.renderPiecesTable();
+            this.showNotification(`Pièce ${model} de longueur ${length} supprimée`, 'success');
+          } else {
+            this.showNotification(`Erreur lors de la suppression de la pièce`, 'error');
+          }
         }
       });
     });
@@ -241,23 +387,37 @@ export const UIController = {
     const data = this.dataManager.getData();
     let html = '';
     
-    // Générer une ligne pour chaque type de barre mère
+    // Récupérer toutes les barres mères
+    const allMotherBars = [];
     for (const model in data.motherBars) {
       for (const bar of data.motherBars[model]) {
-        // Utiliser le nom complet du profil pour l'affichage
-        const displayName = bar.profileFull || model;
-        
-        html += `
-          <tr data-model="${model}" data-length="${bar.length}">
-            <td class="editable-cell" data-field="model" title="Modèle court: ${model}">${displayName}</td>
-            <td class="editable-cell" data-field="length">${bar.length}</td>
-            <td class="editable-cell" data-field="quantity">${bar.quantity}</td>
-            <td class="delete-cell">
-              <button class="btn btn-sm btn-danger delete-stock-btn" data-model="${model}" data-length="${bar.length}">×</button>
-            </td>
-          </tr>
-        `;
+        allMotherBars.push(bar);
       }
+    }
+    
+    // Trier par modèle puis par longueur
+    allMotherBars.sort((a, b) => {
+      if (a.model !== b.model) {
+        return a.model.localeCompare(b.model);
+      }
+      return a.length - b.length;
+    });
+    
+    // Générer une ligne pour chaque barre mère
+    for (const bar of allMotherBars) {
+      // Utiliser le nom complet du profil pour l'affichage
+      const displayName = bar.profileFull || bar.model;
+      
+      html += `
+        <tr data-model="${bar.model}" data-length="${bar.length}">
+          <td class="editable-cell" data-field="model" title="Modèle court: ${bar.model}">${displayName}</td>
+          <td class="editable-cell" data-field="length">${bar.length}</td>
+          <td class="editable-cell" data-field="quantity">${bar.quantity}</td>
+          <td class="delete-cell">
+            <button class="btn btn-sm btn-danger delete-stock-btn" data-model="${bar.model}" data-length="${bar.length}">×</button>
+          </td>
+        </tr>
+      `;
     }
     
     // Ajouter une ligne pour le bouton d'ajout
@@ -336,44 +496,51 @@ export const UIController = {
           if (newValue !== value && newValue !== '') {
             let success = false;
             
-            if (type === 'piece') {
-              if (field === 'quantity') {
-                // Mettre à jour la quantité de la pièce
-                success = this.dataManager.updatePieceQuantity(model, length, parseInt(newValue, 10));
-              } else if (field === 'length') {
-                // Mettre à jour la longueur de la pièce
-                success = this.dataManager.updatePieceLength(model, length, parseFloat(newValue));
-              } else if (field === 'model') {
-                // Mettre à jour le modèle de la pièce
-                success = this.dataManager.updatePieceModel(model, length, newValue);
+            try {
+              if (type === 'piece') {
+                if (field === 'quantity') {
+                  // Mettre à jour la quantité de la pièce
+                  success = this.dataManager.updatePieceQuantity(model, length, parseInt(newValue, 10));
+                } else if (field === 'length') {
+                  // Mettre à jour la longueur de la pièce
+                  success = this.dataManager.updatePieceLength(model, length, parseFloat(newValue));
+                } else if (field === 'model') {
+                  // Mettre à jour le modèle de la pièce
+                  success = this.dataManager.updatePieceModel(model, length, newValue);
+                }
+                
+                // Mettre à jour l'interface si succès
+                if (success) {
+                  this.renderPiecesTable();
+                } else {
+                  this.showNotification(`Erreur lors de la mise à jour de la pièce`, 'error');
+                  cell.textContent = value; // Restaurer l'ancienne valeur
+                }
+              } else if (type === 'stock') {
+                if (field === 'quantity') {
+                  // Mettre à jour la quantité de la barre mère
+                  success = this.dataManager.updateMotherBarQuantity(model, length, parseInt(newValue, 10));
+                } else if (field === 'length') {
+                  // Mettre à jour la longueur de la barre mère
+                  success = this.dataManager.updateMotherBarLength(model, length, parseFloat(newValue));
+                } else if (field === 'model') {
+                  // Mettre à jour le modèle de la barre mère
+                  success = this.dataManager.updateMotherBarModel(model, length, newValue);
+                }
+                
+                // Mettre à jour l'interface si succès
+                if (success) {
+                  this.renderStockBarsTable();
+                } else {
+                  this.showNotification(`Erreur lors de la mise à jour de la barre mère`, 'error');
+                  cell.textContent = value; // Restaurer l'ancienne valeur
+                }
               }
-              
-              // Mettre à jour l'interface si succès
-              if (success) {
-                this.renderPiecesTable();
-              } else {
-                this.showNotification(`Erreur lors de la mise à jour de la pièce`, 'error');
-                cell.textContent = value; // Restaurer l'ancienne valeur
-              }
-            } else if (type === 'stock') {
-              if (field === 'quantity') {
-                // Mettre à jour la quantité de la barre mère
-                success = this.dataManager.updateMotherBarQuantity(model, length, parseInt(newValue, 10));
-              } else if (field === 'length') {
-                // Mettre à jour la longueur de la barre mère
-                success = this.dataManager.updateMotherBarLength(model, length, parseFloat(newValue));
-              } else if (field === 'model') {
-                // Mettre à jour le modèle de la barre mère
-                success = this.dataManager.updateMotherBarModel(model, length, newValue);
-              }
-              
-              // Mettre à jour l'interface si succès
-              if (success) {
-                this.renderStockBarsTable();
-              } else {
-                this.showNotification(`Erreur lors de la mise à jour de la barre mère`, 'error');
-                cell.textContent = value; // Restaurer l'ancienne valeur
-              }
+            } catch (error) {
+              console.error('Update error:', error);
+              this.showNotification(`Erreur: ${error.message}`, 'error');
+              cell.textContent = value; // Restaurer l'ancienne valeur
+              return;
             }
           } else {
             // Si la valeur n'a pas changé, restaurer le texte
@@ -473,9 +640,9 @@ export const UIController = {
     const modal = document.getElementById('add-mother-bar-modal');
     modal.classList.remove('hidden');
     
-    // Réinitialiser les champs
+    // Réinitialiser les champs avec les valeurs par défaut
     document.getElementById('mother-bar-length').value = '';
-    document.getElementById('mother-bar-quantity').value = '1';
+    document.getElementById('mother-bar-quantity').value = '1000000';  // Quantité par défaut à 1000000
   },
   
   /**
