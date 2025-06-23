@@ -32,6 +32,17 @@ export const EditHandler = {
   },
   
   /**
+   * Convertit le code d'orientation en affichage lisible
+   */
+  formatOrientation: function(orientation) {
+    switch(orientation) {
+      case 'debout': return 'Debout';
+      case 'a-plat': return 'À plat';
+      default: return orientation;
+    }
+  },
+  
+  /**
    * Rend le tableau des barres filles
    */
   renderPiecesTable: function() {
@@ -69,10 +80,10 @@ export const EditHandler = {
       html += `
         <tr data-id="${piece.id}">
           <td>${piece.profileFull || piece.model}</td>
-          <td>${piece.orientation || "non-définie"}</td>
+          <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
           <td>${piece.length}</td>
-          <td>${piece.angles?.start || 90}°</td>
-          <td>${piece.angles?.end || 90}°</td>
+          <td>${piece.angles?.originalStart || piece.angles?.start || 90}°</td>
+          <td>${piece.angles?.originalEnd || piece.angles?.end || 90}°</td>
           <td>${piece.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-piece-btn" 
@@ -221,6 +232,10 @@ export const EditHandler = {
     // Vider le formulaire
     form.innerHTML = '';
     
+    // Définir la position du panneau
+    sidebar.className = 'edit-form-sidebar';
+    sidebar.classList.add(type); // Ajoute la classe 'piece' ou 'stock'
+    
     let item = null;
     
     // Récupérer l'élément à éditer
@@ -357,6 +372,7 @@ export const EditHandler = {
     if (!type || !id) return;
     
     let success = false;
+    let updatedProfile = false;
     
     if (type === 'piece') {
       const profileValue = document.getElementById('edit-piece-profile').value;
@@ -367,20 +383,36 @@ export const EditHandler = {
       const orientation = document.getElementById('edit-piece-orientation').value;
       
       if (profileValue && length && quantity) {
+        const piece = this.dataManager.getPieceById(id);
+        
+        // Vérifier si c'est un nouveau profil
+        if (piece && piece.profileFull !== profileValue) {
+          updatedProfile = true;
+        }
+        
         const updatedPiece = {
           profileFull: profileValue,
-          model: profileValue.split(' ')[0] || profileValue, // Le modèle est le premier mot du profil complet
+          model: profileValue.split(' ')[0] || profileValue,
           length,
           quantity,
           orientation,
           angles: {
             start: angleStart || 90,
-            end: angleEnd || 90
+            end: angleEnd || 90,
+            originalStart: piece?.angles?.originalStart,
+            originalEnd: piece?.angles?.originalEnd
           }
         };
         
         success = this.dataManager.updatePiece(id, updatedPiece);
-        if (success) this.renderPiecesTable();
+        if (success) {
+          this.renderPiecesTable();
+          
+          // Mettre à jour les listes déroulantes de profils si un nouveau profil a été ajouté
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+        }
       }
     } else if (type === 'stock') {
       const profileValue = document.getElementById('edit-stock-profile').value;
@@ -388,6 +420,13 @@ export const EditHandler = {
       const quantity = parseInt(document.getElementById('edit-stock-quantity').value, 10);
       
       if (profileValue && length && quantity) {
+        const bar = this.dataManager.getMotherBarById(id);
+        
+        // Vérifier si c'est un nouveau profil
+        if (bar && bar.profileFull !== profileValue) {
+          updatedProfile = true;
+        }
+        
         const updatedMotherBar = {
           profileFull: profileValue,
           model: profileValue.split(' ')[0] || profileValue,
@@ -396,7 +435,14 @@ export const EditHandler = {
         };
         
         success = this.dataManager.updateMotherBar(id, updatedMotherBar);
-        if (success) this.renderStockBarsTable();
+        if (success) {
+          this.renderStockBarsTable();
+          
+          // Mettre à jour les listes déroulantes de profils si un nouveau profil a été ajouté
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+        }
       }
     }
     
@@ -404,6 +450,39 @@ export const EditHandler = {
       this.closeEditSidebar();
     } else {
       this.showNotification('Veuillez remplir correctement tous les champs', 'warning');
+    }
+  },
+  
+  /**
+   * Met à jour toutes les listes déroulantes de profils dans l'interface
+   */
+  updateAllProfileSelects: function() {
+    // Mettre à jour la liste des profils dans le modal d'ajout de barre mère
+    const motherBarSelect = document.getElementById('mother-bar-profile');
+    if (motherBarSelect) {
+      const currentValue = motherBarSelect.value;
+      motherBarSelect.innerHTML = this.getProfileOptions(currentValue);
+    }
+    
+    // Mettre à jour la liste des profils dans le modal d'ajout de barre fille
+    const pieceSelect = document.getElementById('piece-profile-select');
+    if (pieceSelect) {
+      const customOption = pieceSelect.querySelector('option[value="custom"]');
+      const currentValue = pieceSelect.value !== 'custom' ? pieceSelect.value : '';
+      pieceSelect.innerHTML = '';
+      
+      // Remettre l'option "Saisie personnalisée" en premier
+      if (customOption) {
+        pieceSelect.appendChild(customOption);
+      } else {
+        const option = document.createElement('option');
+        option.value = 'custom';
+        option.textContent = 'Saisie personnalisée';
+        pieceSelect.appendChild(option);
+      }
+      
+      // Ajouter les autres options
+      pieceSelect.innerHTML += this.getProfileOptions(currentValue);
     }
   },
   
@@ -482,6 +561,9 @@ export const EditHandler = {
         if (this.dataManager.addBars([barData]).length > 0) {
           this.renderStockBarsTable();
           modal.classList.add('hidden');
+          
+          // Mettre à jour les listes déroulantes de profils
+          this.updateAllProfileSelects();
         }
       } else {
         this.showNotification('Valeurs incorrectes', 'warning');
@@ -535,7 +617,7 @@ export const EditHandler = {
       if (profile && length && quantity) {
         const pieceData = {
           profileFull: profile,
-          model: profile.split(' ')[0] || profile, // Le modèle est le premier mot du profil complet
+          model: profile.split(' ')[0] || profile,
           length,
           quantity,
           type: 'fille',
@@ -549,6 +631,9 @@ export const EditHandler = {
         if (this.dataManager.addBars([pieceData]).length > 0) {
           this.renderPiecesTable();
           modal.classList.add('hidden');
+          
+          // Mettre à jour les listes déroulantes de profils
+          this.updateAllProfileSelects();
         }
       } else {
         this.showNotification('Valeurs incorrectes', 'warning');

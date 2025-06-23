@@ -186,8 +186,19 @@ const Parser = {
           
           // Si la valeur n'est pas par défaut, on la traite
           if (valeurBrute !== this.AK_index.default) {
-            donneesExtraites.valeurs_specifiques[cle] = info.formule(valeurBrute);
-            console.log(`${cle}: ${donneesExtraites.valeurs_specifiques[cle]}`);
+            // Conserver la valeur originale et la valeur transformée pour les angles
+            if (cle === 'angle_54' || cle === 'angle_55') {
+              const originalAngle = valeurBrute; // Valeur brute sans transformation
+              const transformedAngle = info.formule(valeurBrute); // Valeur transformée
+              
+              donneesExtraites.valeurs_specifiques[cle] = transformedAngle;
+              donneesExtraites.valeurs_specifiques[cle + '_original'] = originalAngle;
+              
+              console.log(`${cle}: ${transformedAngle} (original: ${originalAngle})`);
+            } else {
+              donneesExtraites.valeurs_specifiques[cle] = info.formule(valeurBrute);
+              console.log(`${cle}: ${donneesExtraites.valeurs_specifiques[cle]}`);
+            }
           }
         }
       }
@@ -196,10 +207,8 @@ const Parser = {
       let orientation;
       if (donneesExtraites.cas === 1 || donneesExtraites.cas === 2) {
         orientation = "a-plat";
-      } else if (donneesExtraites.cas === 3 || donneesExtraites.cas === 4) {
-        orientation = "debout";
       } else {
-        orientation = "90-degres";
+        orientation = "debout"; // Cas 3, 4 et 5 sont tous "debout"
       }
       
       // Formatter les données pour le DataManager - structure unifiée des barres
@@ -211,7 +220,9 @@ const Parser = {
         flatValue: donneesExtraites.valeurs_specifiques.valeur_a_plat || 0,
         angles: {
           start: donneesExtraites.valeurs_specifiques.angle_54 || 90,
-          end: donneesExtraites.valeurs_specifiques.angle_55 || 90
+          end: donneesExtraites.valeurs_specifiques.angle_55 || 90,
+          originalStart: donneesExtraites.valeurs_specifiques.angle_54_original,
+          originalEnd: donneesExtraites.valeurs_specifiques.angle_55_original
         },
         orientation: orientation,                 // Orientation déterminée à partir du cas
         type: 'fille',
