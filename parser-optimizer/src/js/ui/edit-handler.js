@@ -82,8 +82,8 @@ export const EditHandler = {
           <td>${piece.profileFull || piece.model}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
           <td>${piece.length}</td>
-          <td>${piece.angles?.originalStart || piece.angles?.start || 90}°</td>
-          <td>${piece.angles?.originalEnd || piece.angles?.end || 90}°</td>
+          <td>${piece.angles?.start || 90}°</td>
+          <td>${piece.angles?.end || 90}°</td>
           <td>${piece.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-piece-btn" 
