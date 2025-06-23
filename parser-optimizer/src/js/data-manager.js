@@ -1,6 +1,5 @@
 /**
  * DataManager - Service pur de gestion des données (CRUD)
- * Aucune logique d'interface ou métier ne doit être présente ici
  */
 export const DataManager = {
   // Structure de données simplifiée
@@ -281,5 +280,113 @@ export const DataManager = {
     }
     
     return false;
+  },
+  
+  /**
+   * Récupère une pièce par son ID
+   * @param {string} id - ID de la pièce
+   * @returns {Object|null} La pièce ou null si non trouvée
+   */
+  getPieceById: function(id) {
+    const piece = this.data.barsList.find(b => b.id === id && b.type === 'fille');
+    return piece ? {...piece} : null;
+  },
+  
+  /**
+   * Récupère une barre mère par son ID
+   * @param {string} id - ID de la barre mère
+   * @returns {Object|null} La barre mère ou null si non trouvée
+   */
+  getMotherBarById: function(id) {
+    const bar = this.data.barsList.find(b => b.id === id && (b.type === 'mother' || b.type === 'mere'));
+    return bar ? {...bar} : null;
+  },
+  
+  /**
+   * Met à jour une pièce avec de nouvelles valeurs
+   * @param {string} id - ID de la pièce à mettre à jour
+   * @param {Object} updatedValues - Nouvelles valeurs
+   * @returns {boolean} Succès de l'opération
+   */
+  updatePiece: function(id, updatedValues) {
+    // Trouver la pièce dans la liste principale
+    const pieceIndex = this.data.barsList.findIndex(b => b.id === id && b.type === 'fille');
+    
+    if (pieceIndex === -1) return false;
+    
+    const oldPiece = this.data.barsList[pieceIndex];
+    const oldModel = oldPiece.model;
+    const newModel = updatedValues.model || oldModel;
+    
+    // Suppression de l'ancienne pièce de la structure pieces
+    if (this.data.pieces[oldModel]) {
+      const index = this.data.pieces[oldModel].findIndex(p => p.id === id);
+      if (index !== -1) {
+        this.data.pieces[oldModel].splice(index, 1);
+        
+        if (this.data.pieces[oldModel].length === 0) {
+          delete this.data.pieces[oldModel];
+        }
+      }
+    }
+    
+    // Mise à jour de la pièce dans la liste principale
+    this.data.barsList[pieceIndex] = {
+      ...oldPiece,
+      ...updatedValues
+    };
+    
+    // Ajout de la pièce mise à jour dans la structure pieces
+    if (!this.data.pieces[newModel]) {
+      this.data.pieces[newModel] = [];
+    }
+    
+    this.data.pieces[newModel].push(this.data.barsList[pieceIndex]);
+    
+    return true;
+  },
+  
+  /**
+   * Met à jour une barre mère avec de nouvelles valeurs
+   * @param {string} id - ID de la barre mère à mettre à jour
+   * @param {Object} updatedValues - Nouvelles valeurs
+   * @returns {boolean} Succès de l'opération
+   */
+  updateMotherBar: function(id, updatedValues) {
+    // Trouver la barre dans la liste principale
+    const barIndex = this.data.barsList.findIndex(b => b.id === id && (b.type === 'mother' || b.type === 'mere'));
+    
+    if (barIndex === -1) return false;
+    
+    const oldBar = this.data.barsList[barIndex];
+    const oldModel = oldBar.model;
+    const newModel = updatedValues.model || oldModel;
+    
+    // Suppression de l'ancienne barre de la structure motherBars
+    if (this.data.motherBars[oldModel]) {
+      const index = this.data.motherBars[oldModel].findIndex(b => b.id === id);
+      if (index !== -1) {
+        this.data.motherBars[oldModel].splice(index, 1);
+        
+        if (this.data.motherBars[oldModel].length === 0) {
+          delete this.data.motherBars[oldModel];
+        }
+      }
+    }
+    
+    // Mise à jour de la barre dans la liste principale
+    this.data.barsList[barIndex] = {
+      ...oldBar,
+      ...updatedValues
+    };
+    
+    // Ajout de la barre mise à jour dans la structure motherBars
+    if (!this.data.motherBars[newModel]) {
+      this.data.motherBars[newModel] = [];
+    }
+    
+    this.data.motherBars[newModel].push(this.data.barsList[barIndex]);
+    
+    return true;
   }
 };
