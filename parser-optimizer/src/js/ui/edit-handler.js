@@ -43,7 +43,32 @@ export const EditHandler = {
   },
   
   /**
-   * Rend le tableau des barres filles
+   * Trie les barres selon l'ordre : profil → orientation → longueur
+   * @param {Array} bars - Tableau de barres à trier
+   * @returns {Array} - Tableau trié
+   */
+  sortBars: function(bars) {
+    return bars.sort((a, b) => {
+      // 1. Trier par profil
+      if (a.profile !== b.profile) {
+        return a.profile.localeCompare(b.profile);
+      }
+      
+      // 2. Trier par orientation (pour les pièces uniquement)
+      if (a.orientation && b.orientation && a.orientation !== b.orientation) {
+        const orientationOrder = { 'a-plat': 0, 'debout': 1 };
+        const orderA = orientationOrder[a.orientation] !== undefined ? orientationOrder[a.orientation] : 2;
+        const orderB = orientationOrder[b.orientation] !== undefined ? orientationOrder[b.orientation] : 2;
+        return orderA - orderB;
+      }
+      
+      // 3. Trier par longueur
+      return a.length - b.length;
+    });
+  },
+
+  /**
+   * Rend le tableau des barres filles avec tri automatique
    */
   renderPiecesTable: function() {
     const tableContainer = document.querySelector('#pieces-table');
@@ -51,23 +76,24 @@ export const EditHandler = {
     
     // Récupérer toutes les barres filles
     const allPieces = [];
-    for (const model in data.pieces) {
-      allPieces.push(...data.pieces[model]);
+    for (const profile in data.pieces) {
+      allPieces.push(...data.pieces[profile]);
     }
     
-    // Trier les barres
-    allPieces.sort((a, b) => a.model.localeCompare(b.model) || a.length - b.length);
+    // Trier les barres selon l'ordre défini
+    const sortedPieces = this.sortBars(allPieces);
     
     // Générer l'en-tête du tableau
     let html = `
       <table class="data-table">
         <thead>
           <tr>
+            <th>Nom</th>
             <th>Profil</th>
             <th>Orientation</th>
             <th>Longueur</th>
-            <th>Angle début</th>
-            <th>Angle fin</th>
+            <th>Angle 1</th>
+            <th>Angle 2</th>
             <th>Quantité</th>
             <th>Actions</th>
           </tr>
@@ -76,14 +102,15 @@ export const EditHandler = {
     `;
     
     // Générer les lignes du tableau
-    for (const piece of allPieces) {
+    for (const piece of sortedPieces) {
       html += `
         <tr data-id="${piece.id}">
-          <td>${piece.profileFull || piece.model}</td>
+          <td>${piece.nom || '-'}</td>
+          <td>${piece.profile}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
           <td>${Math.round(piece.length)}</td>
-          <td>${parseFloat(piece.angles?.start || 90).toFixed(2)}°</td>
-          <td>${parseFloat(piece.angles?.end || 90).toFixed(2)}°</td>
+          <td>${parseFloat(piece.angles?.[1] || 90).toFixed(2)}°</td>
+          <td>${parseFloat(piece.angles?.[2] || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-piece-btn" 
@@ -98,7 +125,7 @@ export const EditHandler = {
     // Ajouter une ligne pour le bouton d'ajout
     html += `
         <tr class="add-row">
-          <td colspan="7">
+          <td colspan="8">
             <button id="add-piece-btn" class="btn btn-sm btn-primary">+ Ajouter une barre à découper</button>
           </td>
         </tr>
@@ -108,32 +135,35 @@ export const EditHandler = {
     
     tableContainer.innerHTML = html;
     
-    // Ajouter les gestionnaires d'événements
-    tableContainer.querySelectorAll('.delete-piece-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        if (this.dataManager.deletePiece(id)) {
-          this.renderPiecesTable();
-        }
-      });
+    // Configurer les gestionnaires d'événements
+    document.getElementById('add-piece-btn').addEventListener('click', () => {
+      this.openPiecePanel('create');
     });
     
-    // Ajouter les gestionnaires pour l'édition
-    tableContainer.querySelectorAll('.edit-piece-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
+    document.querySelectorAll('.edit-piece-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
         this.openPiecePanel('edit', id);
       });
     });
     
-    // Ajouter le gestionnaire pour le bouton d'ajout de pièce
-    document.getElementById('add-piece-btn').addEventListener('click', () => {
-      this.openPiecePanel('create');
+    document.querySelectorAll('.delete-piece-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm('Supprimer cette barre ?')) {
+          if (this.dataManager.deletePiece(id)) {
+            this.renderPiecesTable(); // Re-render avec tri automatique
+            this.updateAllProfileSelects();
+          } else {
+            this.showNotification('Erreur lors de la suppression', 'error');
+          }
+        }
+      });
     });
   },
   
   /**
-   * Rend le tableau des barres mères
+   * Rend le tableau des barres mères avec tri automatique
    */
   renderStockBarsTable: function() {
     const tableContainer = document.querySelector('#stock-bars-table');
@@ -141,18 +171,19 @@ export const EditHandler = {
     
     // Récupérer toutes les barres mères
     const allMotherBars = [];
-    for (const model in data.motherBars) {
-      allMotherBars.push(...data.motherBars[model]);
+    for (const profile in data.motherBars) {
+      allMotherBars.push(...data.motherBars[profile]);
     }
     
-    // Trier les barres
-    allMotherBars.sort((a, b) => a.model.localeCompare(b.model) || a.length - b.length);
+    // Trier les barres selon l'ordre défini (profil puis longueur pour les barres mères)
+    const sortedBars = this.sortBars(allMotherBars);
     
     // Générer l'en-tête du tableau
     let html = `
       <table class="data-table">
         <thead>
           <tr>
+            <th>Nom</th>
             <th>Profil</th>
             <th>Longueur</th>
             <th>Quantité</th>
@@ -163,10 +194,11 @@ export const EditHandler = {
     `;
     
     // Générer les lignes du tableau
-    for (const bar of allMotherBars) {
+    for (const bar of sortedBars) {
       html += `
         <tr data-id="${bar.id}">
-          <td>${bar.profileFull || bar.model}</td>
+          <td>${bar.nom || '-'}</td>
+          <td>${bar.profile}</td>
           <td>${Math.round(bar.length)}</td>
           <td>${bar.quantity}</td>
           <td>
@@ -182,8 +214,8 @@ export const EditHandler = {
     // Ajouter une ligne pour le bouton d'ajout
     html += `
         <tr class="add-row">
-          <td colspan="4">
-            <button id="add-mother-bar-btn" class="btn btn-sm btn-primary">+ Ajouter une barre mère</button>
+          <td colspan="5">
+            <button id="add-stock-btn" class="btn btn-sm btn-primary">+ Ajouter une barre mère</button>
           </td>
         </tr>
       </tbody>
@@ -192,27 +224,30 @@ export const EditHandler = {
     
     tableContainer.innerHTML = html;
     
-    // Ajouter les gestionnaires d'événements
-    tableContainer.querySelectorAll('.delete-stock-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        if (this.dataManager.deleteMotherBar(id)) {
-          this.renderStockBarsTable();
-        }
-      });
+    // Configurer les gestionnaires d'événements
+    document.getElementById('add-stock-btn').addEventListener('click', () => {
+      this.openStockPanel('create');
     });
     
-    // Ajouter les gestionnaires pour l'édition
-    tableContainer.querySelectorAll('.edit-stock-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
+    document.querySelectorAll('.edit-stock-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
         this.openStockPanel('edit', id);
       });
     });
     
-    // Ajouter le gestionnaire pour le bouton d'ajout
-    document.getElementById('add-mother-bar-btn').addEventListener('click', () => {
-      this.openStockPanel('create');
+    document.querySelectorAll('.delete-stock-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm('Supprimer cette barre mère ?')) {
+          if (this.dataManager.deleteMotherBar(id)) {
+            this.renderStockBarsTable(); // Re-render avec tri automatique
+            this.updateAllProfileSelects();
+          } else {
+            this.showNotification('Erreur lors de la suppression', 'error');
+          }
+        }
+      });
     });
   },
   
@@ -238,18 +273,22 @@ export const EditHandler = {
       const item = this.dataManager.getPieceById(id);
       if (!item) return;
       
-      title.textContent = `Éditer la barre ${item.profileFull || item.model}`;
+      title.textContent = `Éditer la barre ${item.nom || item.profile}`;
       
       // Générer le formulaire d'édition
       form.innerHTML = `
+        <div class="form-group">
+          <label for="piece-nom">Nom :</label>
+          <input type="text" id="piece-nom" value="${item.nom || ''}" placeholder="Nom de la barre">
+        </div>
         <div class="form-group">
           <label for="piece-profile">Profil :</label>
           <div class="profile-input-group">
             <select id="piece-profile-select">
               <option value="custom">Saisie personnalisée</option>
-              ${this.getProfileOptions(item.profileFull)}
+              ${this.getProfileOptions(item.profile)}
             </select>
-            <input type="text" id="piece-profile" value="${item.profileFull || item.model}">
+            <input type="text" id="piece-profile" value="${item.profile}">
           </div>
         </div>
         <div class="form-group">
@@ -261,12 +300,12 @@ export const EditHandler = {
           <input type="number" id="piece-quantity" min="1" value="${item.quantity}">
         </div>
         <div class="form-group">
-          <label for="piece-angle-start">Angle début (°) :</label>
-          <input type="number" id="piece-angle-start" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.start || 90).toFixed(2)}">
+          <label for="piece-angle-1">Angle 1 (°) :</label>
+          <input type="number" id="piece-angle-1" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[1] || 90).toFixed(2)}">
         </div>
         <div class="form-group">
-          <label for="piece-angle-end">Angle fin (°) :</label>
-          <input type="number" id="piece-angle-end" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.end || 90).toFixed(2)}">
+          <label for="piece-angle-2">Angle 2 (°) :</label>
+          <input type="number" id="piece-angle-2" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[2] || 90).toFixed(2)}">
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -293,13 +332,13 @@ export const EditHandler = {
       
       // Si le profil actuel n'est pas dans la liste, sélectionner "custom"
       const matchingOption = Array.from(profileSelect.options)
-        .find(option => option.value === item.profileFull);
+        .find(option => option.value === item.profile);
         
       if (!matchingOption) {
         profileSelect.value = 'custom';
         profileInput.removeAttribute('readonly');
       } else {
-        profileSelect.value = item.profileFull;
+        profileSelect.value = item.profile;
         profileInput.setAttribute('readonly', 'readonly');
       }
     } else {
@@ -307,6 +346,10 @@ export const EditHandler = {
       title.textContent = 'Nouvelle barre à découper';
       
       form.innerHTML = `
+        <div class="form-group">
+          <label for="piece-nom">Nom :</label>
+          <input type="text" id="piece-nom" placeholder="Nom de la barre">
+        </div>
         <div class="form-group">
           <label for="piece-profile">Profil :</label>
           <div class="profile-input-group">
@@ -326,12 +369,12 @@ export const EditHandler = {
           <input type="number" id="piece-quantity" min="1" value="1">
         </div>
         <div class="form-group">
-          <label for="piece-angle-start">Angle début (°) :</label>
-          <input type="number" id="piece-angle-start" min="0" max="360" step="0.01" value="90.00">
+          <label for="piece-angle-1">Angle 1 (°) :</label>
+          <input type="number" id="piece-angle-1" min="0" max="360" step="0.01" value="90.00">
         </div>
         <div class="form-group">
-          <label for="piece-angle-end">Angle fin (°) :</label>
-          <input type="number" id="piece-angle-end" min="0" max="360" step="0.01" value="90.00">
+          <label for="piece-angle-2">Angle 2 (°) :</label>
+          <input type="number" id="piece-angle-2" min="0" max="360" step="0.01" value="90.00">
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -384,14 +427,18 @@ export const EditHandler = {
       const item = this.dataManager.getMotherBarById(id);
       if (!item) return;
       
-      title.textContent = `Éditer la barre mère ${item.profileFull || item.model}`;
+      title.textContent = `Éditer la barre mère ${item.nom || item.profile}`;
       
       // Générer le formulaire d'édition
       form.innerHTML = `
         <div class="form-group">
+          <label for="stock-nom">Nom :</label>
+          <input type="text" id="stock-nom" value="${item.nom || ''}" placeholder="Nom de la barre">
+        </div>
+        <div class="form-group">
           <label for="stock-profile">Profil :</label>
           <select id="stock-profile">
-            ${this.getProfileOptions(item.profileFull)}
+            ${this.getProfileOptions(item.profile)}
           </select>
         </div>
         <div class="form-group">
@@ -408,6 +455,10 @@ export const EditHandler = {
       title.textContent = 'Nouvelle barre mère';
       
       form.innerHTML = `
+        <div class="form-group">
+          <label for="stock-nom">Nom :</label>
+          <input type="text" id="stock-nom" placeholder="Nom de la barre">
+        </div>
         <div class="form-group">
           <label for="stock-profile">Profil :</label>
           <select id="stock-profile">
@@ -448,7 +499,7 @@ export const EditHandler = {
   },
   
   /**
-   * Enregistre les modifications ou crée un nouvel élément
+   * Enregistre les modifications ou crée un nouvel élément avec re-tri automatique
    */
   saveItem: function() {
     const type = this.editingType;
@@ -461,13 +512,12 @@ export const EditHandler = {
     let updatedProfile = false;
     
     if (type === 'piece') {
+      const nom = document.getElementById('piece-nom').value.trim();
       const profileValue = document.getElementById('piece-profile').value;
-      // Arrondir la longueur à l'entier
       const length = Math.round(parseFloat(document.getElementById('piece-length').value));
       const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      // Limiter les angles à 2 décimales
-      const angleStart = parseFloat(parseFloat(document.getElementById('piece-angle-start').value).toFixed(2));
-      const angleEnd = parseFloat(parseFloat(document.getElementById('piece-angle-end').value).toFixed(2));
+      const angle1 = parseFloat(parseFloat(document.getElementById('piece-angle-1').value).toFixed(2));
+      const angle2 = parseFloat(parseFloat(document.getElementById('piece-angle-2').value).toFixed(2));
       const orientation = document.getElementById('piece-orientation').value;
       
       if (profileValue && length && quantity) {
@@ -475,34 +525,34 @@ export const EditHandler = {
           const piece = this.dataManager.getPieceById(id);
           
           // Vérifier si c'est un nouveau profil
-          if (piece && piece.profileFull !== profileValue) {
+          if (piece && piece.profile !== profileValue) {
             updatedProfile = true;
           }
           
           const updatedPiece = {
-            profileFull: profileValue,
-            model: profileValue.split(' ')[0] || profileValue,
+            nom: nom || undefined,
+            profile: profileValue,
             length,
             quantity,
             orientation,
             angles: {
-              start: angleStart,
-              end: angleEnd
+              1: angle1,
+              2: angle2
             }
           };
           
           success = this.dataManager.updatePiece(id, updatedPiece);
         } else {
           const pieceData = {
-            profileFull: profileValue,
-            model: profileValue.split(' ')[0] || profileValue,
+            nom: nom || undefined,
+            profile: profileValue,
             length,
             quantity,
             type: 'fille',
             orientation,
             angles: {
-              start: angleStart,
-              end: angleEnd
+              1: angle1,
+              2: angle2
             }
           };
           
@@ -513,17 +563,21 @@ export const EditHandler = {
         }
         
         if (success) {
+          // Re-render avec tri automatique
           this.renderPiecesTable();
           
-          // Mettre à jour les listes déroulantes de profils si un nouveau profil a été ajouté
           if (updatedProfile) {
             this.updateAllProfileSelects();
           }
+          
+          // Afficher notification de succès
+          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
+          this.showNotification(`Barre ${action} avec succès`, 'success');
         }
       }
     } else if (type === 'stock') {
+      const nom = document.getElementById('stock-nom').value.trim();
       const profileValue = document.getElementById('stock-profile').value;
-      // Arrondir la longueur à l'entier
       const length = Math.round(parseFloat(document.getElementById('stock-length').value));
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
@@ -531,14 +585,13 @@ export const EditHandler = {
         if (mode === 'edit') {
           const bar = this.dataManager.getMotherBarById(id);
           
-          // Vérifier si c'est un nouveau profil
-          if (bar && bar.profileFull !== profileValue) {
+          if (bar && bar.profile !== profileValue) {
             updatedProfile = true;
           }
           
           const updatedMotherBar = {
-            profileFull: profileValue,
-            model: profileValue.split(' ')[0] || profileValue,
+            nom: nom || undefined,
+            profile: profileValue,
             length,
             quantity
           };
@@ -546,8 +599,8 @@ export const EditHandler = {
           success = this.dataManager.updateMotherBar(id, updatedMotherBar);
         } else {
           const barData = {
-            profileFull: profileValue,
-            model: profileValue.split(' ')[0] || profileValue,
+            nom: nom || undefined,
+            profile: profileValue,
             length,
             quantity,
             type: 'mother'
@@ -560,12 +613,16 @@ export const EditHandler = {
         }
         
         if (success) {
+          // Re-render avec tri automatique
           this.renderStockBarsTable();
           
-          // Mettre à jour les listes déroulantes de profils si un nouveau profil a été ajouté
           if (updatedProfile) {
             this.updateAllProfileSelects();
           }
+          
+          // Afficher notification de succès
+          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
+          this.showNotification(`Barre mère ${action} avec succès`, 'success');
         }
       }
     }
@@ -611,18 +668,12 @@ export const EditHandler = {
     const profiles = new Set();
     
     // Collecter tous les profils uniques
-    for (const model in data.pieces) {
-      data.pieces[model].forEach(piece => {
-        if (piece.profileFull) profiles.add(piece.profileFull);
-        else profiles.add(model);
-      });
+    for (const profile in data.pieces) {
+      profiles.add(profile);
     }
     
-    for (const model in data.motherBars) {
-      data.motherBars[model].forEach(bar => {
-        if (bar.profileFull) profiles.add(bar.profileFull);
-        else profiles.add(model);
-      });
+    for (const profile in data.motherBars) {
+      profiles.add(profile);
     }
     
     // Générer les options HTML

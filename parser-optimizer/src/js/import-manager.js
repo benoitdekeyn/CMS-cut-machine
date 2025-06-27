@@ -101,27 +101,35 @@ export const ImportManager = {
    * @returns {Object} - Objet barre
    */
   convertToBarre: function(parsedData, filename) {
-    if (!parsedData || !parsedData.profile) {
+    if (!parsedData || !parsedData.profil) {
       console.error(`Données invalides: ${filename}`);
       return null;
     }
     
     const shortName = filename.split('/').pop();
     
-    // Format simple de barre
+    // Format adapté à la nouvelle structure du parser
     return {
-      model: parsedData.profile || 'INCONNU',
-      profileFull: parsedData.profileFull || parsedData.profile || 'INCONNU',
-      length: parsedData.length || 0,
-      quantity: parsedData.quantity || 1,
-      flatValue: parsedData.flatValue || 0,
+      nom: parsedData.nom || shortName.replace(/\.[^/.]+$/, ""), // Nom de la barre sans extension
+      profile: parsedData.profil || 'INCONNU',
+      length: parsedData.longueur || 0,
+      quantity: parsedData.quantite || 1,
       orientation: parsedData.orientation || "a-plat",
       type: 'fille',
       angles: {
-        start: parsedData.angles?.start || 90,
-        end: parsedData.angles?.end || 90
+        1: parsedData.angle_1 || 90,
+        2: parsedData.angle_2 || 90
       },
-      cas: parsedData.cas || 0,
+      // Propriétés F4C pour la génération PGM
+      f4cData: {
+        B021: parsedData.B021 || '',
+        B035: parsedData.B035 || '',
+        S051: parsedData.S051 || '',
+        S052: parsedData.S052 || '',
+        S053: parsedData.S053 || '',
+        S054: parsedData.S054 || '',
+        S055: parsedData.S055 || ''
+      },
       id: `${shortName.replace(/\W/g, '_')}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       originalFile: shortName
     };

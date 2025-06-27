@@ -61,56 +61,92 @@ export const DataManager = {
   },
   
   /**
-   * Ajoute une barre fille à la structure pieces
+   * Trie les barres dans une collection selon l'ordre : profil → orientation → longueur
+   * @param {Array} bars - Tableau de barres à trier
+   */
+  _sortBarsCollection: function(bars) {
+    return bars.sort((a, b) => {
+      // 1. Trier par profil
+      if (a.profile !== b.profile) {
+        return a.profile.localeCompare(b.profile);
+      }
+      
+      // 2. Trier par orientation (pour les pièces uniquement)
+      if (a.orientation && b.orientation && a.orientation !== b.orientation) {
+        const orientationOrder = { 'a-plat': 0, 'debout': 1 };
+        const orderA = orientationOrder[a.orientation] !== undefined ? orientationOrder[a.orientation] : 2;
+        const orderB = orientationOrder[b.orientation] !== undefined ? orientationOrder[b.orientation] : 2;
+        return orderA - orderB;
+      }
+      
+      // 3. Trier par longueur
+      return a.length - b.length;
+    });
+  },
+  
+  /**
+   * Ajoute une barre fille à la structure pieces avec tri automatique
    */
   _addToPieces: function(bar) {
-    const model = bar.model;
+    const profile = bar.profile;
     
-    // Créer l'entrée pour ce modèle si nécessaire
-    if (!this.data.pieces[model]) {
-      this.data.pieces[model] = [];
+    // Créer l'entrée pour ce profil si nécessaire
+    if (!this.data.pieces[profile]) {
+      this.data.pieces[profile] = [];
     }
     
     // Vérifier si une barre identique existe déjà
-    const existingIndex = this.data.pieces[model].findIndex(b => 
+    const existingIndex = this.data.pieces[profile].findIndex(b => 
       b.length === bar.length && 
       b.orientation === bar.orientation &&
-      b.angles?.start === bar.angles?.start &&
-      b.angles?.end === bar.angles?.end
+      b.angles?.[1] === bar.angles?.[1] &&
+      b.angles?.[2] === bar.angles?.[2] &&
+      b.nom === bar.nom
     );
     
     if (existingIndex !== -1) {
       // Mettre à jour la quantité de la barre existante
-      this.data.pieces[model][existingIndex].quantity += bar.quantity || 1;
+      this.data.pieces[profile][existingIndex].quantity += bar.quantity || 1;
     } else {
-      // Ajouter la nouvelle barre
-      this.data.pieces[model].push({...bar});
+      // Ajouter la nouvelle barre avec tous les champs nécessaires
+      this.data.pieces[profile].push({
+        ...bar,
+        orientation: bar.orientation || 'a-plat',
+        angles: bar.angles || { 1: 90, 2: 90 },
+        f4cData: bar.f4cData || {}
+      });
     }
+    
+    // Trier automatiquement après ajout
+    this._sortBarsCollection(this.data.pieces[profile]);
   },
   
   /**
-   * Ajoute une barre mère à la structure motherBars
+   * Ajoute une barre mère à la structure motherBars avec tri automatique
    */
   _addToMotherBars: function(bar) {
-    const model = bar.model;
+    const profile = bar.profile;
     
-    // Créer l'entrée pour ce modèle si nécessaire
-    if (!this.data.motherBars[model]) {
-      this.data.motherBars[model] = [];
+    // Créer l'entrée pour ce profil si nécessaire
+    if (!this.data.motherBars[profile]) {
+      this.data.motherBars[profile] = [];
     }
     
     // Vérifier si une barre identique existe déjà
-    const existingIndex = this.data.motherBars[model].findIndex(b => 
+    const existingIndex = this.data.motherBars[profile].findIndex(b => 
       b.length === bar.length
     );
     
     if (existingIndex !== -1) {
       // Mettre à jour la quantité de la barre existante
-      this.data.motherBars[model][existingIndex].quantity += bar.quantity || 1;
+      this.data.motherBars[profile][existingIndex].quantity += bar.quantity || 1;
     } else {
       // Ajouter la nouvelle barre
-      this.data.motherBars[model].push({...bar});
+      this.data.motherBars[profile].push(bar);
     }
+    
+    // Trier automatiquement après ajout
+    this._sortBarsCollection(this.data.motherBars[profile]);
   },
   
   /**
@@ -303,7 +339,71 @@ export const DataManager = {
   },
   
   /**
-   * Met à jour une pièce avec de nouvelles valeurs
+   * Valide les données avant optimisation
+   * @returns {Object} Résultat de validation
+   */
+  validateData: function() {
+    const data = this.getData();
+    
+    // Vérifier qu'il y a des pièces à découper
+    let totalPieces = 0;
+    for (const profile in data.pieces) {
+      for (const piece of data.pieces[profile]) {
+        if (!piece.length || piece.length <= 0) {
+          return {
+            valid: false,
+            message: `La pièce "${piece.nom || piece.profile}" a une longueur invalide.`
+          };
+        }
+        if (!piece.quantity || piece.quantity <= 0) {
+          return {
+            valid: false,
+            message: `La pièce "${piece.nom || piece.profile}" a une quantité invalide.`
+          };
+        }
+        totalPieces += piece.quantity;
+      }
+    }
+    
+    if (totalPieces === 0) {
+      return {
+        valid: false,
+        message: 'Aucune pièce à découper. Importez des fichiers NC2 ou ajoutez des pièces manuellement.'
+      };
+    }
+    
+    // Vérifier qu'il y a des barres mères
+    let totalMotherBars = 0;
+    for (const profile in data.motherBars) {
+      for (const bar of data.motherBars[profile]) {
+        if (!bar.length || bar.length <= 0) {
+          return {
+            valid: false,
+            message: `La barre mère "${bar.nom || bar.profile}" a une longueur invalide.`
+          };
+        }
+        if (!bar.quantity || bar.quantity <= 0) {
+          return {
+            valid: false,
+            message: `La barre mère "${bar.nom || bar.profile}" a une quantité invalide.`
+          };
+        }
+        totalMotherBars += bar.quantity;
+      }
+    }
+    
+    if (totalMotherBars === 0) {
+      return {
+        valid: false,
+        message: 'Aucune barre mère disponible. Ajoutez des barres mères pour l\'optimisation.'
+      };
+    }
+    
+    return { valid: true };
+  },
+  
+  /**
+   * Met à jour une pièce avec de nouvelles valeurs et re-trie
    * @param {string} id - ID de la pièce à mettre à jour
    * @param {Object} updatedValues - Nouvelles valeurs
    * @returns {boolean} Succès de l'opération
@@ -315,17 +415,20 @@ export const DataManager = {
     if (pieceIndex === -1) return false;
     
     const oldPiece = this.data.barsList[pieceIndex];
-    const oldModel = oldPiece.model;
-    const newModel = updatedValues.model || oldModel;
+    const oldProfile = oldPiece.profile;
+    const newProfile = updatedValues.profile || oldProfile;
     
     // Suppression de l'ancienne pièce de la structure pieces
-    if (this.data.pieces[oldModel]) {
-      const index = this.data.pieces[oldModel].findIndex(p => p.id === id);
+    if (this.data.pieces[oldProfile]) {
+      const index = this.data.pieces[oldProfile].findIndex(p => p.id === id);
       if (index !== -1) {
-        this.data.pieces[oldModel].splice(index, 1);
+        this.data.pieces[oldProfile].splice(index, 1);
         
-        if (this.data.pieces[oldModel].length === 0) {
-          delete this.data.pieces[oldModel];
+        // Re-trier après suppression
+        if (this.data.pieces[oldProfile].length > 0) {
+          this._sortBarsCollection(this.data.pieces[oldProfile]);
+        } else {
+          delete this.data.pieces[oldProfile];
         }
       }
     }
@@ -337,17 +440,20 @@ export const DataManager = {
     };
     
     // Ajout de la pièce mise à jour dans la structure pieces
-    if (!this.data.pieces[newModel]) {
-      this.data.pieces[newModel] = [];
+    if (!this.data.pieces[newProfile]) {
+      this.data.pieces[newProfile] = [];
     }
     
-    this.data.pieces[newModel].push(this.data.barsList[pieceIndex]);
+    this.data.pieces[newProfile].push(this.data.barsList[pieceIndex]);
+    
+    // Trier automatiquement après ajout
+    this._sortBarsCollection(this.data.pieces[newProfile]);
     
     return true;
   },
   
   /**
-   * Met à jour une barre mère avec de nouvelles valeurs
+   * Met à jour une barre mère avec de nouvelles valeurs et re-trie
    * @param {string} id - ID de la barre mère à mettre à jour
    * @param {Object} updatedValues - Nouvelles valeurs
    * @returns {boolean} Succès de l'opération
@@ -359,17 +465,20 @@ export const DataManager = {
     if (barIndex === -1) return false;
     
     const oldBar = this.data.barsList[barIndex];
-    const oldModel = oldBar.model;
-    const newModel = updatedValues.model || oldModel;
+    const oldProfile = oldBar.profile;
+    const newProfile = updatedValues.profile || oldProfile;
     
     // Suppression de l'ancienne barre de la structure motherBars
-    if (this.data.motherBars[oldModel]) {
-      const index = this.data.motherBars[oldModel].findIndex(b => b.id === id);
+    if (this.data.motherBars[oldProfile]) {
+      const index = this.data.motherBars[oldProfile].findIndex(b => b.id === id);
       if (index !== -1) {
-        this.data.motherBars[oldModel].splice(index, 1);
+        this.data.motherBars[oldProfile].splice(index, 1);
         
-        if (this.data.motherBars[oldModel].length === 0) {
-          delete this.data.motherBars[oldModel];
+        // Re-trier après suppression
+        if (this.data.motherBars[oldProfile].length > 0) {
+          this._sortBarsCollection(this.data.motherBars[oldProfile]);
+        } else {
+          delete this.data.motherBars[oldProfile];
         }
       }
     }
@@ -381,11 +490,84 @@ export const DataManager = {
     };
     
     // Ajout de la barre mise à jour dans la structure motherBars
-    if (!this.data.motherBars[newModel]) {
-      this.data.motherBars[newModel] = [];
+    if (!this.data.motherBars[newProfile]) {
+      this.data.motherBars[newProfile] = [];
     }
     
-    this.data.motherBars[newModel].push(this.data.barsList[barIndex]);
+    this.data.motherBars[newProfile].push(this.data.barsList[barIndex]);
+    
+    // Trier automatiquement après ajout
+    this._sortBarsCollection(this.data.motherBars[newProfile]);
+    
+    return true;
+  },
+  
+  /**
+   * Supprime une pièce et re-trie la collection
+   * @param {string} id - ID de la pièce à supprimer
+   * @returns {boolean} Succès de l'opération
+   */
+  deletePiece: function(id) {
+    // Trouver et supprimer de la liste principale
+    const pieceIndex = this.data.barsList.findIndex(b => b.id === id && b.type === 'fille');
+    
+    if (pieceIndex === -1) return false;
+    
+    const piece = this.data.barsList[pieceIndex];
+    const profile = piece.profile;
+    
+    // Supprimer de la liste principale
+    this.data.barsList.splice(pieceIndex, 1);
+    
+    // Supprimer de la structure pieces
+    if (this.data.pieces[profile]) {
+      const index = this.data.pieces[profile].findIndex(p => p.id === id);
+      if (index !== -1) {
+        this.data.pieces[profile].splice(index, 1);
+        
+        // Re-trier après suppression ou supprimer la catégorie si vide
+        if (this.data.pieces[profile].length > 0) {
+          this._sortBarsCollection(this.data.pieces[profile]);
+        } else {
+          delete this.data.pieces[profile];
+        }
+      }
+    }
+    
+    return true;
+  },
+  
+  /**
+   * Supprime une barre mère et re-trie la collection
+   * @param {string} id - ID de la barre mère à supprimer
+   * @returns {boolean} Succès de l'opération
+   */
+  deleteMotherBar: function(id) {
+    // Trouver et supprimer de la liste principale
+    const barIndex = this.data.barsList.findIndex(b => b.id === id && (b.type === 'mother' || b.type === 'mere'));
+    
+    if (barIndex === -1) return false;
+    
+    const bar = this.data.barsList[barIndex];
+    const profile = bar.profile;
+    
+    // Supprimer de la liste principale
+    this.data.barsList.splice(barIndex, 1);
+    
+    // Supprimer de la structure motherBars
+    if (this.data.motherBars[profile]) {
+      const index = this.data.motherBars[profile].findIndex(b => b.id === id);
+      if (index !== -1) {
+        this.data.motherBars[profile].splice(index, 1);
+        
+        // Re-trier après suppression ou supprimer la catégorie si vide
+        if (this.data.motherBars[profile].length > 0) {
+          this._sortBarsCollection(this.data.motherBars[profile]);
+        } else {
+          delete this.data.motherBars[profile];
+        }
+      }
+    }
     
     return true;
   }
