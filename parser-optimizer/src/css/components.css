@@ -204,6 +204,33 @@
   border-color: transparent;
 }
 
+/* Styles pour les champs verrouillés */
+.form-group input[disabled] {
+  background-color: #f5f5f5;
+  color: #666;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+
+.form-group input[disabled]:focus {
+  box-shadow: none;
+  border-color: #ddd;
+}
+
+.form-help {
+  display: block;
+  margin-top: 4px;
+  color: #666;
+  font-size: 0.85em;
+  font-style: italic;
+}
+
+/* Style pour les labels des champs verrouillés */
+.form-group label:has(+ input[disabled]),
+.form-group label:has(+ .profile-input-group input[disabled]) {
+  color: #666;
+}
+
 /* Modals */
 .modal {
   position: fixed;

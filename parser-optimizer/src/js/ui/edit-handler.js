@@ -11,6 +11,13 @@ export const EditHandler = {
   editingType: null,
   editingMode: null, // 'edit' ou 'create'
   
+  // Options de verrouillage
+  lockOptions: {
+    lockPieceCreation: true,    // Empêche l'ajout de nouvelles barres filles
+    lockPieceAngles: true,      // Empêche la modification des angles
+    lockPieceLengths: true      // Empêche la modification des longueurs
+  },
+  
   /**
    * Initialise le handler d'édition
    */
@@ -18,9 +25,24 @@ export const EditHandler = {
     this.dataManager = options.dataManager;
     this.showNotification = options.showNotification;
     
+    // Appliquer les options de verrouillage si fournies
+    if (options.lockOptions) {
+      this.lockOptions = { ...this.lockOptions, ...options.lockOptions };
+    }
+    
     // Créer les panneaux latéraux s'ils n'existent pas
     this.createPiecePanel();
     this.createStockPanel();
+  },
+  
+  /**
+   * Met à jour les options de verrouillage
+   * @param {Object} newOptions - Nouvelles options de verrouillage
+   */
+  updateLockOptions: function(newOptions) {
+    this.lockOptions = { ...this.lockOptions, ...newOptions };
+    // Re-rendre les sections pour appliquer les changements
+    this.renderSection();
   },
   
   /**
@@ -122,13 +144,18 @@ export const EditHandler = {
       `;
     }
     
-    // Ajouter une ligne pour le bouton d'ajout
-    html += `
+    // Ajouter une ligne pour le bouton d'ajout seulement si non verrouillé
+    if (!this.lockOptions.lockPieceCreation) {
+      html += `
         <tr class="add-row">
           <td colspan="8">
             <button id="add-piece-btn" class="btn btn-sm btn-primary">+ Ajouter une barre à découper</button>
           </td>
         </tr>
+      `;
+    }
+    
+    html += `
       </tbody>
     </table>
     `;
@@ -136,9 +163,14 @@ export const EditHandler = {
     tableContainer.innerHTML = html;
     
     // Configurer les gestionnaires d'événements
-    document.getElementById('add-piece-btn').addEventListener('click', () => {
-      this.openPiecePanel('create');
-    });
+    if (!this.lockOptions.lockPieceCreation) {
+      const addBtn = document.getElementById('add-piece-btn');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => {
+          this.openPiecePanel('create');
+        });
+      }
+    }
     
     document.querySelectorAll('.edit-piece-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -150,13 +182,11 @@ export const EditHandler = {
     document.querySelectorAll('.delete-piece-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
-        if (confirm('Supprimer cette barre ?')) {
-          if (this.dataManager.deletePiece(id)) {
-            this.renderPiecesTable(); // Re-render avec tri automatique
-            this.updateAllProfileSelects();
-          } else {
-            this.showNotification('Erreur lors de la suppression', 'error');
-          }
+        if (this.dataManager.deletePiece(id)) {
+          this.renderPiecesTable(); // Re-render avec tri automatique
+          this.updateAllProfileSelects();
+        } else {
+          this.showNotification('Erreur lors de la suppression', 'error');
         }
       });
     });
@@ -255,6 +285,12 @@ export const EditHandler = {
    * @param {string} id - ID de la pièce à éditer (seulement en mode 'edit')
    */
   openPiecePanel: function(mode, id = null) {
+    // Vérifier si la création est verrouillée
+    if (mode === 'create' && this.lockOptions.lockPieceCreation) {
+      this.showNotification('La création de nouvelles barres filles est désactivée', 'warning');
+      return;
+    }
+    
     this.editingMode = mode;
     this.editingId = id;
     this.editingType = 'piece';
@@ -273,6 +309,10 @@ export const EditHandler = {
       
       title.textContent = `Éditer la barre ${item.nom || item.profile}`;
       
+      // Déterminer si les champs doivent être désactivés
+      const lengthDisabled = this.lockOptions.lockPieceLengths ? 'disabled' : '';
+      const angleDisabled = this.lockOptions.lockPieceAngles ? 'disabled' : '';
+      
       // Générer le formulaire d'édition
       form.innerHTML = `
         <div class="form-group">
@@ -290,20 +330,22 @@ export const EditHandler = {
           </div>
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur :</label>
-          <input type="number" id="piece-length" min="1" step="1" value="${Math.round(item.length)}">
+          <label for="piece-length">Longueur ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
+          <input type="number" id="piece-length" min="1" step="1" value="${Math.round(item.length)}" ${lengthDisabled}>
+          ${this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : ''}
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
           <input type="number" id="piece-quantity" min="1" value="${item.quantity}">
         </div>
         <div class="form-group">
-          <label for="piece-angle-1">Angle 1 (°) :</label>
-          <input type="number" id="piece-angle-1" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[1] || 90).toFixed(2)}">
+          <label for="piece-angle-1">Angle 1 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
+          <input type="number" id="piece-angle-1" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[1] || 90).toFixed(2)}" ${angleDisabled}>
+          ${this.lockOptions.lockPieceAngles ? '<small class="form-help">Les angles ne peuvent pas être modifiés pour les barres importées</small>' : ''}
         </div>
         <div class="form-group">
-          <label for="piece-angle-2">Angle 2 (°) :</label>
-          <input type="number" id="piece-angle-2" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[2] || 90).toFixed(2)}">
+          <label for="piece-angle-2">Angle 2 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
+          <input type="number" id="piece-angle-2" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[2] || 90).toFixed(2)}" ${angleDisabled}>
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -504,11 +546,29 @@ export const EditHandler = {
     if (type === 'piece') {
       const nom = document.getElementById('piece-nom').value.trim();
       const profileValue = document.getElementById('piece-profile').value;
-      const length = Math.round(parseFloat(document.getElementById('piece-length').value));
       const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      const angle1 = parseFloat(parseFloat(document.getElementById('piece-angle-1').value).toFixed(2));
-      const angle2 = parseFloat(parseFloat(document.getElementById('piece-angle-2').value).toFixed(2));
       const orientation = document.getElementById('piece-orientation').value;
+      
+      // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
+      let length, angle1, angle2;
+      
+      if (this.lockOptions.lockPieceLengths && mode === 'edit') {
+        // Si verrouillé en mode édition, garder la valeur existante
+        const existingPiece = this.dataManager.getPieceById(id);
+        length = existingPiece ? existingPiece.length : Math.round(parseFloat(document.getElementById('piece-length').value));
+      } else {
+        length = Math.round(parseFloat(document.getElementById('piece-length').value));
+      }
+      
+      if (this.lockOptions.lockPieceAngles && mode === 'edit') {
+        // Si verrouillé en mode édition, garder les valeurs existantes
+        const existingPiece = this.dataManager.getPieceById(id);
+        angle1 = existingPiece ? existingPiece.angles?.[1] || 90 : parseFloat(parseFloat(document.getElementById('piece-angle-1').value).toFixed(2));
+        angle2 = existingPiece ? existingPiece.angles?.[2] || 90 : parseFloat(parseFloat(document.getElementById('piece-angle-2').value).toFixed(2));
+      } else {
+        angle1 = parseFloat(parseFloat(document.getElementById('piece-angle-1').value).toFixed(2));
+        angle2 = parseFloat(parseFloat(document.getElementById('piece-angle-2').value).toFixed(2));
+      }
       
       if (profileValue && length && quantity) {
         if (mode === 'edit') {
