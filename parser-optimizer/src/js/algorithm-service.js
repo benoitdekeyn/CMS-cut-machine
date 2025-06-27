@@ -41,12 +41,100 @@ export const AlgorithmService = {
   },
   
   /**
+   * Compare algorithms and automatically select the best one
+   * @param {Object} data - Data to process
+   * @returns {Object} Best algorithm results with comparison data
+   */
+  compareAlgorithms: function(data) {
+    return this.runAlgorithm('compare', data);
+  },
+  
+  /**
+   * Transform DataManager data structure to algorithm-expected models format
+   * @param {Object} data - Raw data from DataManager
+   * @returns {Object} Transformed data organized by models (profile_orientation)
+   */
+  transformDataToModels: function(data) {
+    const modelPieces = {};
+    const modelMotherBars = {};
+    
+    console.log('🔄 Transformation des données en modèles...');
+    
+    // Transform pieces grouped by profile+orientation
+    for (const profile in data.pieces) {
+      for (const piece of data.pieces[profile]) {
+        const orientation = piece.orientation || 'undefined';
+        const modelKey = `${profile}_${orientation}`;
+        
+        if (!modelPieces[modelKey]) {
+          modelPieces[modelKey] = [];
+        }
+        modelPieces[modelKey].push(piece);
+      }
+    }
+    
+    // Transform mother bars - they need to be available for each orientation that has pieces
+    for (const profile in data.motherBars) {
+      const availableOrientations = this.getOrientationsForProfile(profile, data.pieces);
+      
+      for (const orientation of availableOrientations) {
+        const modelKey = `${profile}_${orientation}`;
+        
+        if (!modelMotherBars[modelKey]) {
+          modelMotherBars[modelKey] = [...data.motherBars[profile]];
+        }
+      }
+    }
+    
+    // Log transformation summary
+    const modelCount = Object.keys(modelPieces).length;
+    console.log(`📊 ${modelCount} modèles créés:`);
+    for (const modelKey in modelPieces) {
+      const pieceCount = modelPieces[modelKey].length;
+      const motherBarCount = modelMotherBars[modelKey] ? modelMotherBars[modelKey].length : 0;
+      console.log(`  • ${modelKey}: ${pieceCount} pièces, ${motherBarCount} barres mères`);
+    }
+    
+    return { 
+      pieces: modelPieces, 
+      motherBars: modelMotherBars 
+    };
+  },
+  
+  /**
+   * Get all orientations for a given profile from pieces data
+   * @param {string} profile - Profile to check
+   * @param {Object} piecesData - Pieces data organized by profile
+   * @returns {Array} Array of orientations for this profile
+   */
+  getOrientationsForProfile: function(profile, piecesData) {
+    const orientations = new Set();
+    
+    if (piecesData[profile]) {
+      for (const piece of piecesData[profile]) {
+        orientations.add(piece.orientation || 'undefined');
+      }
+    }
+    
+    // If no orientations found, default to 'undefined'
+    if (orientations.size === 0) {
+      orientations.add('undefined');
+    }
+    
+    return Array.from(orientations);
+  },
+  
+  /**
    * Run the First-Fit Decreasing algorithm
    * @param {Object} data - Data to process
    * @returns {Object} Algorithm results
    */
   runFFDAlgorithm: function(data) {
-    const results = algorithms.solveGreedyFFD(data.motherBars, data.pieces);
+    // Transform data to models format
+    const modelData = this.transformDataToModels(data);
+    
+    // Run algorithm with transformed data
+    const results = algorithms.solveGreedyFFD(modelData.motherBars, modelData.pieces);
     results.algorithmName = 'First-Fit Decreasing';
     results.algorithmType = 'ffd';
     return results;
@@ -58,7 +146,11 @@ export const AlgorithmService = {
    * @returns {Object} Algorithm results
    */
   runILPAlgorithm: function(data) {
-    const results = algorithms.solveWithILP(data.motherBars, data.pieces);
+    // Transform data to models format
+    const modelData = this.transformDataToModels(data);
+    
+    // Run algorithm with transformed data
+    const results = algorithms.solveWithILP(modelData.motherBars, modelData.pieces);
     results.algorithmName = 'Programmation Linéaire (ILP)';
     results.algorithmType = 'ilp';
     return results;

@@ -4,6 +4,34 @@
  */
 export const ResultsRenderer = {
   /**
+   * Format model key to user-friendly display name
+   * @param {string} modelKey - Technical model key (e.g., "HEA100_a-plat")
+   * @returns {string} User-friendly model name
+   */
+  formatModelName: function(modelKey) {
+    const parts = modelKey.split('_');
+    const profile = parts[0];
+    const orientation = parts[1];
+    
+    let orientationText = '';
+    switch(orientation) {
+      case 'a-plat':
+        orientationText = 'À plat';
+        break;
+      case 'debout':
+        orientationText = 'Debout';
+        break;
+      case 'undefined':
+        orientationText = 'Non définie';
+        break;
+      default:
+        orientationText = orientation;
+    }
+    
+    return `${profile} (${orientationText})`;
+  },
+  
+  /**
    * Render algorithm results to the container
    * @param {Object} results - Algorithm results to render
    * @param {Object} algorithmService - Algorithm service for stats calculation
@@ -21,6 +49,12 @@ export const ResultsRenderer = {
         "L'algorithme n'a pas pu trouver de solution avec les données fournies."
       );
       return;
+    }
+    
+    // Store results in container for PGM generation
+    const resultsDisplay = document.getElementById('results-display');
+    if (resultsDisplay) {
+      resultsDisplay.dataset.results = JSON.stringify(results);
     }
     
     // Calculate global statistics
@@ -156,10 +190,13 @@ export const ResultsRenderer = {
    * @returns {string} HTML for model card
    */
   renderModelCard: function(modelName, modelResult, stats, algorithmService) {
+    // Format the model name for display
+    const displayName = this.formatModelName(modelName);
+    
     let html = `
       <div class="model-card">
         <div class="model-header">
-          <h3>Modèle: ${modelName}</h3>
+          <h3>Modèle: ${displayName}</h3>
         </div>
         <div class="model-content">
           <div class="model-stats">
