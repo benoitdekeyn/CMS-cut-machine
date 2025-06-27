@@ -163,7 +163,7 @@ export const EditHandler = {
   },
   
   /**
-   * Rend le tableau des barres mères avec tri automatique
+   * Rend le tableau des barres mères avec tri automatique (sans colonne nom)
    */
   renderStockBarsTable: function() {
     const tableContainer = document.querySelector('#stock-bars-table');
@@ -178,12 +178,11 @@ export const EditHandler = {
     // Trier les barres selon l'ordre défini (profil puis longueur pour les barres mères)
     const sortedBars = this.sortBars(allMotherBars);
     
-    // Générer l'en-tête du tableau
+    // Générer l'en-tête du tableau (sans colonne nom)
     let html = `
       <table class="data-table">
         <thead>
           <tr>
-            <th>Nom</th>
             <th>Profil</th>
             <th>Longueur</th>
             <th>Quantité</th>
@@ -193,11 +192,10 @@ export const EditHandler = {
         <tbody>
     `;
     
-    // Générer les lignes du tableau
+    // Générer les lignes du tableau (sans colonne nom)
     for (const bar of sortedBars) {
       html += `
         <tr data-id="${bar.id}">
-          <td>${bar.nom || '-'}</td>
           <td>${bar.profile}</td>
           <td>${Math.round(bar.length)}</td>
           <td>${bar.quantity}</td>
@@ -214,7 +212,7 @@ export const EditHandler = {
     // Ajouter une ligne pour le bouton d'ajout
     html += `
         <tr class="add-row">
-          <td colspan="5">
+          <td colspan="4">
             <button id="add-stock-btn" class="btn btn-sm btn-primary">+ Ajouter une barre mère</button>
           </td>
         </tr>
@@ -406,7 +404,7 @@ export const EditHandler = {
   },
   
   /**
-   * Ouvre le panneau des barres mères (édition ou création)
+   * Ouvre le panneau des barres mères (édition ou création) - sans champ nom
    * @param {string} mode - Mode du panneau ('edit' ou 'create')
    * @param {string} id - ID de la barre à éditer (seulement en mode 'edit')
    */
@@ -427,14 +425,10 @@ export const EditHandler = {
       const item = this.dataManager.getMotherBarById(id);
       if (!item) return;
       
-      title.textContent = `Éditer la barre mère ${item.nom || item.profile}`;
+      title.textContent = `Éditer la barre mère ${item.profile}`;
       
-      // Générer le formulaire d'édition
+      // Générer le formulaire d'édition (sans champ nom)
       form.innerHTML = `
-        <div class="form-group">
-          <label for="stock-nom">Nom :</label>
-          <input type="text" id="stock-nom" value="${item.nom || ''}" placeholder="Nom de la barre">
-        </div>
         <div class="form-group">
           <label for="stock-profile">Profil :</label>
           <select id="stock-profile">
@@ -451,14 +445,10 @@ export const EditHandler = {
         </div>
       `;
     } else {
-      // Mode création
+      // Mode création (sans champ nom)
       title.textContent = 'Nouvelle barre mère';
       
       form.innerHTML = `
-        <div class="form-group">
-          <label for="stock-nom">Nom :</label>
-          <input type="text" id="stock-nom" placeholder="Nom de la barre">
-        </div>
         <div class="form-group">
           <label for="stock-profile">Profil :</label>
           <select id="stock-profile">
@@ -576,7 +566,6 @@ export const EditHandler = {
         }
       }
     } else if (type === 'stock') {
-      const nom = document.getElementById('stock-nom').value.trim();
       const profileValue = document.getElementById('stock-profile').value;
       const length = Math.round(parseFloat(document.getElementById('stock-length').value));
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
@@ -590,7 +579,6 @@ export const EditHandler = {
           }
           
           const updatedMotherBar = {
-            nom: nom || undefined,
             profile: profileValue,
             length,
             quantity
@@ -599,7 +587,6 @@ export const EditHandler = {
           success = this.dataManager.updateMotherBar(id, updatedMotherBar);
         } else {
           const barData = {
-            nom: nom || undefined,
             profile: profileValue,
             length,
             quantity,
