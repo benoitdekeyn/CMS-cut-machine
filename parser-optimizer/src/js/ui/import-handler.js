@@ -8,11 +8,10 @@ export const ImportHandler = {
   // Dépendances
   dataManager: null,
   importManager: null,
-  editHandler: null,
   
   // Callbacks
   showNotification: null,
-  navigateToSection: null,
+  refreshDataDisplay: null, // CORRIGÉ : utiliser refreshDataDisplay au lieu de navigateToSection
   
   /**
    * Initialise le handler d'import
@@ -21,8 +20,7 @@ export const ImportHandler = {
     this.dataManager = options.dataManager;
     this.importManager = options.importManager;
     this.showNotification = options.showNotification;
-    this.navigateToSection = options.navigateToSection;
-    this.editHandler = options.editHandler;
+    this.refreshDataDisplay = options.refreshDataDisplay; // CORRIGÉ
     
     this.initDropZone();
   },
@@ -87,18 +85,18 @@ export const ImportHandler = {
           // Rester sur la même section et montrer un message de succès
           this.showNotification(`${addedIds.length} barres importées avec succès.`, 'success');
           
-          // Mettre à jour les tableaux d'édition
-          if (this.editHandler) {
-            this.editHandler.renderSection();
-            
-            // Faire défiler jusqu'à la zone d'édition après un court délai
-            setTimeout(() => {
-              const editPanel = document.querySelector('.panels-container');
-              if (editPanel) {
-                editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }, 300); // Délai court pour laisser le temps au DOM de se mettre à jour
+          // CORRIGÉ : Rafraîchir l'affichage des données
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
           }
+          
+          // Faire défiler jusqu'à la zone d'édition après un court délai
+          setTimeout(() => {
+            const editPanel = document.querySelector('.panels-container');
+            if (editPanel) {
+              editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 300);
         } else {
           this.showError('Aucune nouvelle pièce ajoutée.');
         }

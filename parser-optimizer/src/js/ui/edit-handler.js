@@ -5,6 +5,7 @@ export const EditHandler = {
   // Dépendances
   dataManager: null,
   showNotification: null,
+  refreshDataDisplay: null, // AJOUTER cette propriété
   
   // État interne
   editingId: null,
@@ -24,6 +25,7 @@ export const EditHandler = {
   init: function(options) {
     this.dataManager = options.dataManager;
     this.showNotification = options.showNotification;
+    this.refreshDataDisplay = options.refreshDataDisplay; // AJOUTER cette ligne
     
     // Appliquer les options de verrouillage si fournies
     if (options.lockOptions) {
@@ -36,12 +38,9 @@ export const EditHandler = {
   },
   
   /**
-   * Met à jour les options de verrouillage
-   * @param {Object} newOptions - Nouvelles options de verrouillage
+   * AJOUTER : Méthode pour rafraîchir les tableaux
    */
-  updateLockOptions: function(newOptions) {
-    this.lockOptions = { ...this.lockOptions, ...newOptions };
-    // Re-rendre les sections pour appliquer les changements
+  refreshTables: function() {
     this.renderSection();
   },
   
@@ -267,13 +266,11 @@ export const EditHandler = {
     document.querySelectorAll('.delete-stock-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
-        if (confirm('Supprimer cette barre mère ?')) {
-          if (this.dataManager.deleteMotherBar(id)) {
-            this.renderStockBarsTable(); // Re-render avec tri automatique
-            this.updateAllProfileSelects();
-          } else {
-            this.showNotification('Erreur lors de la suppression', 'error');
-          }
+        if (this.dataManager.deleteMotherBar(id)) {
+          this.renderStockBarsTable(); // Re-render avec tri automatique
+          this.updateAllProfileSelects();
+        } else {
+          this.showNotification('Erreur lors de la suppression', 'error');
         }
       });
     });
@@ -620,6 +617,11 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
+          // AJOUTER : Rafraîchir l'affichage global
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          
           // Afficher notification de succès
           const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
           this.showNotification(`Barre ${action} avec succès`, 'success');
@@ -665,6 +667,11 @@ export const EditHandler = {
           
           if (updatedProfile) {
             this.updateAllProfileSelects();
+          }
+          
+          // AJOUTER : Rafraîchir l'affichage global
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
           }
           
           // Afficher notification de succès

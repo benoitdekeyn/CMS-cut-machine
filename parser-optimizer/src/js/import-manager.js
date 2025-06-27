@@ -22,7 +22,10 @@ export const ImportManager = {
           // Fichier NC simple
           const content = await this.readFileAsText(file);
           const parsedData = Parser.parseNC2(content);
-          barres.push(this.convertToBarre(parsedData, file.name));
+          const barre = this.convertToBarre(parsedData, file.name);
+          if (barre) {
+            barres.push(barre);
+          }
         } else if (fileName.endsWith('.zip')) {
           // Fichier ZIP
           const zipBarres = await this.processZipFile(file);
@@ -52,6 +55,28 @@ export const ImportManager = {
   },
   
   /**
+   * Vérifie si un fichier est valide (pas un fichier système macOS)
+   * @param {string} path - Chemin du fichier
+   * @returns {boolean} - True si le fichier est valide
+   */
+  isValidFile: function(path) {
+    const lowerPath = path.toLowerCase();
+    
+    // Filtrer les fichiers système macOS
+    if (path.includes('__MACOSX') || path.startsWith('._')) {
+      return false;
+    }
+    
+    // Filtrer les fichiers cachés et système
+    if (path.startsWith('.DS_Store') || path.includes('/.DS_Store')) {
+      return false;
+    }
+    
+    // Vérifier l'extension
+    return lowerPath.endsWith('.nc2') || lowerPath.endsWith('.nc1');
+  },
+  
+  /**
    * Traite un fichier ZIP contenant des fichiers NC2
    * @param {File} zipFile - Fichier ZIP à traiter
    * @returns {Promise<Array>} - Tableau d'objets barre
@@ -71,19 +96,25 @@ export const ImportManager = {
       // Décompresser le ZIP
       const zip = await JSZip.loadAsync(arrayBuffer);
       
-      // Traiter chaque fichier NC2/NC1
+      // Traiter chaque fichier NC2/NC1 valide
       for (const [path, zipEntry] of Object.entries(zip.files)) {
         if (zipEntry.dir) continue;
         
-        const lowerPath = path.toLowerCase();
-        if (lowerPath.endsWith('.nc2') || lowerPath.endsWith('.nc1')) {
-          const content = await zipEntry.async('string');
-          try {
-            const parsedData = Parser.parseNC2(content);
-            barres.push(this.convertToBarre(parsedData, path));
-          } catch (error) {
-            console.error(`Erreur parsing ${path}:`, error);
+        // Vérifier si le fichier est valide
+        if (!this.isValidFile(path)) {
+          console.log(`Fichier ignoré: ${path}`);
+          continue;
+        }
+        
+        const content = await zipEntry.async('string');
+        try {
+          const parsedData = Parser.parseNC2(content);
+          const barre = this.convertToBarre(parsedData, path);
+          if (barre) {
+            barres.push(barre);
           }
+        } catch (error) {
+          console.error(`Erreur parsing ${path}:`, error);
         }
       }
       
@@ -98,10 +129,10 @@ export const ImportManager = {
    * Convertit les données parsées en objet barre
    * @param {Object} parsedData - Données parsées du fichier NC2
    * @param {string} filename - Nom du fichier source
-   * @returns {Object} - Objet barre
+   * @returns {Object|null} - Objet barre ou null si invalide
    */
   convertToBarre: function(parsedData, filename) {
-    if (!parsedData || !parsedData.profil) {
+    if (!parsedData || !parsedData.profil || parsedData.profil.trim() === '') {
       console.error(`Données invalides: ${filename}`);
       return null;
     }

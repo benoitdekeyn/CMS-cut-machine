@@ -501,5 +501,18 @@ export const DataManager = {
     this._sortBarsCollection(this.data.motherBars[newProfile]);
     
     return true;
+  },
+  
+  /**
+   * Efface toutes les données
+   */
+  clearAllData: function() {
+    this.data = {
+      pieces: {},
+      motherBars: {},
+      barsList: []
+    };
+    console.log('📝 Toutes les données ont été effacées');
+    return this.data;
   }
 };
