@@ -267,8 +267,8 @@ export const UIController = {
       // Rendre les résultats
       ResultsRenderer.renderResults(results, this.algorithmService);
       
-      // Générer les aperçus PGM
-      this.resultsHandler.generatePgmPreviews(results);
+      // Générer les aperçus PGM avec le générateur intégré
+      this.resultsHandler.generatePgmPreviews();
       
       // Afficher les onglets de résultats
       this.showResultsTabs();

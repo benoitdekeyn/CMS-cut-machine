@@ -45,6 +45,7 @@ if (process.env.NODE_ENV === 'development') {
     DataManager,
     AlgorithmService,
     PgmManager,
+    PgmGenerator, // Ajouter le PGM-Generator pour le debug
     UIController
   };
 }
