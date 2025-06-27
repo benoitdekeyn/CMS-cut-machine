@@ -44,7 +44,7 @@ export const ResultsHandler = {
               <div class="pgm-file-info">
                 <span class="pgm-file-name">${fileName}</span>
                 <span class="pgm-file-model">${model}</span>
-                <span class="pgm-file-length">Longueur: ${layout.barLength}</span>
+                <span class="pgm-file-length">Longueur: ${layout.barLength} cm</span>
                 <span class="pgm-file-pieces">Pièces: ${layout.cuts ? layout.cuts.length : 0}</span>
               </div>
               <button class="btn btn-sm btn-primary download-pgm-btn" 

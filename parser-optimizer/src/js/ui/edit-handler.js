@@ -130,7 +130,7 @@ export const EditHandler = {
           <td>${piece.nom || '-'}</td>
           <td>${piece.profile}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
-          <td>${Math.round(piece.length)}</td>
+          <td>${Math.round(piece.length)} cm</td>
           <td>${parseFloat(piece.angles?.[1] || 90).toFixed(2)}°</td>
           <td>${parseFloat(piece.angles?.[2] || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
@@ -227,7 +227,7 @@ export const EditHandler = {
       html += `
         <tr data-id="${bar.id}">
           <td>${bar.profile}</td>
-          <td>${Math.round(bar.length)}</td>
+          <td>${Math.round(bar.length)} cm</td>
           <td>${bar.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-stock-btn" 
@@ -330,7 +330,7 @@ export const EditHandler = {
           </div>
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
+          <label for="piece-length">Longueur (cm) ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
           <input type="number" id="piece-length" min="1" step="1" value="${Math.round(item.length)}" ${lengthDisabled}>
           ${this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : ''}
         </div>
@@ -401,7 +401,7 @@ export const EditHandler = {
           </div>
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur :</label>
+          <label for="piece-length">Longueur (cm) :</label>
           <input type="number" id="piece-length" min="1" step="1">
         </div>
         <div class="form-group">
@@ -478,7 +478,7 @@ export const EditHandler = {
           </select>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur :</label>
+          <label for="stock-length">Longueur (cm) :</label>
           <input type="number" id="stock-length" min="1" step="1" value="${Math.round(item.length)}">
         </div>
         <div class="form-group">
@@ -498,7 +498,7 @@ export const EditHandler = {
           </select>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur :</label>
+          <label for="stock-length">Longueur (cm) :</label>
           <input type="number" id="stock-length" min="1" step="1">
         </div>
         <div class="form-group">

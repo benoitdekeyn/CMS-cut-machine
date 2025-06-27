@@ -74,11 +74,11 @@ export const ResultsRenderer = {
           </div>
           <div class="stat-card">
             <div class="stat-label">Longueur totale barres mères</div>
-            <div class="stat-value">${stats.totalBarLength} unités</div>
+            <div class="stat-value">${stats.totalBarLength} cm</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Chutes (total)</div>
-            <div class="stat-value">${stats.totalWaste} unités</div>
+            <div class="stat-value">${stats.totalWaste} cm</div>
           </div>
           <div class="stat-card efficiency-card">
             <div class="stat-label">Efficacité</div>
@@ -169,11 +169,11 @@ export const ResultsRenderer = {
             </div>
             <div class="model-stat">
               <div class="stat-label">Longueur totale</div>
-              <div class="stat-value">${stats.totalLength} unités</div>
+              <div class="stat-value">${stats.totalLength} cm</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Chutes</div>
-              <div class="stat-value">${stats.wasteLength} unités</div>
+              <div class="stat-value">${stats.wasteLength} cm</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Efficacité</div>
@@ -210,7 +210,7 @@ export const ResultsRenderer = {
     // Generate the text representation of cuts
     let cutsHtml = '';
     pattern.cuts.forEach(cut => {
-      cutsHtml += `<span class="cut-count">${cut.count}×</span>${cut.length} `;
+      cutsHtml += `<span class="cut-count">${cut.count}×</span>${cut.length} cm `;
     });
     
     // Generate visual representation of the cuts
@@ -220,7 +220,7 @@ export const ResultsRenderer = {
       visualBarHtml += `
         <div class="cut-piece ${lastPieceClass}" 
              style="width: ${piece.percentage}%" 
-             title="${piece.length}">
+             title="${piece.length} cm">
           ${piece.length}
         </div>
       `;
@@ -231,7 +231,7 @@ export const ResultsRenderer = {
       visualBarHtml += `
         <div class="waste-piece" 
              style="width: ${pattern.wastePercentage}%" 
-             title="Chute: ${pattern.waste}">
+             title="Chute: ${pattern.waste} cm">
           ${pattern.waste}
         </div>
       `;
@@ -241,13 +241,13 @@ export const ResultsRenderer = {
       <div class="cut-scheme">
         <div class="cut-scheme-header">
           <strong>${pattern.count}× Schéma #${index + 1}</strong>
-          <span>Barre de ${pattern.barLength}</span>
+          <span>Barre de ${pattern.barLength} cm</span>
         </div>
         <div class="cut-pieces">
           Pièces: ${cutsHtml}
         </div>
         <div class="waste">
-          Chute: <span class="waste-value">${pattern.waste}</span>
+          Chute: <span class="waste-value">${pattern.waste} cm</span>
         </div>
         <div class="cut-bar">
           ${visualBarHtml}
