@@ -227,6 +227,7 @@
   display: flex;
   overflow: hidden;
   margin-top: 0.75rem;
+  border: 1px solid var(--border-color); /* Ajouter une bordure pour une meilleure séparation */
 }
 
 .cut-piece {
@@ -241,6 +242,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: background-color 0.2s;
+  border-right: 2px solid rgba(255, 255, 255, 0.3); /* Ligne de séparation entre les pièces */
+  min-width: 20px; /* Largeur minimum pour éviter les pièces trop étroites */
+}
+
+.cut-piece:last-of-type {
+  border-right: none; /* Pas de bordure à droite pour la dernière pièce */
 }
 
 .cut-piece.last-piece {
@@ -258,11 +265,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 15px; /* Largeur minimum pour les chutes */
 }
 
-.cut-count {
+/* NOUVEAU: Style pour la longueur de barre mère */
+.bar-length-badge {
+  display: inline-block;
+  background-color: var(--primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-right: 0.25rem;
+  margin-left: 0.5rem;
 }
 
 /* PGM Files */

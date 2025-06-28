@@ -25,7 +25,33 @@ export const ResultsRenderer = {
         orientationText = orientation;
     }
     
-    return `${profile} (${orientationText})`;
+    return `${profile} - ${orientationText}`;
+  },
+
+  /**
+   * NOUVEAU: Formate une longueur en centimètres vers mètres avec décimales intelligentes
+   */
+  formatLengthInMeters: function(lengthInCm) {
+    const meters = lengthInCm / 100;
+    
+    // Si c'est un nombre entier, pas de décimales
+    if (meters % 1 === 0) {
+      return `${meters}m`;
+    }
+    
+    // Sinon, formatage avec jusqu'à 3 décimales en supprimant les zéros inutiles
+    const formatted = meters.toFixed(3);
+    const cleanFormatted = parseFloat(formatted).toString();
+    return `${cleanFormatted}m`;
+  },
+
+  /**
+   * NOUVEAU: Calcule la largeur minimum nécessaire pour afficher du texte
+   */
+  shouldShowTextInPiece: function(percentage, text) {
+    // Estimation grossière : il faut au moins 30px pour afficher du texte lisible
+    // Si la largeur représentée est inférieure à 8%, on n'affiche pas le texte
+    return percentage >= 8 && text.toString().length <= 4;
   },
   
   /**
@@ -90,11 +116,11 @@ export const ResultsRenderer = {
           </div>
           <div class="stat-card">
             <div class="stat-label">Longueur totale barres mères</div>
-            <div class="stat-value">${stats.totalBarLength} cm</div>
+            <div class="stat-value">${this.formatLengthInMeters(stats.totalBarLength)}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Chutes (total)</div>
-            <div class="stat-value">${stats.totalWaste} cm</div>
+            <div class="stat-value">${Math.round(stats.totalWaste)} cm</div>
           </div>
           <div class="stat-card efficiency-card">
             <div class="stat-label">Efficacité</div>
@@ -156,7 +182,7 @@ export const ResultsRenderer = {
     let html = `
       <div class="model-card">
         <div class="model-header">
-          <h3>Modèle: ${displayName}</h3>
+          <h3>${displayName}</h3>
         </div>
         <div class="model-content">
           <div class="model-stats">
@@ -166,11 +192,11 @@ export const ResultsRenderer = {
             </div>
             <div class="model-stat">
               <div class="stat-label">Longueur totale</div>
-              <div class="stat-value">${stats.totalLength} cm</div>
+              <div class="stat-value">${this.formatLengthInMeters(stats.totalLength)}</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Chutes</div>
-              <div class="stat-value">${stats.wasteLength} cm</div>
+              <div class="stat-value">${Math.round(stats.wasteLength)} cm</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Efficacité</div>
@@ -209,24 +235,28 @@ export const ResultsRenderer = {
     
     // Generate visual representation of the cuts
     let visualBarHtml = '';
-    pattern.visualPieces.forEach(piece => {
+    pattern.visualPieces.forEach((piece, pieceIndex) => {
       const lastPieceClass = piece.isLast ? 'last-piece' : '';
+      const showText = this.shouldShowTextInPiece(piece.percentage, piece.length);
+      
       visualBarHtml += `
         <div class="cut-piece ${lastPieceClass}" 
              style="width: ${piece.percentage}%" 
              title="${piece.length} cm">
-          ${piece.length}
+          ${showText ? piece.length : ''}
         </div>
       `;
     });
     
     // Add waste piece if any
     if (pattern.waste > 0) {
+      const showWasteText = this.shouldShowTextInPiece(pattern.wastePercentage, pattern.waste);
+      
       visualBarHtml += `
         <div class="waste-piece" 
              style="width: ${pattern.wastePercentage}%" 
              title="Chute: ${pattern.waste} cm">
-          ${pattern.waste}
+          ${showWasteText ? pattern.waste : ''}
         </div>
       `;
     }
@@ -235,7 +265,7 @@ export const ResultsRenderer = {
       <div class="cut-scheme">
         <div class="cut-scheme-header">
           <strong>${pattern.count}× Schéma #${index + 1}</strong>
-          <span>Barre mère de ${pattern.barLength} cm</span>
+          <span>Barre mère <span class="bar-length-badge">${this.formatLengthInMeters(pattern.barLength)}</span></span>
         </div>
         <div class="cut-pieces">
           Pièces: ${cutsHtml}
