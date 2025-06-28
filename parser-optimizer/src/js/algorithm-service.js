@@ -17,18 +17,14 @@ export const AlgorithmService = {
       let results;
       
       if (type === 'compare') {
-        // Run FFD first
+        // Exécuter FFD et ILP sur tous les modèles
         const ffdResults = this.runFFDAlgorithm(data);
-        
-        // Try ILP, but fallback to FFD if it fails
         let ilpResults = null;
         try {
           ilpResults = this.runILPAlgorithm(data);
         } catch (error) {
           console.warn('ILP failed, using FFD only:', error.message);
         }
-        
-        // Compare results (handles ILP failure gracefully)
         results = this.compareAndSelectBest(ffdResults, ilpResults);
       }
       else if (type === 'greedy' || type === 'ffd') {
@@ -307,72 +303,115 @@ export const AlgorithmService = {
    * Si ILP échoue, utiliser seulement FFD
    */
   compareAndSelectBest: function(ffdResults, ilpResults) {
-    // Si ILP a échoué, utiliser seulement FFD
-    if (!ilpResults || !ilpResults.globalStats?.statistics?.utilizationRate) {
-        console.log(`  ⚠️ ILP échoué, utilisation de FFD seul`);
-        ffdResults.bestAlgorithm = 'ffd';
-        ffdResults.algorithmName = 'First-Fit Decreasing (seul disponible)';
-        ffdResults.algorithmType = 'ffd';
-        return ffdResults;
-    }
-    
-    // Validate results have needed properties
-    if (!ffdResults?.globalStats?.statistics?.utilizationRate) {
-        throw new Error("Les résultats FFD sont incomplets pour la comparaison.");
-    }
-    
-    // Get efficiency values from results
-    const ffdEfficiency = parseFloat(ffdResults.globalStats.statistics.utilizationRate);
-    const ilpEfficiency = parseFloat(ilpResults.globalStats.statistics.utilizationRate);
-    
-    // Get total bars used for each algorithm
-    const ffdBarsUsed = ffdResults.globalStats.totalBarsUsed;
-    const ilpBarsUsed = ilpResults.globalStats.totalBarsUsed;
-    
-    // Determine best algorithm
-    let bestAlgorithm;
-    let bestResults;
-    
-    console.log(`🔍 Comparaison des algorithmes:`);
-    console.log(`  FFD: ${ffdEfficiency}% efficacité, ${ffdBarsUsed} barres mères`);
-    console.log(`  ILP: ${ilpEfficiency}% efficacité, ${ilpBarsUsed} barres mères`);
-    
-    if (ffdEfficiency > ilpEfficiency) {
-        bestAlgorithm = 'ffd';
-        bestResults = ffdResults;
-        console.log(`  ✅ FFD choisi: meilleure efficacité`);
-    } else if (ilpEfficiency > ffdEfficiency) {
-        bestAlgorithm = 'ilp';
-        bestResults = ilpResults;
-        console.log(`  ✅ ILP choisi: meilleure efficacité`);
-    } else {
-        if (ffdBarsUsed < ilpBarsUsed) {
-            bestAlgorithm = 'ffd';
-            bestResults = ffdResults;
-            console.log(`  ✅ FFD choisi: même efficacité mais moins de barres mères`);
+    const modelResults = {};
+    const ffdModels = ffdResults.modelResults || {};
+    const ilpModels = ilpResults?.modelResults || {};
+
+    let totalBarsUsed = 0;
+    let totalWaste = 0;
+    let totalBarLength = 0;
+
+    for (const modelKey of Object.keys(ffdModels)) {
+      const ffd = ffdModels[modelKey];
+      const ilp = ilpModels[modelKey];
+
+      let chosen, usedAlgo, otherAlgo, usedEff, otherEff, usedBars, otherBars;
+
+      if (!ilp) {
+        chosen = ffd;
+        usedAlgo = 'ffd';
+        otherAlgo = 'ilp';
+        usedEff = parseFloat(ffd.stats?.utilizationRate || 0);
+        otherEff = null;
+        usedBars = ffd.rawData?.totalMotherBarsUsed || 0;
+        otherBars = null;
+      } else {
+        const ffdEff = parseFloat(ffd.stats?.utilizationRate || 0);
+        const ilpEff = parseFloat(ilp.stats?.utilizationRate || 0);
+        const ffdBars = ffd.rawData?.totalMotherBarsUsed || 0;
+        const ilpBars = ilp.rawData?.totalMotherBarsUsed || 0;
+
+        if (ilpEff > ffdEff) {
+          chosen = ilp;
+          usedAlgo = 'ilp';
+          otherAlgo = 'ffd';
+          usedEff = ilpEff;
+          otherEff = ffdEff;
+          usedBars = ilpBars;
+          otherBars = ffdBars;
+        } else if (ffdEff > ilpEff) {
+          chosen = ffd;
+          usedAlgo = 'ffd';
+          otherAlgo = 'ilp';
+          usedEff = ffdEff;
+          otherEff = ilpEff;
+          usedBars = ffdBars;
+          otherBars = ilpBars;
         } else {
-            bestAlgorithm = 'ilp';
-            bestResults = ilpResults;
-            console.log(`  ✅ ILP choisi: même efficacité ou moins de barres mères`);
+          // Egalité d'efficacité, comparer le nombre de barres mères
+          if (ilpBars < ffdBars) {
+            chosen = ilp;
+            usedAlgo = 'ilp';
+            otherAlgo = 'ffd';
+            usedEff = ilpEff;
+            otherEff = ffdEff;
+            usedBars = ilpBars;
+            otherBars = ffdBars;
+          } else if (ffdBars < ilpBars) {
+            chosen = ffd;
+            usedAlgo = 'ffd';
+            otherAlgo = 'ilp';
+            usedEff = ffdEff;
+            otherEff = ilpEff;
+            usedBars = ffdBars;
+            otherBars = ilpBars;
+          } else {
+            // Encore égalité, prendre ILP par défaut
+            chosen = ilp;
+            usedAlgo = 'ilp';
+            otherAlgo = 'ffd';
+            usedEff = ilpEff;
+            otherEff = ffdEff;
+            usedBars = ilpBars;
+            otherBars = ffdBars;
+          }
         }
+      }
+
+      modelResults[modelKey] = {
+        ...chosen,
+        algoUsed: usedAlgo,
+        algoInfo: {
+          [usedAlgo]: usedEff,
+          [otherAlgo]: otherEff,
+          usedBars,
+          otherBars
+        }
+      };
+
+      totalBarsUsed += modelResults[modelKey].rawData?.totalMotherBarsUsed || 0;
+      totalWaste += modelResults[modelKey].rawData?.wasteLength || 0;
+      if (modelResults[modelKey].layouts) {
+        for (const layout of modelResults[modelKey].layouts) {
+          totalBarLength += (layout.originalLength || layout.length || 0) * (layout.count || 1);
+        }
+      }
     }
-    
-    // Add comparison data to results
-    bestResults.comparison = {
-        ffdEfficiency,
-        ilpEfficiency,
-        ffdBarsUsed,
-        ilpBarsUsed,
-        bestAlgorithm,
-        differencePercentage: Math.abs(ffdEfficiency - ilpEfficiency).toFixed(2)
+
+    const totalEfficiency = totalBarLength > 0
+      ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(2)
+      : "100.00";
+
+    return {
+      modelResults,
+      globalStats: {
+        totalBarsUsed,
+        totalWaste,
+        totalBarLength,
+        totalEfficiency
+      },
+      bestAlgorithm: 'per-model'
     };
-    
-    bestResults.bestAlgorithm = bestAlgorithm;
-    bestResults.algorithmName = bestAlgorithm === 'ffd' ? 
-        'First-Fit Decreasing (meilleur)' : 'Programmation Linéaire (meilleur)';
-    bestResults.algorithmType = 'compare';
-    
-    return bestResults;
   },
   
   /**

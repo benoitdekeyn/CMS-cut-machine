@@ -178,11 +178,35 @@ export const ResultsRenderer = {
   renderModelCard: function(modelName, modelResult, stats, algorithmService) {
     // Format the model name for display
     const displayName = this.formatModelName(modelName);
-    
+
+  let algoLine = '';
+  if (modelResult.algoUsed && modelResult.algoInfo) {
+    const used = modelResult.algoUsed === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
+    const otherKey = modelResult.algoUsed === 'ffd' ? 'ilp' : 'ffd';
+    const otherName = otherKey === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
+    const usedEff = modelResult.algoInfo[modelResult.algoUsed];
+    const otherEff = modelResult.algoInfo[otherKey];
+    const usedBars = modelResult.algoInfo.usedBars;
+    const otherBars = modelResult.algoInfo.otherBars;
+
+    algoLine = `
+      <div class="algo-model-info" style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 0.5rem; opacity: 0.85;">
+        </br>
+        <div>
+          <span><strong>${used}</strong> : ${usedEff !== null && usedEff !== undefined ? usedEff + '%' : 'N/A'}, ${usedBars !== null && usedBars !== undefined ? usedBars + ' barres mères' : ''}</span>
+        </div>
+        <div>
+          <span>${otherName} : ${otherEff !== null && otherEff !== undefined ? otherEff + '%' : 'N/A'}${otherBars !== null && otherBars !== undefined ? ', ' + otherBars + ' barres mères' : ''}</span>
+        </div>
+      </div>
+    `;
+  }
+
     let html = `
       <div class="model-card">
         <div class="model-header">
           <h3>${displayName}</h3>
+          ${algoLine}
         </div>
         <div class="model-content">
           <div class="model-stats">
@@ -203,7 +227,6 @@ export const ResultsRenderer = {
               <div class="efficiency-tag">${stats.efficiency}%</div>
             </div>
           </div>
-          
           <div class="cut-schemes">
             <h4 class="mb-2">Schémas de coupe</h4>
     `;
