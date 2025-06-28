@@ -221,6 +221,9 @@ export const UIController = {
       this.currentResults = results;
       UIUtils.updateLoadingProgress('step-compare', 70);
       
+      // NOUVEAU: Afficher les schémas de coupe dans la console
+      this.displayCuttingSchemesInConsole(results);
+      
       // Générer les objets PGM
       console.log('Génération des objets PGM...');
       UIUtils.updateLoadingProgress('step-pgm', 85);
@@ -256,7 +259,79 @@ export const UIController = {
       UIUtils.hideLoadingOverlay();
     }
   },
-  
+
+  /**
+   * NOUVEAU: Affiche les schémas de coupe retenus dans la console
+   */
+  displayCuttingSchemesInConsole: function(results) {
+    console.log('\n🎯 ===== SCHÉMAS DE COUPE RETENUS =====');
+    
+    const modelResults = results.modelResults || {};
+    
+    for (const [modelKey, modelResult] of Object.entries(modelResults)) {
+      console.log(`\n📋 Modèle: ${modelKey}`);
+      console.log('─'.repeat(50));
+      
+      const layouts = modelResult.layouts || [];
+      
+      if (layouts.length === 0) {
+        console.log('  Aucun schéma de coupe');
+        continue;
+      }
+      
+      layouts.forEach((layout, index) => {
+        const cuts = layout.cuts || layout.pieces || [];
+        const count = layout.count || 1;
+        const waste = layout.waste || layout.remainingLength || 0;
+        const barLength = layout.originalLength || 0;
+        
+        // Grouper les coupes par longueur
+        const cutCounts = {};
+        cuts.forEach(cut => {
+          cutCounts[cut] = (cutCounts[cut] || 0) + 1;
+        });
+        
+        // Formater les coupes
+        const cutsDisplay = Object.entries(cutCounts)
+          .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Trier par longueur décroissante
+          .map(([length, count]) => `${count}×${length}cm`)
+          .join(' + ');
+        
+        // Calculer l'efficacité
+        const usedLength = cuts.reduce((sum, cut) => sum + cut, 0);
+        const efficiency = barLength > 0 ? ((usedLength / barLength) * 100).toFixed(1) : 0;
+        
+        console.log(`  Schéma #${index + 1}: ${count}× répétition(s)`);
+        console.log(`    └─ Barre ${barLength}cm: ${cutsDisplay}`);
+        console.log(`    └─ Chute: ${waste}cm | Efficacité: ${efficiency}%`);
+      });
+      
+      // Statistiques du modèle
+      const totalBars = layouts.reduce((sum, layout) => sum + (layout.count || 1), 0);
+      const totalWaste = layouts.reduce((sum, layout) => sum + ((layout.count || 1) * (layout.waste || 0)), 0);
+      const totalLength = layouts.reduce((sum, layout) => sum + ((layout.count || 1) * (layout.originalLength || 0)), 0);
+      const globalEfficiency = totalLength > 0 ? (((totalLength - totalWaste) / totalLength) * 100).toFixed(1) : 0;
+      
+      console.log(`\n  📊 Résumé ${modelKey}:`);
+      console.log(`    • ${totalBars} barres mères utilisées`);
+      console.log(`    • ${totalWaste}cm de chutes au total`);
+      console.log(`    • ${globalEfficiency}% d'efficacité globale`);
+    }
+    
+    // Statistiques globales
+    const globalStats = results.globalStats?.statistics || {};
+    console.log(`\n🏆 RÉSUMÉ GLOBAL:`);
+    console.log(`  • Total barres utilisées: ${results.globalStats?.totalBarsUsed || 0}`);
+    console.log(`  • Efficacité globale: ${globalStats.utilizationRate || 0}%`);
+    console.log(`  • Algorithme utilisé: ${results.bestAlgorithm === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire'}`);
+    
+    if (results.comparison) {
+      console.log(`  • Comparaison: FFD ${results.comparison.ffdEfficiency}% vs ILP ${results.comparison.ilpEfficiency}%`);
+    }
+    
+    console.log('🎯 =====================================\n');
+  },
+
   /**
    * MODIFIÉ: Valide les données pour l'optimisation avec messages concis
    */
