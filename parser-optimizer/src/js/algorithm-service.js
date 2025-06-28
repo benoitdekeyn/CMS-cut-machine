@@ -173,14 +173,52 @@ export const AlgorithmService = {
     const ffdEfficiency = parseFloat(ffdResults.globalStats.statistics.utilizationRate);
     const ilpEfficiency = parseFloat(ilpResults.globalStats.statistics.utilizationRate);
     
-    // Determine best algorithm
-    const bestAlgorithm = ffdEfficiency >= ilpEfficiency ? 'ffd' : 'ilp';
-    const bestResults = bestAlgorithm === 'ffd' ? ffdResults : ilpResults;
+    // Get total bars used for each algorithm
+    const ffdBarsUsed = ffdResults.globalStats.totalBarsUsed;
+    const ilpBarsUsed = ilpResults.globalStats.totalBarsUsed;
+    
+    // Determine best algorithm with improved logic
+    let bestAlgorithm;
+    let bestResults;
+    
+    console.log(`🔍 Comparaison des algorithmes:`);
+    console.log(`  FFD: ${ffdEfficiency}% efficacité, ${ffdBarsUsed} barres mères`);
+    console.log(`  ILP: ${ilpEfficiency}% efficacité, ${ilpBarsUsed} barres mères`);
+    
+    if (ffdEfficiency > ilpEfficiency) {
+      // FFD est plus efficace
+      bestAlgorithm = 'ffd';
+      bestResults = ffdResults;
+      console.log(`  ✅ FFD choisi: meilleure efficacité`);
+    } else if (ilpEfficiency > ffdEfficiency) {
+      // ILP est plus efficace
+      bestAlgorithm = 'ilp';
+      bestResults = ilpResults;
+      console.log(`  ✅ ILP choisi: meilleure efficacité`);
+    } else {
+      // Même efficacité, comparer le nombre de barres mères
+      if (ffdBarsUsed < ilpBarsUsed) {
+        bestAlgorithm = 'ffd';
+        bestResults = ffdResults;
+        console.log(`  ✅ FFD choisi: même efficacité mais moins de barres mères`);
+      } else if (ilpBarsUsed < ffdBarsUsed) {
+        bestAlgorithm = 'ilp';
+        bestResults = ilpResults;
+        console.log(`  ✅ ILP choisi: même efficacité mais moins de barres mères`);
+      } else {
+        // Même efficacité et même nombre de barres : choisir ILP par défaut
+        bestAlgorithm = 'ilp';
+        bestResults = ilpResults;
+        console.log(`  ✅ ILP choisi: résultats identiques, préférence ILP`);
+      }
+    }
     
     // Add comparison data to results
     bestResults.comparison = {
       ffdEfficiency,
       ilpEfficiency,
+      ffdBarsUsed,
+      ilpBarsUsed,
       bestAlgorithm,
       differencePercentage: Math.abs(ffdEfficiency - ilpEfficiency).toFixed(2)
     };

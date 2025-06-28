@@ -85,7 +85,7 @@ export const ResultsRenderer = {
     html += `
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-label">Barres utilisées</div>
+            <div class="stat-label">Barres mères utilisées</div>
             <div class="stat-value">${stats.totalUsedBars}</div>
           </div>
           <div class="stat-card">
@@ -161,7 +161,7 @@ export const ResultsRenderer = {
         <div class="model-content">
           <div class="model-stats">
             <div class="model-stat">
-              <div class="stat-label">Barres</div>
+              <div class="stat-label">Barres mères</div>
               <div class="stat-value">${stats.barCount}</div>
             </div>
             <div class="model-stat">
@@ -235,7 +235,7 @@ export const ResultsRenderer = {
       <div class="cut-scheme">
         <div class="cut-scheme-header">
           <strong>${pattern.count}× Schéma #${index + 1}</strong>
-          <span>Barre de ${pattern.barLength} cm</span>
+          <span>Barre mère de ${pattern.barLength} cm</span>
         </div>
         <div class="cut-pieces">
           Pièces: ${cutsHtml}
