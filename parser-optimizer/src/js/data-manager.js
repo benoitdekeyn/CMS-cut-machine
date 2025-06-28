@@ -326,6 +326,16 @@ export const DataManager = {
    * @returns {Object|null} La pièce ou null si non trouvée
    */
   getPieceById: function(id) {
+    // Chercher d'abord dans la structure pieces (quantités agrégées)
+    for (const profile in this.data.pieces) {
+      for (const piece of this.data.pieces[profile]) {
+        if (piece.id === id) {
+          return {...piece}; // Retourner une copie de la pièce avec quantité agrégée
+        }
+      }
+    }
+    
+    // Fallback vers barsList si pas trouvé (ne devrait pas arriver)
     const piece = this.data.barsList.find(b => b.id === id && b.type === 'fille');
     return piece ? {...piece} : null;
   },

@@ -257,7 +257,7 @@ export const PgmGenerator = {
     }
     
     // Assembler le nom
-    const nomFichier = `${profil}_${longueurMetres}m_${orientation}_${nomsPieces.join('+')}.pgm`;
+    const nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.pgm`;
     
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
     return nomFichier.replace(/[<>:"/\\|?*]/g, '_');
