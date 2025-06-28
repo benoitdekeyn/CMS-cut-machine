@@ -200,10 +200,17 @@ export const UIController = {
         return;
       }
       
+      // Afficher le loading avec étapes
       UIUtils.showLoadingOverlay();
+      UIUtils.updateLoadingProgress('step-transform', 10);
+      
+      // Petit délai pour permettre l'affichage du loading
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Lancer l'algorithme (compare automatiquement FFD et ILP)
       console.log('Lancement de l\'optimisation...');
+      UIUtils.updateLoadingProgress('step-ffd', 30);
+      
       const results = this.algorithmService.runAlgorithm('compare', data);
       
       if (!results) {
@@ -212,9 +219,12 @@ export const UIController = {
       
       // Stocker les résultats
       this.currentResults = results;
+      UIUtils.updateLoadingProgress('step-compare', 70);
       
       // Générer les objets PGM
       console.log('Génération des objets PGM...');
+      UIUtils.updateLoadingProgress('step-pgm', 85);
+      
       this.currentPgmObjects = this.pgmManager.generatePgmObjects(results, this.dataManager);
       
       // Afficher le rapport de synthèse des PGM
@@ -222,15 +232,20 @@ export const UIController = {
       console.log('Rapport PGM:', summaryReport);
       
       // Rendre les résultats
+      UIUtils.updateLoadingProgress('step-pgm', 95);
       ResultsRenderer.renderResults(results, this.algorithmService);
       
       // Générer les aperçus PGM
       this.resultsHandler.generatePgmPreviews();
       
+      // Finaliser
+      UIUtils.updateLoadingProgress('step-pgm', 100, true);
+      
+      // Petit délai avant de cacher le loading pour montrer la complétion
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Afficher les onglets de résultats
       this.showResultsTabs();
-      
-      // PAS de notification de succès - l'utilisateur voit les résultats
       
     } catch (error) {
       console.error('Erreur lors de l\'optimisation:', error);

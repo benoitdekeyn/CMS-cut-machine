@@ -119,11 +119,45 @@
         </main>
     </div>
 
-    <!-- Loading overlay -->
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-        <p>Calcul en cours...</p>
+    <!-- Loading overlay - AMÉLIORÉ -->
+<div id="loading-overlay" class="hidden">
+  <div class="loading-content">
+    <h3 class="loading-title">Optimisation en cours</h3>
+    <p class="loading-subtitle">Calcul de la meilleure solution de découpe...</p>
+    
+    <div class="spinner"></div>
+    
+    <div class="loading-progress">
+      <div class="progress-text">Progression : <span id="progress-percentage">0%</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
     </div>
+    
+    <div class="loading-steps">
+      <div class="loading-step" id="step-transform">
+        <div class="step-icon">1</div>
+        <span>Transformation des données</span>
+      </div>
+      <div class="loading-step" id="step-ffd">
+        <div class="step-icon">2</div>
+        <span>Algorithme First-Fit Decreasing</span>
+      </div>
+      <div class="loading-step" id="step-ilp">
+        <div class="step-icon">3</div>
+        <span>Programmation Linéaire (ILP)</span>
+      </div>
+      <div class="loading-step" id="step-compare">
+        <div class="step-icon">4</div>
+        <span>Comparaison et sélection</span>
+      </div>
+      <div class="loading-step" id="step-pgm">
+        <div class="step-icon">5</div>
+        <span>Génération des fichiers PGM</span>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Les scripts sont désormais chargés via webpack -->
 </body>
