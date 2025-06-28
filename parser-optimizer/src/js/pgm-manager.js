@@ -15,6 +15,9 @@ export const PgmManager = {
     const pgmObjects = [];
     const modelResults = optimizationResults.modelResults || {};
     
+    // NOUVEAU: Créer un système de réservation des barres par modèle
+    const reservationSystem = this.createReservationSystem(dataManager, modelResults);
+    
     // Pour chaque modèle (profil + orientation)
     for (const modelKey in modelResults) {
       const modelResult = modelResults[modelKey];
@@ -31,13 +34,14 @@ export const PgmManager = {
         
         // Créer autant d'objets PGM que de barres de ce layout
         for (let i = 0; i < count; i++) {
-          const pgmObject = this.createPgmObject(
+          const pgmObject = this.createPgmObjectWithReservation(
             profile, 
             orientation, 
             layout, 
             layoutIndex, 
             i, 
-            dataManager
+            dataManager,
+            reservationSystem
           );
           
           if (pgmObject) {
@@ -47,34 +51,82 @@ export const PgmManager = {
       });
     }
     
+    // Afficher un rapport de réservation
+    this.reportReservationStatus(reservationSystem);
+    
     console.log(`✅ ${pgmObjects.length} objets PGM générés`);
     return pgmObjects;
   },
   
   /**
-   * Analyse la clé de modèle pour extraire le profil et l'orientation
-   * @param {string} modelKey - Clé du modèle (ex: "HEA100_a-plat")
-   * @returns {Object} Profil et orientation
+   * NOUVEAU: Crée un système de réservation des barres
+   * @param {Object} dataManager - Instance du DataManager
+   * @param {Object} modelResults - Résultats par modèle
+   * @returns {Object} Système de réservation
    */
-  parseModelKey: function(modelKey) {
-    const parts = modelKey.split('_');
-    const profile = parts[0];
-    const orientation = parts[1] || 'undefined';
+  createReservationSystem: function(dataManager, modelResults) {
+    const data = dataManager.getData();
+    const reservationSystem = {};
     
-    return { profile, orientation };
+    // Pour chaque modèle, créer un pool de barres disponibles
+    for (const modelKey in modelResults) {
+      const { profile, orientation } = this.parseModelKey(modelKey);
+      
+      // Récupérer toutes les pièces du profil correspondant
+      const availablePieces = data.pieces[profile] || [];
+      
+      // Filtrer par orientation et créer des pools par longueur
+      const piecePoolsByLength = new Map();
+      
+      availablePieces.forEach(piece => {
+        const pieceOrientation = piece.orientation || 'undefined';
+        if (pieceOrientation === orientation) {
+          const length = piece.length;
+          
+          if (!piecePoolsByLength.has(length)) {
+            piecePoolsByLength.set(length, []);
+          }
+          
+          // Créer autant d'instances que la quantité de la pièce
+          for (let i = 0; i < piece.quantity; i++) {
+            piecePoolsByLength.get(length).push({
+              ...piece,
+              instanceId: `${piece.id}_${i}`,
+              originalPieceId: piece.id,
+              reserved: false,
+              usedInPgm: null
+            });
+          }
+        }
+      });
+      
+      reservationSystem[modelKey] = {
+        profile,
+        orientation,
+        piecePoolsByLength
+      };
+      
+      console.log(`    🏪 Pool créé pour ${modelKey}:`);
+      for (const [length, instances] of piecePoolsByLength.entries()) {
+        console.log(`      📏 ${length}cm: ${instances.length} instances disponibles`);
+      }
+    }
+    
+    return reservationSystem;
   },
   
   /**
-   * Crée un objet PGM pour une barre mère spécifique
+   * NOUVEAU: Crée un objet PGM avec système de réservation
    * @param {string} profile - Profil de la barre
    * @param {string} orientation - Orientation des pièces
    * @param {Object} layout - Layout/schéma de coupe
    * @param {number} layoutIndex - Index du layout
    * @param {number} barIndex - Index de la barre dans ce layout
    * @param {Object} dataManager - Instance du DataManager
+   * @param {Object} reservationSystem - Système de réservation
    * @returns {Object|null} Objet PGM ou null si erreur
    */
-  createPgmObject: function(profile, orientation, layout, layoutIndex, barIndex, dataManager) {
+  createPgmObjectWithReservation: function(profile, orientation, layout, layoutIndex, barIndex, dataManager, reservationSystem) {
     try {
       // Récupérer les dimensions de la barre mère
       const motherBarLength = layout.barLength || layout.originalLength || 0;
@@ -83,13 +135,19 @@ export const PgmManager = {
       // Récupérer les coupes de ce layout
       const cuts = layout.cuts || layout.pieces || [];
       
-      // Assigner les références des barres à découper aux coupes
-      const pieceReferences = this.assignPieceReferences(
+      // Assigner les références des barres à découper aux coupes avec réservation
+      const modelKey = `${profile}_${orientation}`;
+      const pieceReferences = this.assignPieceReferencesWithReservation(
         cuts, 
-        profile, 
-        orientation, 
-        dataManager
+        modelKey,
+        reservationSystem,
+        `${layoutIndex}_${barIndex}`
       );
+      
+      if (!pieceReferences || pieceReferences.length === 0) {
+        console.warn(`    ⚠️ Impossible d'assigner les pièces pour PGM ${layoutIndex}_${barIndex}`);
+        return null;
+      }
       
       // Créer l'objet PGM
       const pgmObject = {
@@ -128,59 +186,111 @@ export const PgmManager = {
   },
   
   /**
-   * Assigne les références des barres à découper aux coupes
+   * NOUVEAU: Assigne les références des barres à découper avec système de réservation
    * @param {Array} cuts - Liste des longueurs des coupes
-   * @param {string} profile - Profil recherché
-   * @param {string} orientation - Orientation recherchée
-   * @param {Object} dataManager - Instance du DataManager
+   * @param {string} modelKey - Clé du modèle
+   * @param {Object} reservationSystem - Système de réservation
+   * @param {string} pgmId - Identifiant du PGM pour le tracking
    * @returns {Array} Liste des références de pièces
    */
-  assignPieceReferences: function(cuts, profile, orientation, dataManager) {
-    console.log(`    🔍 Attribution des références pour ${cuts.length} coupes`);
+  assignPieceReferencesWithReservation: function(cuts, modelKey, reservationSystem, pgmId) {
+    console.log(`    🔍 Attribution avec réservation pour ${cuts.length} coupes (PGM ${pgmId})`);
     
     const pieceReferences = [];
-    const data = dataManager.getData();
+    const modelReservation = reservationSystem[modelKey];
     
-    // Récupérer toutes les pièces du profil correspondant
-    const availablePieces = data.pieces[profile] || [];
+    if (!modelReservation) {
+      console.error(`    ❌ Pas de système de réservation pour ${modelKey}`);
+      return [];
+    }
     
-    // Filtrer par orientation et créer une map par longueur
-    const piecesByLength = new Map();
-    availablePieces.forEach(piece => {
-      const pieceOrientation = piece.orientation || 'undefined';
-      if (pieceOrientation === orientation) {
-        const length = piece.length;
-        if (!piecesByLength.has(length)) {
-          piecesByLength.set(length, []);
-        }
-        piecesByLength.get(length).push(piece);
-      }
-    });
-    
-    // Assigner chaque coupe à une référence de pièce
+    // Assigner chaque coupe à une instance de pièce disponible
     cuts.forEach((cutLength, index) => {
-      const matchingPieces = piecesByLength.get(cutLength);
-      // Les pièces existent forcément d'après les résultats d'optimisation
-      const selectedPiece = matchingPieces[0];
+      const availableInstances = modelReservation.piecePoolsByLength.get(cutLength);
       
+      if (!availableInstances || availableInstances.length === 0) {
+        console.error(`    ❌ Pas d'instances disponibles pour ${cutLength}cm`);
+        return;
+      }
+      
+      // Trouver la première instance non réservée
+      const availableInstance = availableInstances.find(instance => !instance.reserved);
+      
+      if (!availableInstance) {
+        console.error(`    ❌ Toutes les instances de ${cutLength}cm sont déjà réservées`);
+        return;
+      }
+      
+      // Réserver cette instance
+      availableInstance.reserved = true;
+      availableInstance.usedInPgm = pgmId;
+      
+      // Créer la référence de pièce
       pieceReferences.push({
         cutIndex: index,
         length: cutLength,
         pieceReference: {
-          id: selectedPiece.id,
-          nom: selectedPiece.nom,
-          profile: selectedPiece.profile,
-          orientation: selectedPiece.orientation,
-          angles: selectedPiece.angles || { 1: 90, 2: 90 },
-          f4cData: selectedPiece.f4cData || {},
-          quantity: selectedPiece.quantity
+          id: availableInstance.originalPieceId,
+          instanceId: availableInstance.instanceId,
+          nom: availableInstance.nom,
+          profile: availableInstance.profile,
+          orientation: availableInstance.orientation,
+          angles: availableInstance.angles || { 1: 90, 2: 90 },
+          f4cData: availableInstance.f4cData || {},
+          quantity: 1, // Chaque instance représente une seule pièce
+          originalQuantity: availableInstance.quantity
         }
       });
       
-      console.log(`      ✓ Coupe ${index+1}: ${cutLength}cm → ${selectedPiece.nom || selectedPiece.id}`);
+      console.log(`      ✓ Coupe ${index+1}: ${cutLength}cm → ${availableInstance.instanceId} (${availableInstance.nom || availableInstance.originalPieceId})`);
     });
     
     return pieceReferences;
+  },
+  
+  /**
+   * NOUVEAU: Génère un rapport du statut des réservations
+   * @param {Object} reservationSystem - Système de réservation
+   */
+  reportReservationStatus: function(reservationSystem) {
+    console.log(`📊 Rapport de réservation des barres:`);
+    
+    for (const [modelKey, modelReservation] of Object.entries(reservationSystem)) {
+      console.log(`  📋 Modèle ${modelKey}:`);
+      
+      let totalInstances = 0;
+      let reservedInstances = 0;
+      
+      for (const [length, instances] of modelReservation.piecePoolsByLength.entries()) {
+        const reserved = instances.filter(i => i.reserved).length;
+        const available = instances.length - reserved;
+        
+        totalInstances += instances.length;
+        reservedInstances += reserved;
+        
+        console.log(`    📏 ${length}cm: ${reserved}/${instances.length} utilisées (${available} restantes)`);
+        
+        if (available > 0) {
+          console.log(`      ⚠️ ${available} pièces de ${length}cm non utilisées`);
+        }
+      }
+      
+      const utilizationRate = totalInstances > 0 ? ((reservedInstances / totalInstances) * 100).toFixed(1) : 0;
+      console.log(`    📈 Taux d'utilisation: ${utilizationRate}% (${reservedInstances}/${totalInstances})`);
+    }
+  },
+  
+  /**
+   * Analyse la clé de modèle pour extraire le profil et l'orientation
+   * @param {string} modelKey - Clé du modèle (ex: "HEA100_a-plat")
+   * @returns {Object} Profil et orientation
+   */
+  parseModelKey: function(modelKey) {
+    const parts = modelKey.split('_');
+    const profile = parts[0];
+    const orientation = parts[1] || 'undefined';
+    
+    return { profile, orientation };
   },
   
   /**

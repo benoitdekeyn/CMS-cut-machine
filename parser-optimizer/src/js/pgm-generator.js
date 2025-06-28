@@ -386,16 +386,50 @@ export const PgmGenerator = {
       summary += `  - Efficacité: ${efficiency}%\n\n`;
     }
     
-    // Liste détaillée des fichiers
-    summary += `LISTE DES FICHIERS:\n`;
-    summary += `------------------\n`;
-    pgmObjects.forEach((pgm, index) => {
+    // DÉTAIL DES BARRES À DÉCOUPER PAR PGM
+    summary += `DÉTAIL DES BARRES À DÉCOUPER:\n`;
+    summary += `=============================\n\n`;
+    
+    pgmObjects.forEach((pgm, pgmIndex) => {
       const fileName = this.generatePgmFileName(pgm);
-      summary += `${index + 1}. ${fileName}\n`;
-      summary += `   Profil: ${pgm.motherBar.profile} (${pgm.motherBar.orientation})\n`;
-      summary += `   Longueur: ${Math.round(pgm.motherBar.length)} cm\n`;
-      summary += `   Pièces: ${pgm.pieces.length}\n`;
-      summary += `   Efficacité: ${pgm.metadata.efficiency}%\n\n`;
+      
+      // En-tête du PGM avec délimitation claire
+      summary += `╔${'═'.repeat(80)}\n`;
+      summary += `║ PGM ${pgmIndex + 1}: ${fileName}\n`;
+      summary += `╚${'═'.repeat(80)}\n\n`;
+      
+      // Informations sur la barre mère
+      summary += `Profil: ${pgm.motherBar.profile}\n`;
+      summary += `Orientation: ${pgm.motherBar.orientation}\n`;
+      summary += `Longueur: ${Math.round(pgm.motherBar.length / 100)}.${Math.round(pgm.motherBar.length % 100 / 10)} m\n`;
+      summary += `Chute: ${Math.round(pgm.motherBar.waste)} cm\n`;
+      summary += `Efficacité: ${pgm.metadata.efficiency}%\n\n`;
+      
+      // Liste des barres à découper
+      summary += `Barres à découper:\n`;
+      summary += `${'─'.repeat(50)}\n`;
+      
+      if (pgm.pieces && pgm.pieces.length > 0) {
+        pgm.pieces.forEach((piece, pieceIndex) => {
+          const pieceRef = piece.pieceReference;
+          const pieceName = pieceRef.nom && pieceRef.nom.trim() !== '' 
+            ? pieceRef.nom 
+            : `${pieceRef.profile}_${piece.length}cm`;
+          
+          // Angles si différents de 90°
+          const angle1 = pieceRef.angles?.[1] || 90;
+          const angle2 = pieceRef.angles?.[2] || 90;
+          const angleInfo = (angle1 !== 90 || angle2 !== 90) 
+            ? ` - Angles: ${angle1}°/${angle2}°`
+            : '';
+          
+          summary += `  ${(pieceIndex + 1).toString().padStart(2, ' ')}. ${pieceName} - ${piece.length} cm${angleInfo}\n`;
+        });
+      } else {
+        summary += `  Aucune pièce à découper\n`;
+      }
+      
+      summary += `\n\n`;
     });
     
     return summary;

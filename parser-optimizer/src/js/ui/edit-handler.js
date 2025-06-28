@@ -589,6 +589,17 @@ export const EditHandler = {
     // Afficher le panneau et l'overlay
     panel.classList.add('visible');
     overlay.classList.add('visible');
+    
+    // NOUVEAU: Mettre le focus sur le champ de longueur en mode création
+    if (mode === 'create') {
+      // Utiliser un petit délai pour s'assurer que le panneau est visible
+      setTimeout(() => {
+        const lengthInput = document.getElementById('stock-length');
+        if (lengthInput) {
+          lengthInput.focus();
+        }
+      }, 100);
+    }
   },
 
   /**
