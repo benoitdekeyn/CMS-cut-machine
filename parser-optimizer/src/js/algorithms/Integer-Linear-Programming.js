@@ -601,7 +601,11 @@ function calculateStats(usedBars, stockSizes) {
     let totalBarsLength = 0;
     
     for (const bar of usedBars) {
-        totalUsedLength += bar.cuts.reduce((sum, piece) => sum + piece, 0);
+        // Calculer la longueur totale utilisée (somme des pièces découpées)
+        const piecesLength = bar.cuts.reduce((sum, cut) => sum + cut, 0);
+        totalUsedLength += piecesLength;
+        
+        // Calculer la longueur totale des barres (longueur originale)
         totalBarsLength += bar.originalLength;
     }
     
@@ -621,11 +625,9 @@ function calculateGlobalStatistics(results) {
     let totalBarsLength = 0;
     
     for (const modelResult of Object.values(results)) {
-        if (modelResult.rawData?.usedBars) {
-            for (const bar of modelResult.rawData.usedBars) {
-                totalUsedLength += bar.cuts.reduce((sum, piece) => sum + piece, 0);
-                totalBarsLength += bar.originalLength;
-            }
+        if (modelResult.stats) {
+            totalUsedLength += modelResult.stats.totalUsedLength;
+            totalBarsLength += modelResult.stats.totalBarsLength;
         }
     }
     

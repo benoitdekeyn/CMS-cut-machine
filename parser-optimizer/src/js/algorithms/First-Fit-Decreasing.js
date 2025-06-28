@@ -254,13 +254,12 @@ function findOptimalCombination(stockBars, piecesByLength) {
 }
 
 /**
- * Algorithme FFD classique (version originale)
+ * Algorithme FFD classique (version originale) - CORRIGÉ
  */
 function solveWithFFD(stockBars, demandPieces, model) {
     const result = initializeModelResult(stockBars, model);
-    const motherBarLength = stockBars[0].length;
     
-    // Créer un tableau de toutes les pièces
+    // CORRECTION: Créer un tableau de toutes les pièces individuelles
     const allPieces = [];
     demandPieces.forEach(piece => {
         for (let i = 0; i < piece.quantity; i++) {
@@ -272,40 +271,97 @@ function solveWithFFD(stockBars, demandPieces, model) {
     allPieces.sort((a, b) => b - a);
 
     const usedBars = [];
-    let availableBars = stockBars.reduce((sum, bar) => sum + bar.quantity, 0);
-    let currentBarIndex = -1;
+    
+    // CORRECTION: Créer un pool de barres disponibles par taille
+    const availableBarsBySize = new Map();
+    stockBars.forEach(barType => {
+        for (let i = 0; i < barType.quantity; i++) {
+            if (!availableBarsBySize.has(barType.length)) {
+                availableBarsBySize.set(barType.length, []);
+            }
+            availableBarsBySize.get(barType.length).push({
+                length: barType.length,
+                originalLength: barType.length,
+                remainingLength: barType.length,
+                cuts: [],
+                barId: `${barType.length}_${i}`
+            });
+        }
+    });
 
-    // First-Fit Decreasing
+    // First-Fit Decreasing avec sélection intelligente de barres
     for (const pieceLength of allPieces) {
         let placed = false;
 
-        // Essayer de placer dans une barre existante
-        for (let i = 0; i <= currentBarIndex; i++) {
-            if (usedBars[i].remainingLength >= pieceLength) {
-                usedBars[i].cuts.push(pieceLength);
-                usedBars[i].remainingLength -= pieceLength;
+        // 1. Essayer de placer dans une barre déjà utilisée
+        for (const usedBar of usedBars) {
+            if (usedBar.remainingLength >= pieceLength) {
+                usedBar.cuts.push(pieceLength);
+                usedBar.remainingLength -= pieceLength;
                 placed = true;
                 break;
             }
         }
 
-        // Ouvrir une nouvelle barre si nécessaire
-        if (!placed && availableBars > 0) {
-            currentBarIndex++;
-            availableBars--;
-            usedBars.push({
-                barId: currentBarIndex + 1,
-                cuts: [pieceLength],
-                remainingLength: motherBarLength - pieceLength,
-                originalLength: motherBarLength,
-                model: model
-            });
-        } else if (!placed) {
+        // 2. Si pas placée, prendre une nouvelle barre de la plus petite taille possible
+        if (!placed) {
+            // Trouver la plus petite barre qui peut contenir cette pièce
+            let bestBarSize = null;
+            let bestBar = null;
+            
+            for (const [barSize, bars] of availableBarsBySize.entries()) {
+                if (barSize >= pieceLength && bars.length > 0) {
+                    if (!bestBarSize || barSize < bestBarSize) {
+                        bestBarSize = barSize;
+                        bestBar = bars[0];
+                    }
+                }
+            }
+            
+            if (bestBar) {
+                // Retirer cette barre du pool
+                const bars = availableBarsBySize.get(bestBarSize);
+                const index = bars.indexOf(bestBar);
+                bars.splice(index, 1);
+                
+                // Placer la pièce
+                bestBar.cuts.push(pieceLength);
+                bestBar.remainingLength -= pieceLength;
+                
+                // Ajouter aux barres utilisées
+                usedBars.push(bestBar);
+                placed = true;
+            }
+        }
+
+        // 3. Si toujours pas placée, ajouter aux pièces restantes
+        if (!placed) {
             result.rawData.remainingPieces.push(pieceLength);
         }
     }
 
     return finalizeResult(result, usedBars, new Map(), model);
+}
+
+/**
+ * CORRECTION: Calcul correct de l'efficacité
+ */
+function calculateEfficiency(modelResult) {
+    if (!modelResult.rawData.usedBars.length) return 0;
+    
+    let totalUsedLength = 0;
+    let totalBarsLength = 0;
+    
+    for (const bar of modelResult.rawData.usedBars) {
+        // Calculer la longueur totale utilisée (somme des pièces découpées)
+        const piecesLength = bar.cuts.reduce((sum, cut) => sum + cut, 0);
+        totalUsedLength += piecesLength;
+        
+        // Calculer la longueur totale des barres (longueur originale)
+        totalBarsLength += bar.originalLength;
+    }
+    
+    return totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100) : 0;
 }
 
 /**
@@ -363,15 +419,6 @@ function finalizeResult(result, usedBars, remainingPiecesMap, model) {
     result.stats = calculateModelStats(result, [{length: result.rawData.motherBarLength, quantity: 1000}], []);
 
     return result;
-}
-
-function calculateEfficiency(modelResult) {
-    if (!modelResult.rawData.usedBars.length) return 0;
-    
-    const totalLength = modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0);
-    const totalWaste = modelResult.rawData.wasteLength;
-    
-    return ((totalLength - totalWaste) / totalLength) * 100;
 }
 
 function getTotalPieceCount(piecesByLength) {
@@ -485,33 +532,42 @@ function calculateModelStats(modelResult, stockBars, demandPieces) {
             }
         }
 
-        // Calculer la longueur totale utilisée par les barres mères
+        // CORRECTION: Calculer correctement le taux d'utilisation
         const totalBarsLength = modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0);
         
-        // CORRECTION: Ne pas recalculer totalUsedLength et totalWasteLength ici
-        // Il y avait une référence à une variable 'pieces' non définie
-        // Suppression des deux lignes suivantes qui sont erronées:
-        // totalUsedLength = pieces.reduce((sum, piece) => sum + piece, 0);
-        // totalWasteLength = wasteLength;
+        // Le taux d'utilisation doit être: longueur utilisée / longueur totale des barres utilisées
+        const utilizationRate = totalBarsLength > 0 
+            ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3)
+            : "0.000";
         
-        // Le taux d'utilisation est déjà calculé correctement par la valeur accumulée de totalUsedLength
+        return {
+            totalDemandLength,
+            totalStockLength,
+            totalUsedLength,
+            totalWasteLength,
+            utilizationRate,
+            overproductionDetails: hasOverproduction ? overproductionDetails.join(', ') : null,
+            underproductionDetails: hasUnderproduction ? underproductionDetails.join(', ') : null,
+            hasOverproduction,
+            hasUnderproduction,
+            totalOverproduced,
+            totalUnderproduced
+        };
     }
 
+    // Si pas de barres utilisées, retourner des valeurs par défaut
     return {
         totalDemandLength,
         totalStockLength,
-        totalUsedLength,
-        totalWasteLength,
-        // Le taux d'utilisation est déjà calculé correctement ici
-        utilizationRate: totalUsedLength > 0 && modelResult.rawData.usedBars.length > 0 
-            ? ((totalUsedLength / modelResult.rawData.usedBars.reduce((sum, bar) => sum + bar.originalLength, 0)) * 100).toFixed(3) 
-            : 0,
-        overproductionDetails: hasOverproduction ? overproductionDetails.join(', ') : null,
-        underproductionDetails: hasUnderproduction ? underproductionDetails.join(', ') : null,
-        hasOverproduction,
-        hasUnderproduction,
-        totalOverproduced,
-        totalUnderproduced
+        totalUsedLength: 0,
+        totalWasteLength: 0,
+        utilizationRate: "0.000",
+        overproductionDetails: null,
+        underproductionDetails: null,
+        hasOverproduction: false,
+        hasUnderproduction: false,
+        totalOverproduced: 0,
+        totalUnderproduced: 0
     };
 }
 

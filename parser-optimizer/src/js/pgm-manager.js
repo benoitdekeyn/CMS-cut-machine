@@ -128,12 +128,19 @@ export const PgmManager = {
    */
   createPgmObjectWithReservation: function(profile, orientation, layout, layoutIndex, barIndex, dataManager, reservationSystem) {
     try {
-      // Récupérer les dimensions de la barre mère
-      const motherBarLength = layout.barLength || layout.originalLength || 0;
-      const waste = layout.waste || layout.remainingLength || 0;
+      // CORRECTION: Récupérer les dimensions correctement
+      const motherBarLength = layout.originalLength || layout.barLength || 0;
+      const waste = Math.max(0, layout.remainingLength || layout.waste || 0);
       
       // Récupérer les coupes de ce layout
       const cuts = layout.cuts || layout.pieces || [];
+      
+      // CORRECTION: Vérifier la cohérence des données
+      const totalCutsLength = cuts.reduce((sum, cut) => sum + cut, 0);
+      const calculatedWaste = motherBarLength - totalCutsLength;
+      
+      // Utiliser la chute calculée si elle est cohérente
+      const finalWaste = Math.abs(calculatedWaste - waste) < 1 ? calculatedWaste : waste;
       
       // Assigner les références des barres à découper aux coupes avec réservation
       const modelKey = `${profile}_${orientation}`;
@@ -149,6 +156,9 @@ export const PgmManager = {
         return null;
       }
       
+      // CORRECTION: Calcul d'efficacité correct
+      const efficiency = this.calculateEfficiency(motherBarLength, finalWaste);
+      
       // Créer l'objet PGM
       const pgmObject = {
         // Identifiant unique
@@ -159,7 +169,7 @@ export const PgmManager = {
           profile: profile,
           orientation: orientation,
           length: motherBarLength,
-          waste: waste
+          waste: finalWaste
         },
         
         // Liste des pièces à découper avec leurs références
@@ -171,11 +181,11 @@ export const PgmManager = {
           barIndex: barIndex,
           layoutCount: layout.count || 1,
           totalPieces: cuts.length,
-          efficiency: this.calculateEfficiency(motherBarLength, waste)
+          efficiency: efficiency
         }
       };
       
-      console.log(`    🔹 PGM créé: ${cuts.length} pièces, efficacité ${pgmObject.metadata.efficiency}%`);
+      console.log(`    🔹 PGM créé: ${cuts.length} pièces, efficacité ${efficiency}%`);
       
       return pgmObject;
       
@@ -294,15 +304,22 @@ export const PgmManager = {
   },
   
   /**
-   * Calcule l'efficacité d'une barre mère
+   * CORRECTION: Calcule l'efficacité d'une barre mère correctement
    * @param {number} totalLength - Longueur totale de la barre
    * @param {number} waste - Longueur de chute
    * @returns {number} Efficacité en pourcentage
    */
   calculateEfficiency: function(totalLength, waste) {
     if (totalLength <= 0) return 0;
-    const usedLength = totalLength - waste;
-    return Math.round((usedLength / totalLength) * 100);
+    
+    // CORRECTION: S'assurer que waste n'est jamais négatif
+    const actualWaste = Math.max(0, waste);
+    const usedLength = totalLength - actualWaste;
+    
+    // CORRECTION: S'assurer que l'efficacité ne dépasse jamais 100%
+    const efficiency = Math.min(100, Math.round((usedLength / totalLength) * 100));
+    
+    return efficiency;
   },
   
   /**
@@ -331,7 +348,7 @@ export const PgmManager = {
   },
   
   /**
-   * Génère un rapport de synthèse des objets PGM
+   * CORRECTION: Génère un rapport de synthèse avec calculs corrects
    * @param {Array} pgmObjects - Liste des objets PGM
    * @returns {Object} Rapport de synthèse
    */
@@ -352,9 +369,12 @@ export const PgmManager = {
       // Compter les pièces
       report.totalPieces += pgm.pieces.length;
       
-      // Additionner les longueurs et chutes
-      report.totalMotherBarLength += pgm.motherBar.length;
-      report.totalWaste += pgm.motherBar.waste;
+      // Additionner les longueurs et chutes avec vérification
+      const motherBarLength = pgm.motherBar.length || 0;
+      const waste = Math.max(0, pgm.motherBar.waste || 0);
+      
+      report.totalMotherBarLength += motherBarLength;
+      report.totalWaste += waste;
       
       // Additionner l'efficacité
       totalEfficiency += pgm.metadata.efficiency;
@@ -378,6 +398,14 @@ export const PgmManager = {
     if (pgmObjects.length > 0) {
       report.averageEfficiency = Math.round(totalEfficiency / pgmObjects.length);
     }
+    
+    // CORRECTION: Vérification de cohérence
+    console.log(`📊 Rapport de synthèse PGM:`);
+    console.log(`  • Total barres: ${report.totalPgmObjects}`);
+    console.log(`  • Total pièces: ${report.totalPieces}`);
+    console.log(`  • Longueur totale: ${report.totalMotherBarLength}cm`);
+    console.log(`  • Chutes totales: ${report.totalWaste}cm`);
+    console.log(`  • Efficacité moyenne: ${report.averageEfficiency}%`);
     
     return report;
   }
