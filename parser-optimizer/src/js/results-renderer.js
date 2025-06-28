@@ -57,29 +57,18 @@ export const ResultsRenderer = {
   /**
    * Render algorithm results to the container
    */
-  renderResults: function(results, algorithmService, container) {
-    if (!container) {
-      container = document.getElementById('results-container');
+  renderResults: function(results, algorithmService) {
+    // Résumé global
+    const globalSummaryContainer = document.getElementById('global-summary-container');
+    if (globalSummaryContainer) {
+      globalSummaryContainer.innerHTML = this.renderGlobalSummary(results, algorithmService.calculateGlobalStats(results));
     }
-    
-    if (!results) {
-      this.renderErrorMessage(
-        container, 
-        "Impossible de calculer les résultats", 
-        "L'algorithme n'a pas pu trouver de solution avec les données fournies."
-      );
-      return;
+
+    // Détails par modèle
+    const modelDetailsContainer = document.getElementById('model-details-container');
+    if (modelDetailsContainer) {
+      modelDetailsContainer.innerHTML = this.renderModelDetails(results, algorithmService);
     }
-    
-    // Calculate global statistics
-    const globalStats = algorithmService.calculateGlobalStats(results);
-    
-    // Build HTML for results
-    let html = this.renderGlobalSummary(results, globalStats);
-    html += this.renderModelDetails(results, algorithmService);
-    
-    // Update container
-    container.innerHTML = html;
   },
   
   /**

@@ -630,3 +630,7 @@
 .content-section.active {
   display: block;
 }
+
+#model-details-container {
+  padding-top: 30px;
+}

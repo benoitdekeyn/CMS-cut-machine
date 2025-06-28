@@ -287,24 +287,22 @@ export const ResultsHandler = {
             </div>
           </div>
           
+          <!-- Informations de performance discrètes à droite -->
+          <div style="display: flex; justify-content: flex-end; gap: 1.5rem; margin-bottom: 1rem;">
+            <span style="color: var(--text-tertiary); font-size: 0.95em;">
+              Chute&nbsp;: <span style="font-weight: 500;">${waste} cm</span>
+            </span>
+            <span style="color: var(--text-tertiary); font-size: 0.95em;">
+              Efficacité&nbsp;: <span style="font-weight: 500;">${efficiency}%</span>
+            </span>
+          </div>
+          
           <!-- Paramètres BODY -->
           <div style="margin-bottom: 2rem;">
             <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Paramètres BODY:</h4>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
               <span style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--text-primary); border: 1px solid var(--border-color);">B021: ${b021}</span>
               <span style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--text-primary); border: 1px solid var(--border-color);">B035: ${b035}</span>
-            </div>
-          </div>
-          
-          <!-- Informations de performance -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-            <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
-              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Chute</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${waste} cm</div>
-            </div>
-            <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
-              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Efficacité</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${efficiency}%</div>
             </div>
           </div>
           
