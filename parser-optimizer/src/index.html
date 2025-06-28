@@ -15,9 +15,9 @@
                 <h1>CutOptimizer</h1>
                 <p class="tagline">Optimisation intelligente des découpes de profilés</p>
             </div>
-            <nav class="main-nav">
-                <button class="nav-btn active" data-section="data-section">Données</button>
-                <button class="nav-btn" data-section="result-section">Résultats</button>
+            <!-- Navigation supprimée de la page données -->
+            <nav class="main-nav" id="results-nav" style="display: none;">
+                <button class="nav-btn btn-edit-data" data-section="data-section">✏️ Éditer les Données</button>
             </nav>
         </header>
 
@@ -48,6 +48,7 @@
                             <table id="pieces-table" class="data-table">
                                 <thead>
                                     <tr>
+                                        <th>Nom</th>
                                         <th>Profil</th>
                                         <th>Orientation</th>
                                         <th>Longueur</th>
@@ -87,14 +88,11 @@
                     </div>
                 </div>
                 
-                <!-- Bouton de génération -->
+                <!-- Bouton de génération simplifié -->
                 <div class="optimization-actions">
                     <button id="generate-cuts-btn" class="btn btn-success btn-lg">
                       <i class="icon-download"></i>
                       Générer les fichiers de découpe
-                    </button>
-                    <button id="test-algorithms-btn" class="btn btn-outline btn-lg">
-                      Test ILP vs FFD
                     </button>
                 </div>
             </section>

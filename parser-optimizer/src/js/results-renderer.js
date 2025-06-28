@@ -1,12 +1,9 @@
 /**
  * ResultsRenderer - Handles rendering of algorithm results in the UI
- * This separates UI rendering from algorithm logic
  */
 export const ResultsRenderer = {
   /**
    * Format model key to user-friendly display name
-   * @param {string} modelKey - Technical model key (e.g., "HEA100_a-plat")
-   * @returns {string} User-friendly model name
    */
   formatModelName: function(modelKey) {
     const parts = modelKey.split('_');
@@ -33,9 +30,6 @@ export const ResultsRenderer = {
   
   /**
    * Render algorithm results to the container
-   * @param {Object} results - Algorithm results to render
-   * @param {Object} algorithmService - Algorithm service for stats calculation
-   * @param {HTMLElement} [container] - Optional container element (defaults to results-container)
    */
   renderResults: function(results, algorithmService, container) {
     if (!container) {
@@ -51,12 +45,6 @@ export const ResultsRenderer = {
       return;
     }
     
-    // Store results in container for PGM generation
-    const resultsDisplay = document.getElementById('results-display');
-    if (resultsDisplay) {
-      resultsDisplay.dataset.results = JSON.stringify(results);
-    }
-    
     // Calculate global statistics
     const globalStats = algorithmService.calculateGlobalStats(results);
     
@@ -70,9 +58,6 @@ export const ResultsRenderer = {
   
   /**
    * Render error message
-   * @param {HTMLElement} container - Container element
-   * @param {string} title - Error title
-   * @param {string} message - Error message
    */
   renderErrorMessage: function(container, title, message) {
     container.innerHTML = `
@@ -85,9 +70,6 @@ export const ResultsRenderer = {
   
   /**
    * Render global statistics summary
-   * @param {Object} results - Algorithm results
-   * @param {Object} stats - Calculated global statistics
-   * @returns {string} HTML for global summary
    */
   renderGlobalSummary: function(results, stats) {
     let html = `
@@ -95,9 +77,9 @@ export const ResultsRenderer = {
         <h3>Résumé global</h3>
     `;
     
-    // Add comparison information if available
+    // Add discrete algorithm information if available
     if (results.comparison) {
-      html += this.renderComparisonSection(results.comparison, results.bestAlgorithm);
+      html += this.renderAlgorithmInfo(results.comparison, results.bestAlgorithm);
     }
     
     html += `
@@ -126,30 +108,16 @@ export const ResultsRenderer = {
   },
   
   /**
-   * Render algorithm comparison section
-   * @param {Object} comparison - Comparison data
-   * @param {string} bestAlgorithm - Best algorithm identifier
-   * @returns {string} HTML for comparison section
+   * Render discrete algorithm information (3 lines)
    */
-  renderComparisonSection: function(comparison, bestAlgorithm) {
+  renderAlgorithmInfo: function(comparison, bestAlgorithm) {
+    const algorithmName = bestAlgorithm === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
+    
     return `
-      <div class="algorithm-comparison">
-        <p class="comparison-result">
-          <strong>Algorithme choisi:</strong> ${bestAlgorithm === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire'}
-          <span class="tag">${bestAlgorithm === 'ffd' ? 'FFD' : 'ILP'}</span>
-        </p>
-        <div class="algorithm-efficiencies">
-          <div class="efficiency-comparison ${bestAlgorithm === 'ffd' ? 'best' : ''}">
-            <div class="algorithm-name">First-Fit Decreasing</div>
-            <div class="efficiency-value">${comparison.ffdEfficiency}%</div>
-          </div>
-          <div class="efficiency-comparison ${bestAlgorithm === 'ilp' ? 'best' : ''}">
-            <div class="algorithm-name">Programmation Linéaire</div>
-            <div class="efficiency-value">${comparison.ilpEfficiency}%</div>
-          </div>
-        </div>
-        <p class="difference-info">
-          Différence d'efficacité: <strong>${comparison.differencePercentage}%</strong>
+      <div class="algorithm-info">
+        <p class="algorithm-used">Algorithme utilisé : <strong>${algorithmName}</strong></p>
+        <p class="algorithm-comparison">
+          FFD : ${comparison.ffdEfficiency}% | ILP : ${comparison.ilpEfficiency}%
         </p>
       </div>
     `;
@@ -157,9 +125,6 @@ export const ResultsRenderer = {
   
   /**
    * Render model details sections
-   * @param {Object} results - Algorithm results
-   * @param {Object} algorithmService - Algorithm service for stats calculation
-   * @returns {string} HTML for model details
    */
   renderModelDetails: function(results, algorithmService) {
     const modelResults = results.modelResults || {};
@@ -183,11 +148,6 @@ export const ResultsRenderer = {
   
   /**
    * Render a single model card
-   * @param {string} modelName - Name of the model
-   * @param {Object} modelResult - Model result data
-   * @param {Object} stats - Calculated model statistics
-   * @param {Object} algorithmService - Algorithm service for pattern processing
-   * @returns {string} HTML for model card
    */
   renderModelCard: function(modelName, modelResult, stats, algorithmService) {
     // Format the model name for display
@@ -239,9 +199,6 @@ export const ResultsRenderer = {
   
   /**
    * Render a single cut scheme
-   * @param {Object} pattern - Processed pattern data
-   * @param {number} index - Pattern index
-   * @returns {string} HTML for cut scheme
    */
   renderCutScheme: function(pattern, index) {
     // Generate the text representation of cuts

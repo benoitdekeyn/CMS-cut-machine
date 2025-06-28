@@ -90,3 +90,33 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Animation pour l'apparition du bouton d'édition */
+#results-nav {
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Header responsive amélioré */
+@media (max-width: 768px) {
+  .main-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .logo {
+    flex: none;
+  }
+}
