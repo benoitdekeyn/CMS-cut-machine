@@ -70,17 +70,16 @@ export const PgmGenerator = {
    * @returns {string} - Nom du fichier
    */
   generatePgmFileName: function(pgmObject) {
-    // NOUVEAU FORMAT : accès direct aux propriétés
     const profil = pgmObject.profile;
     const longueurCm = pgmObject.length;
     const orientation = pgmObject.orientation;
     const pieces = pgmObject.pieces || [];
-    
+
     // Longueur en mètres avec POINT décimal pour les noms de fichiers
-    const longueurMetres = this.formatLengthInMeters(longueurCm, false); // false = utiliser le point
-    
-    // Noms des barres (limiter à 5 pour éviter des noms trop longs)
-    const nomsPieces = pieces.slice(0, 5).map(piece => {
+    const longueurMetres = this.formatLengthInMeters(longueurCm, false);
+
+    // Noms des barres (toutes, sans limite)
+    const nomsPieces = pieces.map(piece => {
       const nom = piece.nom;
       if (nom && nom.trim() !== '') {
         // Nettoyer le nom (supprimer caractères spéciaux)
@@ -90,17 +89,21 @@ export const PgmGenerator = {
         return `${piece.profile}${piece.length}`;
       }
     });
-    
-    // Ajouter "..." si plus de 5 pièces
-    if (pieces.length > 5) {
-      nomsPieces.push('...');
-    }
-    
+
     // Assembler le nom avec longueur précise (point décimal)
-    const nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.pgm`;
-    
+    let nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.pgm`;
+
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
-    return nomFichier.replace(/[<>:"/\\|?*]/g, '_');
+    nomFichier = nomFichier.replace(/[<>:"/\\|?*]/g, '_');
+
+    // Optionnel : tronquer à 120 caractères avant l'extension
+    const maxLen = 120;
+    if (nomFichier.length > maxLen + 4) { // 4 pour ".pgm"
+      const ext = '.pgm';
+      nomFichier = nomFichier.slice(0, maxLen) + ext;
+    }
+
+    return nomFichier;
   },
 
   /**
@@ -330,34 +333,32 @@ export const PgmGenerator = {
     // Date au format AAAA-MM-JJ_HH-mm
     const now = new Date();
     const dateStr = this.formatDateTimeForFileName(now);
-    
+
     // Compter le nombre total de barres uniques
     const barNames = new Set();
-    
+
     pgmObjects.forEach(pgm => {
       pgm.pieces.forEach(piece => {
-        const pieceRef = piece.pieceReference;
+        // Correction : fallback si pieceReference absent
         let barName = '';
-        
-        if (pieceRef.nom && pieceRef.nom.trim() !== '') {
-          // Utiliser le nom de la barre
-          barName = pieceRef.nom.trim();
+        if (piece.pieceReference && piece.pieceReference.nom && piece.pieceReference.nom.trim() !== '') {
+          barName = piece.pieceReference.nom.trim();
+        } else if (piece.nom && piece.nom.trim() !== '') {
+          barName = piece.nom.trim();
+        } else if (piece.profile && piece.length) {
+          barName = `${piece.profile}_${piece.length}cm`;
         } else {
-          // Générer un nom unique à partir du profil et de la longueur
-          barName = `${pieceRef.profile}_${piece.length}cm`;
+          barName = 'barre_inconnue';
         }
-        
-        if (barName) {
-          barNames.add(barName);
-        }
+        barNames.add(barName);
       });
     });
-    
+
     const nombreBarres = barNames.size;
-    
+
     // MODIFIÉ: Format final avec nombre de barres avant la date
     const fileName = `lot_PGM_${nombreBarres}_barres_${dateStr}.zip`;
-    
+
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
     return fileName.replace(/[<>:"/\\|?*]/g, '_');
   },
@@ -456,16 +457,16 @@ export const PgmGenerator = {
     const now = new Date();
     const dateStr = this.formatDate(now);
     const timeStr = now.toLocaleTimeString('fr-FR');
-    
+
     let summary = `RÉSUMÉ DE GÉNÉRATION PGM\n`;
     summary += `========================\n\n`;
     summary += `Date de génération: ${dateStr} à ${timeStr}\n`;
     summary += `Nombre total de fichiers PGM: ${pgmObjects.length}\n\n`;
-    
+
     // Statistiques par profil
     const profileStats = {};
     pgmObjects.forEach(pgm => {
-      const profile = pgm.motherBar.profile;
+      const profile = pgm.profile;
       if (!profileStats[profile]) {
         profileStats[profile] = {
           count: 0,
@@ -474,21 +475,26 @@ export const PgmGenerator = {
           totalWaste: 0
         };
       }
-      
       profileStats[profile].count++;
       profileStats[profile].totalPieces += pgm.pieces.length;
-      profileStats[profile].totalLength += pgm.motherBar.length;
-      profileStats[profile].totalWaste += pgm.motherBar.waste;
+      profileStats[profile].totalLength += pgm.length;
+      // Si tu as la chute sur le PGM, ajoute-la ici
+      if (typeof pgm.waste === 'number') {
+        profileStats[profile].totalWaste += pgm.waste;
+      } else {
+        // Sinon, calcule-la
+        const totalPiecesLength = pgm.pieces.reduce((sum, piece) => sum + piece.length, 0);
+        profileStats[profile].totalWaste += pgm.length - totalPiecesLength;
+      }
     });
-    
+
     summary += `STATISTIQUES PAR PROFIL:\n`;
     summary += `------------------------\n`;
     for (const [profile, stats] of Object.entries(profileStats)) {
       const efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
-      // VIRGULE pour le contenu du fichier de résumé
-      const totalLengthMeters = this.formatLengthInMeters(stats.totalLength, true); // true = utiliser la virgule
+      const totalLengthMeters = this.formatLengthInMeters(stats.totalLength, true);
       const totalWasteCm = Math.round(stats.totalWaste);
-      
+
       summary += `${profile}:\n`;
       summary += `  - ${stats.count} barres mères\n`;
       summary += `  - ${stats.totalPieces} pièces à découper\n`;
@@ -496,56 +502,53 @@ export const PgmGenerator = {
       summary += `  - ${totalWasteCm} cm de chutes\n`;
       summary += `  - Efficacité: ${efficiency}%\n\n`;
     }
-    
+
     // DÉTAIL DES BARRES À DÉCOUPER PAR PGM
     summary += `DÉTAIL DES BARRES À DÉCOUPER:\n`;
     summary += `=============================\n\n`;
-    
+
     pgmObjects.forEach((pgm, pgmIndex) => {
       const fileName = this.generatePgmFileName(pgm);
-      
-      // En-tête du PGM avec délimitation claire
+
       summary += `╔${'═'.repeat(80)}\n`;
       summary += `║ PGM ${pgmIndex + 1}: ${fileName}\n`;
       summary += `╚${'═'.repeat(80)}\n\n`;
-      
-      // VIRGULE pour le contenu du fichier de résumé
-      const motherBarLengthMeters = this.formatLengthInMeters(pgm.motherBar.length, true); // true = utiliser la virgule
-      const wasteCm = Math.round(pgm.motherBar.waste);
-      
-      summary += `Profil: ${pgm.motherBar.profile}\n`;
-      summary += `Orientation: ${pgm.motherBar.orientation}\n`;
+
+      const motherBarLengthMeters = this.formatLengthInMeters(pgm.length, true);
+      const totalPiecesLength = pgm.pieces.reduce((sum, piece) => sum + piece.length, 0);
+      const waste = pgm.length - totalPiecesLength;
+
+      summary += `Profil: ${pgm.profile}\n`;
+      summary += `Orientation: ${pgm.orientation}\n`;
       summary += `Longueur: ${motherBarLengthMeters} m\n`;
-      summary += `Chute: ${wasteCm} cm\n`;
-      summary += `Efficacité: ${pgm.metadata.efficiency}%\n\n`;
-      
-      // Liste des barres à découper
+      summary += `Chute: ${waste} cm\n`;
+
+      // Efficacité
+      const efficiency = pgm.length > 0 ? Math.round((totalPiecesLength / pgm.length) * 100) : 0;
+      summary += `Efficacité: ${efficiency}%\n\n`;
+
       summary += `Barres à découper:\n`;
       summary += `${'─'.repeat(50)}\n`;
-      
+
       if (pgm.pieces && pgm.pieces.length > 0) {
         pgm.pieces.forEach((piece, pieceIndex) => {
-          const pieceRef = piece.pieceReference;
-          const pieceName = pieceRef.nom && pieceRef.nom.trim() !== '' 
-            ? pieceRef.nom 
-            : `${pieceRef.profile}_${piece.length}cm`;
-          
-          // Angles si différents de 90°
-          const angle1 = pieceRef.angles?.[1] || 90;
-          const angle2 = pieceRef.angles?.[2] || 90;
+          const pieceName = piece.nom && piece.nom.trim() !== '' 
+            ? piece.nom 
+            : `${piece.profile}_${piece.length}cm`;
+          const angle1 = piece.angles?.[1] || 90;
+          const angle2 = piece.angles?.[2] || 90;
           const angleInfo = (angle1 !== 90 || angle2 !== 90) 
             ? ` - Angles: ${angle1}°/${angle2}°`
             : '';
-          
           summary += `  ${(pieceIndex + 1).toString().padStart(2, ' ')}. ${pieceName} - ${piece.length} cm${angleInfo}\n`;
         });
       } else {
         summary += `  Aucune pièce à découper\n`;
       }
-      
+
       summary += `\n\n`;
     });
-    
+
     return summary;
   }
 };

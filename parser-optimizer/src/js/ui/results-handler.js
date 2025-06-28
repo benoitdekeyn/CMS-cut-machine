@@ -409,12 +409,7 @@ export const ResultsHandler = {
         throw new Error('Aucun objet PGM disponible');
       }
       
-      // CORRECTION: Utiliser this.showNotification ou NotificationService
-      if (this.showNotification) {
-        this.showNotification('⏳ Génération du ZIP en cours...', 'info');
-      } else {
-        NotificationService.show('⏳ Génération du ZIP en cours...', 'info');
-      }
+      
       
       // CORRECTION: Utiliser PgmGenerator directement (pas this.pgmGenerator)
       const result = await PgmGenerator.generateAllPgmFromObjects(
@@ -428,12 +423,7 @@ export const ResultsHandler = {
       // Télécharger avec le nom automatiquement généré
       UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
       
-      // CORRECTION: Utiliser this.showNotification ou NotificationService
-      if (this.showNotification) {
-        this.showNotification(`✅ ZIP téléchargé: ${result.fileName}`, 'success');
-      } else {
-        NotificationService.show(`✅ ZIP téléchargé: ${result.fileName}`, 'success');
-      }
+      
       
     } catch (error) {
       console.error('❌ Erreur téléchargement PGM:', error);
