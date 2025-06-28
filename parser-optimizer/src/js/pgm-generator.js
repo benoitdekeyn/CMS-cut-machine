@@ -5,6 +5,66 @@ import JSZip from 'jszip';
 
 export const PgmGenerator = {
   /**
+   * MODIFIÉ: Formate une longueur en mètres avec décimales précises (POINT comme séparateur pour les noms de fichiers)
+   * @param {number} lengthInCm - Longueur en centimètres
+   * @param {boolean} useComma - Si true, utilise la virgule, sinon le point
+   * @returns {string} - Longueur formatée en mètres
+   */
+  formatLengthInMeters: function(lengthInCm, useComma = false) {
+    const meters = lengthInCm / 100;
+    
+    // Si c'est un nombre entier, pas de décimales
+    if (meters % 1 === 0) {
+      return meters.toString();
+    }
+    
+    // Sinon, formatage avec jusqu'à 3 décimales en supprimant les zéros inutiles
+    const formatted = meters.toFixed(3);
+    const cleanFormatted = parseFloat(formatted).toString();
+    
+    // Utiliser virgule ou point selon le paramètre
+    return useComma ? cleanFormatted.replace('.', ',') : cleanFormatted;
+  },
+
+  /**
+   * NOUVEAU: Formate une date au format AAAA-MM-JJ_HH-mm pour les noms de fichiers
+   * @param {Date} date - Date à formater
+   * @returns {string} - Date formatée pour nom de fichier
+   */
+  formatDateTimeForFileName: function(date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${year}-${month}-${day}_${hours}-${minutes}`;
+  },
+
+  /**
+   * MODIFIÉ: Formate une date au format JJ/MM/AAAA
+   * @param {Date} date - Date à formater
+   * @returns {string} - Date formatée
+   */
+  formatDate: function(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  },
+
+  /**
+   * MODIFIÉ: Formate une date pour les noms de fichiers (sans slashes)
+   * @param {Date} date - Date à formater
+   * @returns {string} - Date formatée pour nom de fichier
+   */
+  formatDateForFileName: function(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  },
+
+  /**
    * Génère un fichier PGM à partir d'un objet PGM
    * @param {Object} pgmObject - Objet PGM créé par le PGM-Manager
    * @param {Object} dataManager - Instance du DataManager
@@ -222,7 +282,7 @@ export const PgmGenerator = {
   },
   
   /**
-   * Génère le nom de fichier PGM
+   * MODIFIÉ: Génère le nom de fichier PGM avec longueurs précises (POINT décimal)
    * @param {Object} pgmObject - Objet PGM
    * @returns {string} - Nom du fichier
    */
@@ -233,8 +293,8 @@ export const PgmGenerator = {
     // Profil
     const profil = motherBar.profile;
     
-    // Longueur en mètres (arrondie)
-    const longueurMetres = Math.round(motherBar.length / 100);
+    // CORRECTION: Longueur en mètres avec POINT décimal pour les noms de fichiers
+    const longueurMetres = this.formatLengthInMeters(motherBar.length, false); // false = utiliser le point
     
     // Orientation
     const orientation = motherBar.orientation;
@@ -256,18 +316,59 @@ export const PgmGenerator = {
       nomsPieces.push('...');
     }
     
-    // Assembler le nom
+    // CORRECTION: Assembler le nom avec longueur précise (point décimal)
     const nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.pgm`;
     
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
     return nomFichier.replace(/[<>:"/\\|?*]/g, '_');
   },
-  
+
   /**
-   * Génère un ZIP avec tous les fichiers PGM à partir des objets PGM
+   * CORRIGÉ: Génère le nom du fichier ZIP au format demandé
+   * @param {Array} pgmObjects - Liste des objets PGM
+   * @returns {string} - Nom du fichier ZIP
+   */
+  generateZipFileName: function(pgmObjects) {
+    // Date au format AAAA-MM-JJ_HH-mm
+    const now = new Date();
+    const dateStr = this.formatDateTimeForFileName(now);
+    
+    // Compter le nombre total de barres uniques
+    const barNames = new Set();
+    
+    pgmObjects.forEach(pgm => {
+      pgm.pieces.forEach(piece => {
+        const pieceRef = piece.pieceReference;
+        let barName = '';
+        
+        if (pieceRef.nom && pieceRef.nom.trim() !== '') {
+          // Utiliser le nom de la barre
+          barName = pieceRef.nom.trim();
+        } else {
+          // Générer un nom unique à partir du profil et de la longueur
+          barName = `${pieceRef.profile}_${piece.length}cm`;
+        }
+        
+        if (barName) {
+          barNames.add(barName);
+        }
+      });
+    });
+    
+    const nombreBarres = barNames.size;
+    
+    // MODIFIÉ: Format final avec nombre de barres avant la date
+    const fileName = `lot_PGM_${nombreBarres}_barres_${dateStr}.zip`;
+    
+    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
+    return fileName.replace(/[<>:"/\\|?*]/g, '_');
+  },
+
+  /**
+   * MODIFIÉ: Génère un ZIP avec tous les fichiers PGM à partir des objets PGM
    * @param {Array} pgmObjects - Liste des objets PGM
    * @param {Object} dataManager - Instance du DataManager
-   * @returns {Promise<Blob>} - Blob du fichier ZIP
+   * @returns {Promise<{blob: Blob, fileName: string}>} - Blob et nom du fichier ZIP
    */
   generateAllPgmFromObjects: async function(pgmObjects, dataManager) {
     console.log(`🏗️ Génération de ${pgmObjects.length} fichiers PGM...`);
@@ -321,6 +422,9 @@ export const PgmGenerator = {
       const summary = this.generateSummaryFile(pgmObjects);
       zip.file('RESUME_GENERATION.txt', summary);
       
+      // Générer le nom du fichier ZIP
+      const zipFileName = this.generateZipFileName(pgmObjects);
+      
       // Générer le ZIP
       console.log('📦 Création du fichier ZIP...');
       const blob = await zip.generateAsync({
@@ -331,8 +435,13 @@ export const PgmGenerator = {
         }
       });
       
-      console.log(`✅ ZIP généré avec succès (${fileNames.size} fichiers PGM)`);
-      return blob;
+      console.log(`✅ ZIP généré avec succès: ${zipFileName} (${fileNames.size} fichiers PGM)`);
+      
+      // Retourner le blob et le nom du fichier
+      return {
+        blob: blob,
+        fileName: zipFileName
+      };
       
     } catch (error) {
       console.error('❌ Erreur lors de la génération du ZIP:', error);
@@ -341,13 +450,13 @@ export const PgmGenerator = {
   },
   
   /**
-   * Génère un fichier de résumé pour le ZIP
+   * MODIFIÉ: Génère un fichier de résumé pour le ZIP avec virgules décimales et format de date français
    * @param {Array} pgmObjects - Liste des objets PGM
    * @returns {string} - Contenu du fichier de résumé
    */
   generateSummaryFile: function(pgmObjects) {
     const now = new Date();
-    const dateStr = now.toLocaleDateString('fr-FR');
+    const dateStr = this.formatDate(now);
     const timeStr = now.toLocaleTimeString('fr-FR');
     
     let summary = `RÉSUMÉ DE GÉNÉRATION PGM\n`;
@@ -378,11 +487,15 @@ export const PgmGenerator = {
     summary += `------------------------\n`;
     for (const [profile, stats] of Object.entries(profileStats)) {
       const efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
+      // VIRGULE pour le contenu du fichier de résumé
+      const totalLengthMeters = this.formatLengthInMeters(stats.totalLength, true); // true = utiliser la virgule
+      const totalWasteCm = Math.round(stats.totalWaste);
+      
       summary += `${profile}:\n`;
       summary += `  - ${stats.count} barres mères\n`;
       summary += `  - ${stats.totalPieces} pièces à découper\n`;
-      summary += `  - ${Math.round(stats.totalLength)} cm de barres\n`;
-      summary += `  - ${Math.round(stats.totalWaste)} cm de chutes\n`;
+      summary += `  - ${totalLengthMeters} m de barres\n`;
+      summary += `  - ${totalWasteCm} cm de chutes\n`;
       summary += `  - Efficacité: ${efficiency}%\n\n`;
     }
     
@@ -398,11 +511,14 @@ export const PgmGenerator = {
       summary += `║ PGM ${pgmIndex + 1}: ${fileName}\n`;
       summary += `╚${'═'.repeat(80)}\n\n`;
       
-      // Informations sur la barre mère
+      // VIRGULE pour le contenu du fichier de résumé
+      const motherBarLengthMeters = this.formatLengthInMeters(pgm.motherBar.length, true); // true = utiliser la virgule
+      const wasteCm = Math.round(pgm.motherBar.waste);
+      
       summary += `Profil: ${pgm.motherBar.profile}\n`;
       summary += `Orientation: ${pgm.motherBar.orientation}\n`;
-      summary += `Longueur: ${Math.round(pgm.motherBar.length / 100)}.${Math.round(pgm.motherBar.length % 100 / 10)} m\n`;
-      summary += `Chute: ${Math.round(pgm.motherBar.waste)} cm\n`;
+      summary += `Longueur: ${motherBarLengthMeters} m\n`;
+      summary += `Chute: ${wasteCm} cm\n`;
       summary += `Efficacité: ${pgm.metadata.efficiency}%\n\n`;
       
       // Liste des barres à découper

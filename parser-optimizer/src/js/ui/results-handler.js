@@ -3,6 +3,8 @@
  * Gère le rendu des résultats et la génération des fichiers PGM
  */
 import { UIUtils } from './utils.js';
+import { NotificationService } from './notification-service.js'; // AJOUT: Import manquant
+import { PgmGenerator } from '../pgm-generator.js'; // AJOUT: Import manquant
 
 export const ResultsHandler = {
   // Dépendances
@@ -360,29 +362,51 @@ export const ResultsHandler = {
   },
   
   /**
-   * Télécharge tous les fichiers PGM dans un ZIP
+   * CORRIGÉ: Télécharge tous les fichiers PGM dans un ZIP
    */
   downloadAllPgm: async function() {
     try {
-      UIUtils.showLoadingOverlay();
+      console.log('🔽 Début du téléchargement des PGM...');
       
-      const pgmObjects = this.uiController.getCurrentPgmObjects();
-      
-      if (!pgmObjects || pgmObjects.length === 0) {
-        this.showNotification('Aucun objet PGM disponible', 'warning');
-        return;
+      if (!this.uiController.currentPgmObjects) {
+        throw new Error('Aucun objet PGM disponible');
       }
       
-      const blob = await this.pgmGenerator.generateAllPgmFromObjects(pgmObjects, this.dataManager);
-      const zipFileName = `pgm_files_${Date.now()}.zip`;
-      UIUtils.downloadFile(blob, zipFileName, 'application/zip');
+      // CORRECTION: Utiliser this.showNotification ou NotificationService
+      if (this.showNotification) {
+        this.showNotification('⏳ Génération du ZIP en cours...', 'info');
+      } else {
+        NotificationService.show('⏳ Génération du ZIP en cours...', 'info');
+      }
       
+      // CORRECTION: Utiliser PgmGenerator directement (pas this.pgmGenerator)
+      const result = await PgmGenerator.generateAllPgmFromObjects(
+        this.uiController.currentPgmObjects, 
+        this.uiController.dataManager
+      );
+      
+      // CORRECTION: Vérifier que result a la bonne structure
+      console.log(`📦 Nom du ZIP généré: ${result.fileName}`);
+      
+      // Télécharger avec le nom automatiquement généré
+      UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
+      
+      // CORRECTION: Utiliser this.showNotification ou NotificationService
+      if (this.showNotification) {
+        this.showNotification(`✅ ZIP téléchargé: ${result.fileName}`, 'success');
+      } else {
+        NotificationService.show(`✅ ZIP téléchargé: ${result.fileName}`, 'success');
+      }
       
     } catch (error) {
-      console.error('Erreur lors de la génération des fichiers PGM:', error);
-      this.showNotification(`Erreur lors de la génération des fichiers PGM: ${error.message}`, 'error');
-    } finally {
-      UIUtils.hideLoadingOverlay();
+      console.error('❌ Erreur téléchargement PGM:', error);
+      
+      // CORRECTION: Utiliser this.showNotification ou NotificationService
+      if (this.showNotification) {
+        this.showNotification(`❌ Erreur: ${error.message}`, 'error');
+      } else {
+        NotificationService.show(`❌ Erreur: ${error.message}`, 'error');
+      }
     }
   }
 };
