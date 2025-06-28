@@ -1,18 +1,11 @@
 import solver from 'javascript-lp-solver';
 
 /**
- * Résout le problème de découpe de barres en utilisant la programmation linéaire en nombres entiers
- * basée sur l'article "Pattern-based ILP models for the one-dimensional cutting stock problem with setup cost"
- * 
- * @param {Object} motherBars - Dictionnaire des barres mères disponibles par modèle
- * @param {Object} pieces - Dictionnaire des pièces à découper par modèle
- * @param {Function} progressCallback - Fonction de callback pour indiquer la progression
- * @returns {Object} Résultats de l'optimisation
+ * Résout le problème de découpe de barres en utilisant l'ILP (Integer Linear Programming)
+ * Basé sur le Column Generation approach du Cutting Stock Problem
  */
 export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
-    if (typeof solver === 'undefined') {
-        throw new Error("Le solveur jsLPSolver n'est pas défini. Assurez-vous qu'il est correctement importé.");
-    }
+    console.log("🔧 Début de l'optimisation ILP");
     
     const results = {};
     const globalStats = {
@@ -21,640 +14,416 @@ export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
         totalRemainingPieces: 0
     };
 
-    console.log("Début de l'exécution ILP basée sur l'article de recherche");
-
     // Traiter chaque modèle séparément
     for (const model in pieces) {
-        if (pieces[model].length === 0 || !motherBars[model] || motherBars[model].length === 0) {
-            continue;
-        }
+        if (!pieces[model] || pieces[model].length === 0) continue;
+        if (!motherBars[model] || motherBars[model].length === 0) continue;
 
+        console.log(`🎯 Optimisation ILP pour le modèle ${model}`);
         progressCallback({ step: `Traitement du modèle ${model}`, percentage: 10 });
 
         try {
-            console.log(`Optimisation du modèle ${model}`);
+            const modelResult = solveModelWithILP(motherBars[model], pieces[model], model);
             
-            // Préparer les données
-            const stockBars = prepareStockBarsData(motherBars[model]);
-            const demandPieces = preparePiecesData(pieces[model]);
+            globalStats.totalBarsUsed += modelResult.rawData.totalMotherBarsUsed;
+            globalStats.totalWaste += modelResult.rawData.wasteLength;
+            globalStats.totalRemainingPieces += modelResult.rawData.remainingPieces.length;
             
-            if (demandPieces.length === 0 || stockBars.length === 0) {
-                console.log(`Modèle ${model} : données insuffisantes`);
-                continue;
-            }
+            results[model] = modelResult;
             
-            // Appliquer le préprocessing pour agréger les pièces de même longueur
-            const aggregatedPieces = applyPreprocessing(demandPieces);
-            
-            progressCallback({ step: `Génération des patterns pour ${model}`, percentage: 30 });
-            
-            // Générer les patterns de découpe selon l'approche de l'article
-            const patterns = generatePatterns(stockBars, aggregatedPieces);
-            
-            progressCallback({ step: `Résolution ILP pour ${model}`, percentage: 70 });
-            
-            // Résoudre avec le framework Pareto optimal
-            const optimizationResult = solveParetoOptimalFramework(stockBars, aggregatedPieces, patterns);
-            
-            // Traiter les résultats
-            const processedResult = processOptimizationResult(optimizationResult, stockBars, aggregatedPieces);
-            
-            // Mettre à jour les statistiques globales
-            globalStats.totalBarsUsed += processedResult.rawData.totalMotherBarsUsed;
-            globalStats.totalWaste += processedResult.rawData.wasteLength;
-            globalStats.totalRemainingPieces += processedResult.rawData.remainingPieces.length;
-            
-            results[model] = processedResult;
-            
-            console.log(`Modèle ${model} traité : ${processedResult.rawData.totalMotherBarsUsed} barres utilisées`);
+            console.log(`✅ Modèle ${model}: ${modelResult.rawData.totalMotherBarsUsed} barres, efficacité ${modelResult.stats.utilizationRate}%`);
             
         } catch (error) {
-            console.error(`Erreur lors du traitement du modèle ${model}:`, error);
-            
-            // Utiliser l'algorithme de secours
-            const stockBars = prepareStockBarsData(motherBars[model]);
-            const demandPieces = preparePiecesData(pieces[model]);
-            const fallbackResult = solveWithSimpleGreedy(stockBars, demandPieces);
-            
-            results[model] = fallbackResult;
-            globalStats.totalBarsUsed += fallbackResult.rawData.totalMotherBarsUsed;
-            globalStats.totalWaste += fallbackResult.rawData.wasteLength;
-            globalStats.totalRemainingPieces += fallbackResult.rawData.remainingPieces.length;
+            console.error(`❌ Erreur ILP pour ${model}:`, error);
+            throw error;
         }
         
         progressCallback({ step: `Modèle ${model} terminé`, percentage: 100 });
     }
 
-    // Calculer les statistiques globales
     const globalStatistics = calculateGlobalStatistics(results);
-    
-    console.log(`📈 GLOBAL: ${globalStats.totalBarsUsed} barres utilisées, taux d'utilisation: ${globalStatistics.utilizationRate}%`);
+    console.log(`📊 GLOBAL ILP: ${globalStats.totalBarsUsed} barres, efficacité ${globalStatistics.utilizationRate}%`);
 
     return {
         modelResults: results,
-        globalStats: {...globalStats, statistics: globalStatistics}
+        globalStats: { ...globalStats, statistics: globalStatistics }
     };
 }
 
 /**
- * Applique le préprocessing pour agréger les pièces de même longueur (P1)
+ * Résout un modèle spécifique avec ILP
  */
-function applyPreprocessing(demandPieces) {
-    const aggregatedMap = new Map();
+function solveModelWithILP(stockBars, demandPieces, model) {
+    // 1. Préparer les données - CORRECTION: Grouper les pièces par longueur
+    const stockSizes = stockBars.map(bar => ({
+        size: parseInt(bar.length),
+        cost: 1, // Coût uniforme - on minimise le nombre de barres
+        quantity: parseInt(bar.quantity)
+    }));
     
-    for (const piece of demandPieces) {
-        const length = piece.length;
-        if (aggregatedMap.has(length)) {
-            aggregatedMap.set(length, aggregatedMap.get(length) + piece.quantity);
-        } else {
-            aggregatedMap.set(length, piece.quantity);
-        }
-    }
-    
-    const aggregated = [];
-    for (const [length, quantity] of aggregatedMap.entries()) {
-        aggregated.push({ length, quantity });
-    }
-    
-    // Trier par ordre décroissant de longueur
-    aggregated.sort((a, b) => b.length - a.length);
-    return aggregated;
-}
-
-/**
- * Calcule les bornes supérieures selon le Théorème 1 de l'article
- */
-function calculateUpperBounds(demandPieces, stockLength) {
-    const dmax = Math.max(...demandPieces.map(p => p.quantity));
-    const bounds = {
-        dmax,
-        // Borne géométrique pour chaque type de pièce
-        itemBounds: new Map()
-    };
-    
-    for (const piece of demandPieces) {
-        const geometricBound = Math.floor(stockLength / piece.length);
-        bounds.itemBounds.set(piece.length, Math.min(geometricBound, piece.quantity));
-    }
-    
-    return bounds;
-}
-
-/**
- * Génère les patterns de découpe selon l'approche de l'article
- */
-function generatePatterns(stockBars, demandPieces) {
-    const allPatterns = [];
-    
-    for (const stockBar of stockBars) {
-        const stockLength = stockBar.length;
-        const bounds = calculateUpperBounds(demandPieces, stockLength);
-        
-        // Générer les patterns pour cette longueur de barre
-        const patterns = generatePatternsForLength(demandPieces, stockLength, bounds);
-        
-        patterns.forEach(pattern => {
-            pattern.stockLength = stockLength;
-            pattern.stockBarId = stockBar.id || null;
-        });
-        
-        allPatterns.push(...patterns);
-    }
-    
-    // Limiter le nombre de patterns pour éviter l'explosion combinatoire
-    const maxPatterns = 5000;
-    if (allPatterns.length > maxPatterns) {
-        console.warn(`⚠️ Limitation du nombre de patterns à ${maxPatterns}`);
-        return allPatterns.slice(0, maxPatterns);
-    }
-    
-    return allPatterns;
-}
-
-/**
- * Génère les patterns pour une longueur de barre spécifique
- */
-function generatePatternsForLength(pieces, stockLength, bounds) {
-    const patterns = [];
-    const maxPatterns = 1000;
-    
-    // Générer les patterns en utilisant une approche récursive
-    function generateRecursive(remainingLength, pieceIndex, currentPattern, currentComposition) {
-        if (patterns.length >= maxPatterns) return;
-        
-        // Pattern terminal
-        if (pieceIndex >= pieces.length || remainingLength <= 0) {
-            if (currentPattern.length > 0) {
-                patterns.push({
-                    pieces: [...currentPattern],
-                    waste: Math.max(0, remainingLength),
-                    composition: {...currentComposition}
-                });
-            }
-            return;
-        }
-        
-        const piece = pieces[pieceIndex];
-        const maxCount = Math.min(
-            Math.floor(remainingLength / piece.length),
-            bounds.itemBounds.get(piece.length) || piece.quantity
-        );
-        
-        // Essayer différentes quantités de cette pièce
-        for (let count = 0; count <= maxCount; count++) {
-            const newPattern = [...currentPattern];
-            const newComposition = {...currentComposition};
-            
-            for (let i = 0; i < count; i++) {
-                newPattern.push(piece.length);
-            }
-            
-            if (count > 0) {
-                newComposition[piece.length] = count;
-            }
-            
-            generateRecursive(
-                remainingLength - (count * piece.length),
-                pieceIndex + 1,
-                newPattern,
-                newComposition
-            );
-        }
-    }
-    
-    generateRecursive(stockLength, 0, [], {});
-    
-    // Trier par efficacité (moins de déchets)
-    patterns.sort((a, b) => a.waste - b.waste);
-    
-    return patterns;
-}
-
-/**
- * Framework pour générer la frontière Pareto optimale selon l'Algorithm 1
- */
-function solveParetoOptimalFramework(stockBars, demandPieces, patterns) {
-    console.log("Exécution du framework Pareto optimal");
-    
-    // Calculer z* (nombre minimum d'objets) en résolvant le CSP classique
-    const zStar = calculateMinimumObjects(stockBars, demandPieces);
-    
-    // Calculer y* (nombre minimum de patterns) en résolvant le BPP associé
-    const yStar = calculateMinimumPatterns(stockBars, demandPieces);
-    
-    console.log(`Bornes: z* = ${zStar}, y* = ${yStar}`);
-    
-    // Résoudre pour le nombre minimum de patterns avec Model (3)
-    const solution = solveModel3(stockBars, demandPieces, patterns, yStar);
-    
-    return {
-        method: "ILP_Research_Based",
-        solution: solution,
-        patterns: patterns,
-        bounds: { zStar, yStar }
-    };
-}
-
-/**
- * Implémentation du Model (3) de l'article
- */
-function solveModel3(stockBars, demandPieces, patterns, maxPatterns) {
-    console.log(`Résolution du Model (3) avec maximum ${maxPatterns} patterns`);
-    
-    // Créer le modèle ILP selon Model (3)
-    const model = {
-        optimize: 'totalObjects',
-        opType: 'min',
-        constraints: {},
-        variables: {},
-        ints: {}
-    };
-    
-    // Calculer les fréquences maximales pour chaque pattern selon le Théorème 1
-    const patternMaxFreq = calculatePatternMaxFrequencies(patterns, demandPieces);
-    
-    // Limiter le nombre de patterns pour la faisabilité
-    const actualMaxPatterns = Math.min(maxPatterns, patterns.length, 10);
-    
-    let patternIndex = 0;
-    for (const pattern of patterns) {
-        if (patternIndex >= actualMaxPatterns) break;
-        
-        const k = patternIndex;
-        const maxFreq = Math.min(patternMaxFreq.get(k) || 1, 10); // Limiter aussi les fréquences
-        
-        // Contrainte (3e): chaque pattern a exactement une fréquence
-        model.constraints[`pattern_${k}_frequency`] = { equal: 1 };
-        
-        // Pour chaque fréquence possible j (0 à maxFreq)
-        for (let j = 0; j <= maxFreq; j++) {
-            const lambdaVar = `lambda_${k}_${j}`;
-            
-            // Variable binaire λkj
-            model.variables[lambdaVar] = {
-                [`pattern_${k}_frequency`]: 1,
-                totalObjects: j  // Contribution à l'objectif (3a)
-            };
-            model.ints[lambdaVar] = 1;
-            
-            // Variables αkji pour j > 0
-            if (j > 0) {
-                // Contrainte (3c): containment constraint pour ce pattern et cette fréquence
-                const containmentConstraint = `containment_${k}_${j}`;
-                model.constraints[containmentConstraint] = { max: 0 };
-                
-                // Variables pour chaque type de pièce dans ce pattern
-                for (const piece of demandPieces) {
-                    const alphaVar = `alpha_${k}_${j}_${piece.length}`;
-                    const maxItemsInPattern = Math.floor(pattern.stockLength / piece.length);
-                    
-                    if (maxItemsInPattern > 0) {
-                        // Variable entière αkji
-                        model.variables[alphaVar] = {
-                            [containmentConstraint]: piece.length
-                        };
-                        
-                        // Contrainte de demande (3d)
-                        const demandConstraint = `demand_${piece.length}`;
-                        if (!model.constraints[demandConstraint]) {
-                            model.constraints[demandConstraint] = { min: piece.quantity };
-                        }
-                        model.variables[alphaVar][demandConstraint] = j;
-                        
-                        // Bornes sur les variables αkji
-                        model.variables[alphaVar][alphaVar + '_bound'] = 1;
-                        model.constraints[alphaVar + '_bound'] = { max: maxItemsInPattern };
-                        
-                        // Les variables αkji sont entières non-négatives
-                        model.ints[alphaVar] = 1;
-                    }
-                }
-                
-                // La contrainte containment doit inclure la contribution de λkj
-                if (!model.variables[lambdaVar][containmentConstraint]) {
-                    model.variables[lambdaVar][containmentConstraint] = 0;
-                }
-                model.variables[lambdaVar][containmentConstraint] -= pattern.stockLength;
-            }
-        }
-        
-        patternIndex++;
-    }
-    
-    // Contraintes d'ordre (3f): patterns triés par fréquence décroissante
-    for (let k = 0; k < Math.min(patternIndex - 1, actualMaxPatterns - 1); k++) {
-        const orderConstraint = `order_${k}`;
-        model.constraints[orderConstraint] = { min: 0 };
-        
-        const maxFreqK = Math.min(patternMaxFreq.get(k) || 1, 10);
-        const maxFreqK1 = Math.min(patternMaxFreq.get(k + 1) || 1, 10);
-        
-        // Somme des fréquences du pattern k
-        for (let j = 0; j <= maxFreqK; j++) {
-            const lambdaVar = `lambda_${k}_${j}`;
-            if (model.variables[lambdaVar]) {
-                if (!model.variables[lambdaVar][orderConstraint]) {
-                    model.variables[lambdaVar][orderConstraint] = 0;
-                }
-                model.variables[lambdaVar][orderConstraint] += j;
-            }
-        }
-        
-        // Soustraire les fréquences du pattern k+1
-        for (let j = 0; j <= maxFreqK1; j++) {
-            const lambdaVar = `lambda_${k+1}_${j}`;
-            if (model.variables[lambdaVar]) {
-                if (!model.variables[lambdaVar][orderConstraint]) {
-                    model.variables[lambdaVar][orderConstraint] = 0;
-                }
-                model.variables[lambdaVar][orderConstraint] -= j;
-            }
-        }
-    }
-    
-    console.log("Modèle ILP créé:");
-    console.log("- Variables:", Object.keys(model.variables).length);
-    console.log("- Contraintes:", Object.keys(model.constraints).length);
-    console.log("- Patterns utilisés:", actualMaxPatterns);
-    
-    try {
-        const options = {
-            timeout: 30000,
-            msg: false
-        };
-        
-        const solution = solver.Solve(model, options);
-        
-        if (solution.feasible && !isNaN(solution.result)) {
-            console.log("Solution ILP trouvée:", solution.result, "objets");
-            return solution;
-        } else {
-            console.warn("Solution ILP non faisable, utilisation du fallback");
-            return solveGreedyFallback(stockBars, demandPieces);
-        }
-        
-    } catch (error) {
-        console.error("Erreur lors de la résolution ILP:", error);
-        return solveGreedyFallback(stockBars, demandPieces);
-    }
-}
-
-/**
- * Calcule les fréquences maximales pour chaque pattern selon le Théorème 1
- */
-function calculatePatternMaxFrequencies(patterns, demandPieces) {
-    const maxFreq = new Map();
-    const dmax = Math.max(...demandPieces.map(p => p.quantity));
-    
-    patterns.forEach((pattern, index) => {
-        // Compter les pièces dans le pattern
-        const pieceCounts = {};
-        for (const pieceLength of pattern.pieces) {
-            pieceCounts[pieceLength] = (pieceCounts[pieceLength] || 0) + 1;
-        }
-        
-        // Calculer la fréquence maximum basée sur la demande
-        let maxUsage = dmax;
-        for (const [pieceLength, count] of Object.entries(pieceCounts)) {
-            const piece = demandPieces.find(p => p.length === parseInt(pieceLength));
-            if (piece && count > 0) {
-                maxUsage = Math.min(maxUsage, Math.floor(piece.quantity / count));
-            }
-        }
-        
-        maxFreq.set(index, Math.max(1, maxUsage));
+    // CORRECTION: Grouper les pièces par longueur au lieu de les traiter individuellement
+    const pieceCounts = {};
+    demandPieces.forEach(piece => {
+        const length = parseInt(piece.length);
+        const quantity = parseInt(piece.quantity);
+        pieceCounts[length] = (pieceCounts[length] || 0) + quantity;
     });
     
-    return maxFreq;
+    // Convertir en format requiredCuts
+    const requiredCuts = Object.entries(pieceCounts).map(([length, count]) => ({
+        size: parseInt(length),
+        count: count
+    }));
+
+    console.log(`  📏 Pièces demandées: ${requiredCuts.map(c => `${c.count}×${c.size}cm`).join(', ')}`);
+    console.log(`  📦 Stock: ${stockSizes.map(s => `${s.quantity}×${s.size}cm`).join(', ')}`);
+
+    // 2. Générer tous les patterns de découte possibles
+    const cuttingPatterns = generateAllCuttingPatterns(stockSizes, requiredCuts);
+    
+    console.log(`  🔧 ${cuttingPatterns.totalPatterns} patterns générés`);
+
+    // 3. Construire et résoudre le modèle ILP
+    const ilpSolution = solveILPModel(cuttingPatterns, requiredCuts);
+    
+    // 4. Convertir la solution ILP en format attendu
+    return convertILPSolutionToResult(ilpSolution, cuttingPatterns, stockSizes, model);
 }
 
 /**
- * Calcule le nombre minimum d'objets (résolution du CSP classique)
+ * Génère tous les patterns de découpe possibles (inspiré du code TypeScript)
  */
-function calculateMinimumObjects(stockBars, demandPieces) {
-    // Approximation simple: somme des demandes divisée par la capacité moyenne
-    const totalDemandLength = demandPieces.reduce((sum, p) => sum + p.length * p.quantity, 0);
-    const avgStockLength = stockBars.reduce((sum, b) => sum + b.length, 0) / stockBars.length;
-    
-    return Math.ceil(totalDemandLength / avgStockLength);
-}
+function generateAllCuttingPatterns(stockSizes, requiredCuts) {
+    const cutSizes = requiredCuts.map(cut => cut.size);
+    const allPatterns = [];
+    let patternIndex = 0;
 
-/**
- * Calcule le nombre minimum de patterns (résolution du BPP associé)
- */
-function calculateMinimumPatterns(stockBars, demandPieces) {
-    // Approximation: au minimum un pattern par type de pièce
-    return Math.min(demandPieces.length, stockBars.length);
-}
+    console.log(`  🔧 Génération de patterns pour: ${requiredCuts.map(c => `${c.count}×${c.size}cm`).join(', ')}`);
 
-/**
- * Algorithme glouton de secours amélioré
- */
-function solveGreedyFallback(stockBars, demandPieces) {
-    console.log("Utilisation de l'algorithme glouton de secours");
-    
-    const usedBars = [];
-    const allPieces = [];
-    let barId = 1;
-    
-    // Créer une liste plate de toutes les pièces
-    for (const piece of demandPieces) {
-        for (let i = 0; i < piece.quantity; i++) {
-            allPieces.push(piece.length);
-        }
-    }
-    
-    // Trier par ordre décroissant
-    allPieces.sort((a, b) => b - a);
-    
-    // First-Fit Decreasing
-    const bins = [];
-    const stockLength = stockBars[0]?.length || 1000;
-    
-    for (const pieceLength of allPieces) {
-        let placed = false;
+    const waysOfCuttingStocks = stockSizes.map(({ size, cost, quantity }) => {
+        // Générer toutes les façons de découper cette longueur de barre
+        const waysOfCutting = generateWaysToCut(size, cutSizes, 0); // bladeSize = 0 pour simplifier
         
-        // Essayer de placer dans un bin existant
-        for (const bin of bins) {
-            if (bin.remainingSpace >= pieceLength) {
-                bin.pieces.push(pieceLength);
-                bin.remainingSpace -= pieceLength;
-                placed = true;
-                break;
+        console.log(`    📏 Barre ${size}cm: ${waysOfCutting.length} patterns possibles`);
+        
+        // Transformer chaque façon en pattern avec compteurs
+        const versions = waysOfCutting.map(way => {
+            const stockCut = {};
+            
+            // Initialiser tous les compteurs à 0
+            for (const cutSize of cutSizes) {
+                stockCut[`cut${cutSize}`] = 0;
             }
-        }
-        
-        // Créer un nouveau bin si nécessaire
-        if (!placed) {
-            bins.push({
-                pieces: [pieceLength],
-                remainingSpace: stockLength - pieceLength
-            });
-        }
-    }
-    
-    // Convertir les bins en format attendu
-    for (const bin of bins) {
-        usedBars.push({
-            id: barId++,
-            pieces: [...bin.pieces],
-            waste: bin.remainingSpace,
-            originalLength: stockLength,
-            cuts: [...bin.pieces],
-            remainingLength: bin.remainingSpace
+            
+            // Compter chaque pièce dans ce pattern
+            for (const cut of way) {
+                stockCut[`cut${cut}`] = stockCut[`cut${cut}`] + 1;
+            }
+            
+            return stockCut;
         });
-    }
+
+        // Debug des patterns générés
+        versions.forEach((version, index) => {
+            const pieces = Object.entries(version)
+                .filter(([key, value]) => key.startsWith('cut') && value > 0)
+                .map(([key, value]) => `${value}×${key.replace('cut', '')}cm`)
+                .join(', ');
+            if (pieces) {
+                console.log(`      Pattern ${index}: ${pieces}`);
+            }
+        });
+
+        return { size, cost, quantity, versions, waysOfCutting };
+    });
+
+    // Créer les variables pour le modèle ILP
+    const variables = {};
+    const ints = {};
     
+    waysOfCuttingStocks.forEach(({ size, cost, quantity, versions }) => {
+        versions.forEach((cut, index) => {
+            const varName = `stock${size}version${index}`;
+            
+            // Variable avec coût et contraintes
+            variables[varName] = { ...cut, cost: cost };
+            
+            // Variable entière
+            ints[varName] = 1;
+            
+            allPatterns.push({
+                varName,
+                stockSize: size,
+                version: index,
+                cuts: cut,
+                cost: cost,
+                maxQuantity: quantity
+            });
+            
+            patternIndex++;
+        });
+    });
+
     return {
-        feasible: true,
-        result: bins.length,
-        usedBars: usedBars
+        variables,
+        ints,
+        patterns: allPatterns,
+        waysOfCuttingStocks,
+        totalPatterns: patternIndex
     };
 }
 
 /**
- * Prépare les données des barres mères
+ * Génère toutes les façons de découper une barre (récursif) - Version améliorée
  */
-function prepareStockBarsData(motherBars) {
-    const stockBars = [];
+function generateWaysToCut(barSize, cuts, bladeSize, state = []) {
+    const waysToCut = [];
     
-    for (const bar of motherBars) {
-        stockBars.push({
-            length: parseInt(bar.length, 10),
-            quantity: parseInt(bar.quantity, 10)
-        });
+    // Essayer chaque type de coupe
+    for (const cut of cuts) {
+        const remainder = barSize - cut - bladeSize;
+        if (remainder >= 0) {
+            // Récursion pour découper le reste
+            const subWays = generateWaysToCut(remainder, cuts, bladeSize, [...state, cut]);
+            waysToCut.push(...subWays);
+        }
     }
     
-    stockBars.sort((a, b) => b.length - a.length);
-    return stockBars;
+    // Toujours ajouter l'état actuel (pattern partiel ou vide)
+    waysToCut.push([...state]);
+    
+    // Éliminer les doublons mais garder tous les patterns utiles
+    const uniquePatterns = removeDuplicatePatterns(waysToCut);
+    
+    // Filtrer pour garder seulement les patterns non-vides ET le pattern vide
+    return uniquePatterns.filter((pattern, index) => 
+        pattern.length > 0 || index === 0 // Garder le premier pattern même s'il est vide
+    );
 }
 
 /**
- * Prépare les données des pièces à découper
+ * Élimine les patterns en double
  */
-function preparePiecesData(pieces) {
-    const demandPieces = [];
+function removeDuplicatePatterns(patterns) {
+    const uniquePatterns = [];
+    const seenPatterns = new Set();
     
-    for (const piece of pieces) {
-        demandPieces.push({
-            length: parseInt(piece.length, 10),
-            quantity: parseInt(piece.quantity, 10)
-        });
+    for (const pattern of patterns) {
+        // Créer une signature unique pour ce pattern
+        const sorted = [...pattern].sort((a, b) => a - b);
+        const signature = sorted.join(',');
+        
+        if (!seenPatterns.has(signature)) {
+            seenPatterns.add(signature);
+            uniquePatterns.push(pattern);
+        }
     }
     
-    demandPieces.sort((a, b) => b.length - a.length);
-    return demandPieces;
+    return uniquePatterns;
 }
 
 /**
- * Traite les résultats de l'optimisation - version corrigée
+ * Construit et résout le modèle ILP - Version avec contraintes exactes
  */
-function processOptimizationResult(optimizationResult, stockBars, demandPieces) {
-    const { solution, patterns } = optimizationResult;
-    
-    let usedBars = [];
-    let wasteLength = 0;
-    let barId = 1;
-    
-    // Si la solution contient déjà des usedBars (fallback)
-    if (solution.usedBars) {
-        usedBars = solution.usedBars;
-        wasteLength = usedBars.reduce((sum, bar) => sum + bar.waste, 0);
-    } else {
-        // Analyser la solution pour extraire les patterns utilisés
+function solveILPModel(cuttingPatterns, requiredCuts) {
+    // Créer les contraintes (demande EXACTE pour chaque taille)
+    const constraints = {};
+    requiredCuts.forEach(({ size, count }) => {
+        // Utiliser 'equal' au lieu de 'min' pour avoir exactement le nombre demandé
+        constraints[`cut${size}`] = { equal: count };
+    });
+
+    console.log(`  📋 Contraintes de demande:`);
+    requiredCuts.forEach(({ size, count }) => {
+        console.log(`    - Exactement ${count} pièces de ${size}cm`);
+    });
+
+    // Modèle ILP complet
+    const model = {
+        optimize: "cost",
+        opType: "min",
+        variables: cuttingPatterns.variables,
+        ints: cuttingPatterns.ints,
+        constraints: constraints
+    };
+
+    console.log(`  📋 Modèle ILP: ${Object.keys(model.variables).length} variables, ${Object.keys(model.constraints).length} contraintes`);
+
+    // Debug du modèle
+    console.log(`  🔍 Variables de contrôle (premiers 5):`);
+    let varCount = 0;
+    for (const [varName, varData] of Object.entries(model.variables)) {
+        if (varCount >= 5) break;
+        const pieces = Object.entries(varData)
+            .filter(([key, value]) => key.startsWith('cut') && value > 0)
+            .map(([key, value]) => `${value}×${key.replace('cut', '')}cm`)
+            .join(', ');
+        console.log(`    ${varName}: ${pieces || 'vide'} (coût: ${varData.cost})`);
+        varCount++;
+    }
+
+    // Résoudre le modèle
+    try {
+        const solution = solver.Solve(model);
+        
+        console.log(`  🔍 Solution: feasible=${solution.feasible}, result=${solution.result}`);
+        
+        if (!solution.feasible) {
+            console.warn("  ⚠️ Contraintes exactes impossibles, tentative avec contraintes minimales...");
+            return solveWithMinConstraints(cuttingPatterns, requiredCuts);
+        }
+        
+        if (typeof solution.result !== 'number' || isNaN(solution.result)) {
+            throw new Error(`Solution invalide: ${solution.result}`);
+        }
+        
+        // Debug de la solution
+        console.log(`  🔍 Variables utilisées dans la solution:`);
         for (const [varName, value] of Object.entries(solution)) {
-            if (varName.startsWith('lambda_') && value > 0) {
-                // Extraire les indices k et j
-                const parts = varName.split('_');
-                const k = parseInt(parts[1]);
-                const j = parseInt(parts[2]);
+            if (varName.startsWith('stock') && value > 0) {
+                console.log(`    ${varName} = ${value}`);
+            }
+        }
+        
+        console.log(`  ✅ Solution optimale trouvée: coût ${solution.result}`);
+        
+        return { solution, model, patterns: cuttingPatterns };
+        
+    } catch (error) {
+        console.error("❌ Erreur lors de la résolution ILP:", error);
+        throw new Error(`Échec ILP: ${error.message}`);
+    }
+}
+
+/**
+ * Résout avec des contraintes minimales si les contraintes exactes échouent
+ */
+function solveWithMinConstraints(cuttingPatterns, requiredCuts) {
+    const constraints = {};
+    requiredCuts.forEach(({ size, count }) => {
+        constraints[`cut${size}`] = { min: count };
+    });
+
+    const model = {
+        optimize: "cost",
+        opType: "min",
+        variables: cuttingPatterns.variables,
+        ints: cuttingPatterns.ints,
+        constraints: constraints
+    };
+
+    console.log(`  🔧 Tentative avec contraintes minimales...`);
+    
+    const solution = solver.Solve(model);
+    
+    if (!solution.feasible) {
+        throw new Error("Problème ILP non faisable même avec contraintes minimales");
+    }
+    
+    console.log(`  ✅ Solution avec contraintes minimales trouvée: coût ${solution.result}`);
+    
+    return { solution, model, patterns: cuttingPatterns };
+}
+
+/**
+ * Convertit la solution ILP au format attendu par l'application
+ */
+function convertILPSolutionToResult(ilpSolution, cuttingPatterns, stockSizes, model) {
+    const { solution } = ilpSolution;
+    const usedBars = [];
+    let barId = 1;
+    let totalWaste = 0;
+
+    console.log("  🔄 Conversion de la solution ILP...");
+
+    // Parcourir les variables de la solution
+    for (const [varName, quantity] of Object.entries(solution)) {
+        if (varName.startsWith('stock') && quantity > 0) {
+            // Trouver le pattern correspondant
+            const pattern = cuttingPatterns.patterns.find(p => p.varName === varName);
+            
+            if (pattern) {
+                console.log(`    📦 ${varName}: ${quantity} barres`);
                 
-                if (j > 0 && patterns[k]) {
-                    // Ce pattern est utilisé j fois
-                    for (let i = 0; i < j; i++) {
-                        const pattern = patterns[k];
-                        usedBars.push({
-                            id: barId++,
-                            pieces: [...pattern.pieces],
-                            waste: pattern.waste || 0,
-                            originalLength: pattern.stockLength,
-                            cuts: [...pattern.pieces],
-                            remainingLength: pattern.waste || 0
-                        });
-                        wasteLength += pattern.waste || 0;
+                // Créer les barres utilisées
+                for (let i = 0; i < quantity; i++) {
+                    const cuts = [];
+                    
+                    // Reconstruire la liste des coupes à partir du pattern
+                    for (const [cutKey, cutCount] of Object.entries(pattern.cuts)) {
+                        if (cutKey.startsWith('cut') && cutCount > 0) {
+                            const cutSize = parseInt(cutKey.replace('cut', ''));
+                            for (let j = 0; j < cutCount; j++) {
+                                cuts.push(cutSize);
+                            }
+                        }
                     }
+                    
+                    const usedLength = cuts.reduce((sum, cut) => sum + cut, 0);
+                    const waste = pattern.stockSize - usedLength;
+                    
+                    usedBars.push({
+                        id: barId++,
+                        cuts: cuts,
+                        pieces: cuts, // Alias pour compatibilité
+                        waste: waste,
+                        remainingLength: waste,
+                        originalLength: pattern.stockSize,
+                        model: model
+                    });
+                    
+                    totalWaste += waste;
                 }
             }
         }
     }
+
+    // Calculer les pièces restantes (il ne devrait pas y en avoir avec ILP optimal)
+    const remainingPieces = [];
+
+    // Créer les layouts groupés
+    const layouts = createLayoutsFromBars(usedBars);
     
-    // Calculer les pièces restantes
-    const remainingPieces = calculateRemainingPieces(demandPieces, usedBars);
-    
-    // Créer les layouts
-    const layouts = createLayouts(usedBars);
-    
+    // Calculer les statistiques
+    const stats = calculateStats(usedBars, stockSizes);
+
+    console.log(`  📊 Résultat final: ${usedBars.length} barres, ${totalWaste}cm de chutes`);
+
     return {
         rawData: {
             usedBars,
-            wasteLength,
+            wasteLength: totalWaste,
             totalMotherBarsUsed: usedBars.length,
             remainingPieces,
-            motherBarLength: stockBars.length > 0 ? stockBars[0].length : 0
+            motherBarLength: stockSizes[0]?.size || 0
         },
-        layouts
+        layouts,
+        stats,
+        method: 'ILP_Optimized'
     };
 }
 
 /**
- * Calcule les pièces restantes
+ * Crée les layouts groupés à partir des barres utilisées
  */
-function calculateRemainingPieces(demandPieces, usedBars) {
-    const placedCounts = new Map();
-    
-    // Compter les pièces placées
-    for (const bar of usedBars) {
-        for (const pieceLength of bar.pieces) {
-            placedCounts.set(pieceLength, (placedCounts.get(pieceLength) || 0) + 1);
-        }
-    }
-    
-    // Calculer les pièces restantes
-    const remaining = [];
-    for (const piece of demandPieces) {
-        const placed = placedCounts.get(piece.length) || 0;
-        const remainingQty = piece.quantity - placed;
-        
-        if (remainingQty > 0) {
-            remaining.push({
-                length: piece.length,
-                quantity: remainingQty
-            });
-        }
-    }
-    
-    return remaining;
-}
-
-/**
- * Crée les layouts à partir des barres utilisées
- */
-function createLayouts(usedBars) {
+function createLayoutsFromBars(usedBars) {
     const layoutMap = new Map();
     
     for (const bar of usedBars) {
-        const key = bar.pieces.slice().sort((a, b) => b - a).join(',');
+        const sortedCuts = [...bar.cuts].sort((a, b) => b - a);
+        const key = sortedCuts.join(',') + '_' + bar.waste;
         
         if (layoutMap.has(key)) {
             layoutMap.get(key).count++;
         } else {
             layoutMap.set(key, {
                 count: 1,
-                pieces: bar.pieces.slice().sort((a, b) => b - a),
+                pieces: sortedCuts,
+                cuts: sortedCuts,
                 waste: bar.waste,
-                cuts: bar.pieces.slice().sort((a, b) => b - a),
                 remainingLength: bar.remainingLength,
-                originalLength: bar.originalLength
+                originalLength: bar.originalLength,
+                efficiency: ((bar.originalLength - bar.waste) / bar.originalLength * 100).toFixed(1)
             });
         }
     }
@@ -663,46 +432,44 @@ function createLayouts(usedBars) {
 }
 
 /**
+ * Calcule les statistiques du modèle
+ */
+function calculateStats(usedBars, stockSizes) {
+    let totalUsedLength = 0;
+    let totalBarsLength = 0;
+    
+    for (const bar of usedBars) {
+        totalUsedLength += bar.cuts.reduce((sum, piece) => sum + piece, 0);
+        totalBarsLength += bar.originalLength;
+    }
+    
+    return {
+        totalUsedLength,
+        totalBarsLength,
+        utilizationRate: totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3) : 0,
+        averageWastePerBar: usedBars.length > 0 ? (usedBars.reduce((sum, bar) => sum + bar.waste, 0) / usedBars.length).toFixed(1) : 0
+    };
+}
+
+/**
  * Calcule les statistiques globales
  */
 function calculateGlobalStatistics(results) {
-    let totalDemandLength = 0;
     let totalUsedLength = 0;
     let totalBarsLength = 0;
     
     for (const modelResult of Object.values(results)) {
-        if (modelResult.rawData && modelResult.rawData.usedBars) {
+        if (modelResult.rawData?.usedBars) {
             for (const bar of modelResult.rawData.usedBars) {
-                totalUsedLength += bar.pieces.reduce((sum, piece) => sum + piece, 0);
+                totalUsedLength += bar.cuts.reduce((sum, piece) => sum + piece, 0);
                 totalBarsLength += bar.originalLength;
             }
         }
     }
     
-    const utilizationRate = totalBarsLength > 0 
-        ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3)
-        : 0;
-    
     return {
-        totalDemandLength,
         totalUsedLength,
         totalBarsLength,
-        utilizationRate
-    };
-}
-
-/**
- * Algorithme glouton simple (fallback)
- */
-function solveWithSimpleGreedy(stockBars, demandPieces) {
-    return {
-        rawData: {
-            usedBars: [],
-            wasteLength: 0,
-            totalMotherBarsUsed: 0,
-            remainingPieces: demandPieces,
-            motherBarLength: stockBars.length > 0 ? stockBars[0].length : 0
-        },
-        layouts: []
+        utilizationRate: totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3) : 0
     };
 }
