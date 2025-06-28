@@ -107,7 +107,13 @@ function solveModelWithAdvancedILP(stockBars, demandPieces, model, progressCallb
     progressCallback({ step: `Résolution ILP pour ${model}`, percentage: 70 });
 
     // 3. Construire et résoudre le modèle ILP
-    const ilpSolution = solveAdvancedILPModel(cuttingPatterns, requiredCuts);
+    let ilpSolution = solveAdvancedILPModel(cuttingPatterns, requiredCuts);
+    
+    // CORRECTION: Vérifier la structure correcte de la solution
+    if (!ilpSolution || !ilpSolution.solution || !ilpSolution.solution.feasible) {
+        console.warn('❌ ILP: Aucune solution optimale trouvée avec contraintes exactes');
+        throw new Error("Aucune solution ILP trouvée");
+    }
     
     progressCallback({ step: `Finalisation pour ${model}`, percentage: 90 });
 
@@ -306,10 +312,10 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         
         console.log(`    ⏱️ Résolution terminée en ${elapsedTime}ms`);
         
+        // CORRECTION: La structure de retour du solver est différente
         if (!solution.feasible) {
-            console.warn("    ⚠️ Aucune solution faisable avec contraintes exactes, tentative avec contraintes minimales...");
-            // CORRECTION: Fallback avec contraintes min si equal échoue
-            return solveWithMinConstraints(cuttingPatterns, requiredCuts);
+            console.warn("    ⚠️ Aucune solution faisable trouvée");
+            return null;
         }
         
         if (typeof solution.result !== 'number' || isNaN(solution.result)) {
@@ -365,42 +371,17 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         }
         console.log(`    📦 Total: ${totalBars} barres utilisées`);
         
-        return { solution, model, patterns: cuttingPatterns };
+        // CORRECTION: Retourner l'objet solution directement, pas un wrapper
+        return { 
+            solution: solution,  // solution contient déjà feasible, result, etc.
+            model, 
+            patterns: cuttingPatterns 
+        };
         
     } catch (error) {
         console.error("    ❌ Erreur lors de la résolution ILP:", error);
         throw error;
     }
-}
-
-/**
- * CORRECTION: Fallback avec contraintes minimales si contraintes exactes échouent
- */
-function solveWithMinConstraints(cuttingPatterns, requiredCuts) {
-    console.log(`    🔄 Tentative avec contraintes minimales...`);
-    
-    const constraints = {};
-    requiredCuts.forEach(({ size, count }) => {
-        constraints[`cut${size}`] = { min: count };
-    });
-
-    const model = {
-        optimize: "cost",
-        opType: "min",
-        variables: cuttingPatterns.variables,
-        ints: cuttingPatterns.ints,
-        constraints: constraints
-    };
-
-    const solution = solver.Solve(model);
-    
-    if (!solution.feasible) {
-        throw new Error("Impossible de trouver une solution même avec contraintes minimales");
-    }
-    
-    console.log(`    ✅ Solution avec contraintes minimales trouvée: coût ${solution.result}`);
-    
-    return { solution, model, patterns: cuttingPatterns };
 }
 
 /**
@@ -454,7 +435,7 @@ function convertAdvancedILPSolutionToResult(ilpSolution, cuttingPatterns, stockS
         }
     }
 
-    // Calculer les pièces restantes (il ne devrait pas y en avoir avec ILP optimal)
+    // Calculer les pièces restantes (il ne devrait pas y avoir avec ILP optimal)
     const remainingPieces = [];
 
     // Créer les layouts groupés

@@ -15,9 +15,9 @@
                 <h1>CutOptimizer</h1>
                 <p class="tagline">Optimisation intelligente des découpes de profilés</p>
             </div>
-            <nav class="main-nav">
-                <button class="nav-btn active" data-section="data-section">Données</button>
-                <button class="nav-btn" data-section="result-section">Résultats</button>
+            <!-- Navigation supprimée de la page données -->
+            <nav class="main-nav" id="results-nav" style="display: none;">
+                <button class="nav-btn btn-edit-data" data-section="data-section">⬅︎ Éditer les Données</button>
             </nav>
         </header>
 
@@ -48,6 +48,7 @@
                             <table id="pieces-table" class="data-table">
                                 <thead>
                                     <tr>
+                                        <th>Nom</th>
                                         <th>Profil</th>
                                         <th>Orientation</th>
                                         <th>Longueur</th>
@@ -87,9 +88,12 @@
                     </div>
                 </div>
                 
-                <!-- Bouton de génération -->
+                <!-- Bouton de génération simplifié -->
                 <div class="optimization-actions">
-                    <button id="generate-cuts-btn" class="btn btn-success btn-lg">Générer les fichiers de découpe</button>
+                    <button id="generate-cuts-btn" class="btn btn-success btn-lg">
+                      <i class="icon-download"></i>
+                      Générer les fichiers de découpe
+                    </button>
                 </div>
             </section>
 
@@ -97,10 +101,6 @@
             <section id="result-section" class="content-section">
                 <div class="section-header">
                     <h2>Résultats d'optimisation</h2>
-                    <div class="section-actions">
-                        <button id="back-to-data-btn" class="btn btn-outline">Retour aux données</button>
-                        <button id="download-all-pgm" class="btn btn-primary">Télécharger tous les PGM</button>
-                    </div>
                 </div>
                 
                 <div id="results-container">
