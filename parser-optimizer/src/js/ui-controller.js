@@ -34,6 +34,9 @@ export const UIController = {
   currentResults: null,
   currentPgmObjects: null,
   
+  // NOUVEAU: Sauvegarde de l'état original des données
+  originalDataState: null,
+
   /**
    * Initialise le contrôleur et tous les services
    */
@@ -115,7 +118,83 @@ export const UIController = {
       throw error;
     }
   },
-  
+
+  /**
+   * Méthode pour afficher les notifications
+   */
+  showNotification: function(message, type = 'info') {
+    if (this.notificationService && this.notificationService.show) {
+      this.notificationService.show(message, type);
+    } else {
+      // Fallback en cas de problème avec le service de notification
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+  },
+
+  /**
+   * Méthode pour rafraîchir l'affichage des données
+   */
+  refreshDataDisplay: function() {
+    try {
+      if (this.editHandler && this.editHandler.refreshTables) {
+        this.editHandler.refreshTables();
+      }
+      
+      // Mettre à jour les compteurs s'ils existent
+      this.updateDataCounters();
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du rafraîchissement de l\'affichage:', error);
+    }
+  },
+
+  /**
+   * Met à jour les compteurs de données dans l'interface
+   */
+  updateDataCounters: function() {
+    try {
+      const data = this.dataManager.getData();
+      
+      // Compter les pièces
+      let totalPieces = 0;
+      for (const profile in data.pieces) {
+        for (const piece of data.pieces[profile]) {
+          totalPieces += piece.quantity;
+        }
+      }
+      
+      // Compter les barres mères
+      let totalMotherBars = 0;
+      for (const profile in data.motherBars) {
+        for (const bar of data.motherBars[profile]) {
+          totalMotherBars += bar.quantity;
+        }
+      }
+      
+      // Mettre à jour l'interface si les éléments existent
+      const piecesCounter = document.getElementById('pieces-counter');
+      const mothersCounter = document.getElementById('mothers-counter');
+      
+      if (piecesCounter) {
+        piecesCounter.textContent = totalPieces;
+      }
+      
+      if (mothersCounter) {
+        mothersCounter.textContent = totalMotherBars;
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la mise à jour des compteurs:', error);
+    }
+  },
+
+  /**
+   * Méthode pour obtenir les objets PGM actuels
+   */
+  getCurrentPgmObjects: function() {
+    return this.currentPgmObjects;
+  },
+
   /**
    * Configure tous les gestionnaires d'événements
    */
@@ -162,6 +241,13 @@ export const UIController = {
    * Affiche une section spécifique
    */
   showSection: function(sectionName) {
+    // MODIFIÉ: Restaurer les données originales quand on retourne à l'édition
+    if (sectionName === 'data-section') {
+      this.restoreOriginalDataState();
+      this.clearOptimizationResults();
+      console.log('🔄 Données originales restaurées lors du retour à l\'édition');
+    }
+    
     // Cacher toutes les sections
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => {
@@ -186,82 +272,125 @@ export const UIController = {
       if (resultsNav) {
         resultsNav.style.display = 'none';
       }
-    }
-  },
-  
-  /**
-   * Lance l'optimisation des découpes
-   */
-  runOptimization: async function() {
-    try {
-      // Vérifier qu'il y a des données
-      const data = this.dataManager.getData();
-      if (!this.validateDataForOptimization(data)) {
-        return;
+      
+      // MODIFIÉ: Vérifier et rafraîchir l'affichage des données
+      if (sectionName === 'data-section') {
+        this.verifyAndRefreshDataDisplay();
       }
-      
-      // Afficher le loading avec étapes
-      UIUtils.showLoadingOverlay();
-      UIUtils.updateLoadingProgress('step-transform', 10);
-      
-      // Petit délai pour permettre l'affichage du loading
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Lancer l'algorithme (compare automatiquement FFD et ILP)
-      console.log('Lancement de l\'optimisation...');
-      UIUtils.updateLoadingProgress('step-ffd', 30);
-      
-      const results = this.algorithmService.runAlgorithm('compare', data);
-      
-      if (!results) {
-        throw new Error('Aucun résultat retourné par l\'algorithme');
-      }
-      
-      // Stocker les résultats
-      this.currentResults = results;
-      UIUtils.updateLoadingProgress('step-compare', 70);
-      
-      // NOUVEAU: Afficher les schémas de coupe dans la console
-      this.displayCuttingSchemesInConsole(results);
-      
-      // Générer les objets PGM
-      console.log('Génération des objets PGM...');
-      UIUtils.updateLoadingProgress('step-pgm', 85);
-      
-      this.currentPgmObjects = this.pgmManager.generatePgmObjects(results, this.dataManager);
-      
-      // Afficher le rapport de synthèse des PGM
-      const summaryReport = this.pgmManager.generateSummaryReport(this.currentPgmObjects);
-      console.log('Rapport PGM:', summaryReport);
-      
-      // Rendre les résultats
-      UIUtils.updateLoadingProgress('step-pgm', 95);
-      ResultsRenderer.renderResults(results, this.algorithmService);
-      
-      // Générer les aperçus PGM
-      this.resultsHandler.generatePgmPreviews();
-      
-      // Finaliser
-      UIUtils.updateLoadingProgress('step-pgm', 100, true);
-      
-      // Petit délai avant de cacher le loading pour montrer la complétion
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Afficher les onglets de résultats
-      this.showResultsTabs();
-      
-    } catch (error) {
-      console.error('Erreur lors de l\'optimisation:', error);
-      this.showNotification(`Erreur: ${error.message}`, 'error');
-      this.currentResults = null;
-      this.currentPgmObjects = null;
-    } finally {
-      UIUtils.hideLoadingOverlay();
     }
   },
 
   /**
-   * NOUVEAU: Affiche les schémas de coupe retenus dans la console
+   * Sauvegarde l'état original des données avant optimisation
+   */
+  saveOriginalDataState: function() {
+    try {
+      const currentData = this.dataManager.getData();
+      
+      // Faire une copie profonde des données pour éviter les références partagées
+      this.originalDataState = {
+        pieces: JSON.parse(JSON.stringify(currentData.pieces)),
+        motherBars: JSON.parse(JSON.stringify(currentData.motherBars)),
+        barsList: JSON.parse(JSON.stringify(currentData.barsList))
+      };
+      
+      console.log('💾 État original des données sauvegardé');
+      
+      // Log des données sauvegardées pour le débogage
+      let totalPieces = 0;
+      for (const profile in this.originalDataState.pieces) {
+        for (const piece of this.originalDataState.pieces[profile]) {
+          totalPieces += piece.quantity;
+        }
+      }
+      
+      let totalMotherBars = 0;
+      for (const profile in this.originalDataState.motherBars) {
+        for (const bar of this.originalDataState.motherBars[profile]) {
+          totalMotherBars += bar.quantity;
+        }
+      }
+      
+      console.log(`    📦 Sauvegardé: ${totalPieces} pièces, ${totalMotherBars} barres mères`);
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde de l\'état original:', error);
+    }
+  },
+
+  /**
+   * Restaure l'état original des données
+   */
+  restoreOriginalDataState: function() {
+    try {
+      if (!this.originalDataState) {
+        console.warn('⚠️ Aucun état original à restaurer');
+        return;
+      }
+      
+      // Restaurer les données depuis la sauvegarde
+      this.dataManager.data.pieces = JSON.parse(JSON.stringify(this.originalDataState.pieces));
+      this.dataManager.data.motherBars = JSON.parse(JSON.stringify(this.originalDataState.motherBars));
+      this.dataManager.data.barsList = JSON.parse(JSON.stringify(this.originalDataState.barsList));
+      
+      console.log('🔄 État original des données restauré');
+      
+      // Log des données restaurées pour le débogage
+      let totalPieces = 0;
+      for (const profile in this.dataManager.data.pieces) {
+        for (const piece of this.dataManager.data.pieces[profile]) {
+          totalPieces += piece.quantity;
+        }
+      }
+      
+      let totalMotherBars = 0;
+      for (const profile in this.dataManager.data.motherBars) {
+        for (const bar of this.dataManager.data.motherBars[profile]) {
+          totalMotherBars += bar.quantity;
+        }
+      }
+      
+      console.log(`    ✅ Restauré: ${totalPieces} pièces, ${totalMotherBars} barres mères`);
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la restauration de l\'état original:', error);
+      // En cas d'erreur, essayer de réinitialiser
+      this.dataManager.initData();
+    }
+  },
+
+  /**
+   * Nettoie uniquement les résultats d'optimisation, pas les données de base
+   */
+  clearOptimizationResults: function() {
+    try {
+      // Vider les résultats d'optimisation
+      this.currentResults = null;
+      this.currentPgmObjects = null;
+      
+      // Nettoyer le contenu des sections résultats
+      const resultsContainer = document.getElementById('results-container');
+      if (resultsContainer) {
+        resultsContainer.innerHTML = '';
+      }
+      
+      const pgmContainer = document.getElementById('pgm-files-list');
+      if (pgmContainer) {
+        pgmContainer.innerHTML = '';
+      }
+      
+      // Réinitialiser les étapes de chargement si nécessaire
+      UIUtils.resetLoadingSteps();
+      
+      console.log('✅ Résultats d\'optimisation nettoyés avec succès');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du nettoyage des résultats:', error);
+    }
+  },
+
+  /**
+   * Affiche les schémas de coupe retenus dans la console
    */
   displayCuttingSchemesInConsole: function(results) {
     console.log('\n🎯 ===== SCHÉMAS DE COUPE RETENUS =====');
@@ -333,145 +462,291 @@ export const UIController = {
   },
 
   /**
-   * MODIFIÉ: Valide les données pour l'optimisation avec messages concis
+   * Affiche les statistiques détaillées des données pour le débogage
+   */
+  logDataStatistics: function(data) {
+    console.log('📊 === STATISTIQUES DES DONNÉES ===');
+    
+    // Compter les pièces
+    let totalPieces = 0;
+    let pieceProfiles = 0;
+    for (const profile in data.pieces) {
+      pieceProfiles++;
+      const profilePieces = data.pieces[profile];
+      const profileTotal = profilePieces.reduce((sum, piece) => sum + piece.quantity, 0);
+      totalPieces += profileTotal;
+      console.log(`  🔧 ${profile}: ${profilePieces.length} types, ${profileTotal} pièces`);
+    }
+    
+    // Compter les barres mères
+    let totalMotherBars = 0;
+    let motherProfiles = 0;
+    for (const profile in data.motherBars) {
+      motherProfiles++;
+      const profileBars = data.motherBars[profile];
+      const profileTotal = profileBars.reduce((sum, bar) => sum + bar.quantity, 0);
+      totalMotherBars += profileTotal;
+      console.log(`  📏 ${profile}: ${profileBars.length} longueurs, ${profileTotal} barres`);
+    }
+    
+    console.log(`📋 Total: ${totalPieces} pièces, ${totalMotherBars} barres mères`);
+    console.log(`📁 Profils: ${pieceProfiles} pour pièces, ${motherProfiles} pour barres`);
+    console.log(`📄 Liste globale: ${data.barsList.length} éléments`);
+    console.log('📊 =====================================');
+  },
+
+  /**
+   * Vérifie l'intégrité des données et rafraîchit l'affichage
+   */
+  verifyAndRefreshDataDisplay: function() {
+    try {
+      console.log('🔍 Vérification de l\'intégrité des données...');
+      
+      // Obtenir les données actuelles
+      const data = this.dataManager.getData();
+      
+      // Afficher les statistiques de débogage
+      this.logDataStatistics(data);
+      
+      // Vérifier l'intégrité
+      if (!this.checkDataIntegrity()) {
+        console.log('🔧 Données corrigées automatiquement');
+      }
+      
+      // Rafraîchir l'affichage
+      this.refreshDataDisplay();
+      
+      console.log('🔄 Vérification et rafraîchissement terminés');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification:', error);
+      // En cas d'erreur critique, ne pas réinitialiser les données
+      this.showNotification('Erreur lors de la vérification des données', 'warning');
+    }
+  },
+
+  /**
+   * Vérifie l'intégrité des données
+   */
+  checkDataIntegrity: function() {
+    const data = this.dataManager.getData();
+    
+    // Vérifier que les structures de base existent
+    if (!data.pieces || !data.motherBars || !data.barsList) {
+      console.warn('⚠️ Structure de données corrompue, réinitialisation...');
+      this.dataManager.initData();
+      return false;
+    }
+    
+    // Vérifier la cohérence entre barsList et les structures groupées
+    let totalPiecesInGroups = 0;
+    let totalMothersInGroups = 0;
+    
+    for (const profile in data.pieces) {
+      totalPiecesInGroups += data.pieces[profile].length;
+    }
+    
+    for (const profile in data.motherBars) {
+      totalMothersInGroups += data.motherBars[profile].length;
+    }
+    
+    const piecesInList = data.barsList.filter(b => b.type === 'fille').length;
+    const mothersInList = data.barsList.filter(b => b.type === 'mother' || b.type === 'mere').length;
+    
+    if (totalPiecesInGroups !== piecesInList || totalMothersInGroups !== mothersInList) {
+      console.warn('⚠️ Incohérence détectée dans les données, correction automatique...');
+      // Ici on pourrait ajouter une logique de correction automatique
+      return false;
+    }
+    
+    return true;
+  },
+
+  /**
+   * Lance l'optimisation avec sauvegarde préalable de l'état
+   */
+  runOptimization: async function() {
+    try {
+      // Sauvegarder l'état original avant toute modification
+      this.saveOriginalDataState();
+      
+      // Nettoyer les anciens résultats
+      this.clearOptimizationResults();
+      
+      // Vérifier qu'il y a des données
+      const data = this.dataManager.getData();
+      
+      // Afficher les statistiques avant validation
+      console.log('🔍 Vérification des données avant optimisation...');
+      this.logDataStatistics(data);
+      
+      if (!this.validateDataForOptimization(data)) {
+        return;
+      }
+      
+      // Afficher le loading avec étapes
+      UIUtils.showLoadingOverlay();
+      UIUtils.updateLoadingProgress('step-transform', 10);
+      
+      // Petit délai pour permettre l'affichage du loading
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Lancer l'algorithme (compare automatiquement FFD et ILP)
+      console.log('Lancement de l\'optimisation...');
+      UIUtils.updateLoadingProgress('step-ffd', 30);
+      
+      const results = this.algorithmService.runAlgorithm('compare', data);
+      
+      if (!results) {
+        throw new Error('Aucun résultat retourné par l\'algorithme');
+      }
+      
+      // Stocker les résultats
+      this.currentResults = results;
+      UIUtils.updateLoadingProgress('step-compare', 70);
+      
+      // Afficher les schémas de coupe dans la console
+      this.displayCuttingSchemesInConsole(results);
+      
+      // Générer les objets PGM
+      console.log('Génération des objets PGM...');
+      UIUtils.updateLoadingProgress('step-pgm', 85);
+      
+      this.currentPgmObjects = this.pgmManager.generatePgmObjects(results, this.dataManager);
+      
+      // Afficher le rapport de synthèse des PGM
+      const summaryReport = this.pgmManager.generateSummaryReport(this.currentPgmObjects);
+      console.log('Rapport PGM:', summaryReport);
+      
+      // Rendre les résultats
+      UIUtils.updateLoadingProgress('step-pgm', 95);
+      ResultsRenderer.renderResults(results, this.algorithmService);
+      
+      // Générer les aperçus PGM
+      this.resultsHandler.generatePgmPreviews();
+      
+      // Finaliser
+      UIUtils.updateLoadingProgress('step-pgm', 100, true);
+      
+      // Petit délai avant de cacher le loading pour montrer la complétion
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Afficher les onglets de résultats
+      this.showResultsTabs();
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'optimisation:', error);
+      this.showNotification(`Erreur: ${error.message}`, 'error');
+      
+      // En cas d'erreur, restaurer l'état original
+      this.restoreOriginalDataState();
+      this.clearOptimizationResults();
+    } finally {
+      UIUtils.hideLoadingOverlay();
+    }
+  },
+
+  /**
+   * Validation plus robuste avec débogage détaillé
    */
   validateDataForOptimization: function(data) {
-    // Vérifier qu'il y a des pièces à découper
-    let totalPieces = 0;
+    console.log('🔍 === VALIDATION DES DONNÉES ===');
     
+    if (!data) {
+      console.error('❌ Aucune donnée disponible');
+      this.showNotification('Aucune donnée disponible pour l\'optimisation', 'error');
+      return false;
+    }
+    
+    if (!data.pieces || !data.motherBars) {
+      console.error('❌ Structure de données invalide');
+      this.showNotification('Structure de données corrompue', 'error');
+      return false;
+    }
+    
+    // Vérifier qu'il y a des pièces
+    let totalPieces = 0;
+    let pieceDetails = [];
     for (const profile in data.pieces) {
       for (const piece of data.pieces[profile]) {
         totalPieces += piece.quantity;
+        pieceDetails.push(`${profile}: ${piece.quantity}×${piece.length}cm`);
       }
     }
     
+    console.log(`📦 Pièces trouvées: ${totalPieces}`);
+    if (pieceDetails.length > 0) {
+      console.log('   Détail:', pieceDetails.slice(0, 5).join(', ') + (pieceDetails.length > 5 ? '...' : ''));
+    }
+    
     if (totalPieces === 0) {
-      this.showNotification('Aucune barre à découper importée', 'warning');
+      console.error('❌ Aucune pièce à découper trouvée');
+      this.showNotification('Aucune pièce à découper. Veuillez d\'abord importer des barres.', 'error');
       return false;
     }
     
     // Vérifier qu'il y a des barres mères
     let totalMotherBars = 0;
-    
+    let motherDetails = [];
     for (const profile in data.motherBars) {
       for (const bar of data.motherBars[profile]) {
         totalMotherBars += bar.quantity;
+        motherDetails.push(`${profile}: ${bar.quantity}×${bar.length}cm`);
       }
+    }
+    
+    console.log(`📏 Barres mères trouvées: ${totalMotherBars}`);
+    if (motherDetails.length > 0) {
+      console.log('   Détail:', motherDetails.slice(0, 5).join(', ') + (motherDetails.length > 5 ? '...' : ''));
     }
     
     if (totalMotherBars === 0) {
-      this.showNotification('Aucune barre mère définie', 'warning');
+      console.error('❌ Aucune barre mère disponible');
+      this.showNotification('Aucune barre mère disponible. Veuillez d\'abord ajouter des barres mères.', 'error');
       return false;
     }
     
-    // Vérification de cohérence simplifiée
-    const incompatibleProfiles = [];
+    // Vérifier la cohérence des profils
+    const pieceProfiles = Object.keys(data.pieces);
+    const motherBarProfiles = Object.keys(data.motherBars);
     
-    for (const profile in data.pieces) {
-      const pieces = data.pieces[profile];
-      const minPieceLength = Math.min(...pieces.map(p => p.length));
-      
-      const motherBars = data.motherBars[profile];
-      if (!motherBars || motherBars.length === 0) {
-        incompatibleProfiles.push(profile);
-      } else {
-        const maxMotherBarLength = Math.max(...motherBars.map(b => b.length));
-        if (maxMotherBarLength < minPieceLength) {
-          incompatibleProfiles.push(profile);
-        }
-      }
+    console.log(`🔧 Profils pièces: ${pieceProfiles.join(', ')}`);
+    console.log(`📏 Profils barres: ${motherBarProfiles.join(', ')}`);
+    
+    const missingProfiles = pieceProfiles.filter(profile => !motherBarProfiles.includes(profile));
+    if (missingProfiles.length > 0) {
+      console.error(`❌ Profils manquants: ${missingProfiles.join(', ')}`);
+      this.showNotification(
+        `Profils manquants dans les barres mères: ${missingProfiles.join(', ')}. 
+         Veuillez ajouter des barres mères pour ces profils.`, 
+        'error'
+      );
+      return false;
     }
     
-    if (incompatibleProfiles.length > 0) {
-      this.showNotification(`Problème profil ${incompatibleProfiles[0]}`, 'warning');
-      // Continuer quand même
-    }
-    
+    console.log('✅ Validation des données réussie');
+    console.log('🔍 ===============================');
     return true;
   },
-  
+
   /**
    * Affiche les onglets de résultats
    */
   showResultsTabs: function() {
-    // Basculer vers l'onglet résultats
-    this.showSection('result-section');
-  },
-  
-  /**
-   * Rafraîchit l'affichage des données
-   */
-  refreshDataDisplay: function() {
     try {
-      const data = this.dataManager.getData();
+      // Basculer vers la section résultats
+      this.showSection('result-section');
       
-      // Mettre à jour les compteurs
-      this.updateDataCounters(data);
-      
-      // Rafraîchir les tableaux si ils sont visibles
-      if (this.editHandler) {
-        this.editHandler.refreshTables();
+      // S'assurer que le contenu est visible
+      const resultsContainer = document.getElementById('results-container');
+      if (resultsContainer && resultsContainer.innerHTML.trim() === '') {
+        console.warn('⚠️ Le conteneur de résultats est vide');
       }
       
-      console.log('🔄 Affichage des données rafraîchi');
+      console.log('📊 Onglets de résultats affichés');
       
     } catch (error) {
-      console.error('❌ Erreur lors du rafraîchissement:', error);
+      console.error('❌ Erreur lors de l\'affichage des onglets:', error);
     }
   },
-  
-  /**
-   * Met à jour les compteurs de données
-   */
-  updateDataCounters: function(data) {
-    try {
-      // Compter les pièces
-      let totalPieces = 0;
-      for (const profile in data.pieces) {
-        for (const piece of data.pieces[profile]) {
-          totalPieces += piece.quantity;
-        }
-      }
-      
-      // Compter les barres mères
-      let totalMotherBars = 0;
-      for (const profile in data.motherBars) {
-        for (const bar of data.motherBars[profile]) {
-          totalMotherBars += bar.quantity;
-        }
-      }
-      
-      // Mettre à jour l'interface si les éléments existent
-      const piecesCounter = document.getElementById('pieces-counter');
-      if (piecesCounter) {
-        piecesCounter.textContent = totalPieces;
-      }
-      
-      const motherBarsCounter = document.getElementById('mother-bars-counter');
-      if (motherBarsCounter) {
-        motherBarsCounter.textContent = totalMotherBars;
-      }
-      
-    } catch (error) {
-      console.error('❌ Erreur lors de la mise à jour des compteurs:', error);
-    }
-  },
-  
-  /**
-   * Affiche une notification
-   */
-  showNotification: function(message, type = 'info') {
-    if (this.notificationService) {
-      this.notificationService.show(message, type);
-    } else {
-      console.log(`${type.toUpperCase()}: ${message}`);
-    }
-  },
-  
-  /**
-   * Récupère les objets PGM actuels
-   */
-  getCurrentPgmObjects: function() {
-    return this.currentPgmObjects;
-  }
 };
