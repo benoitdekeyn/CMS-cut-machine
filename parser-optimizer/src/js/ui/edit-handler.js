@@ -5,7 +5,7 @@ export const EditHandler = {
   // Dépendances
   dataManager: null,
   showNotification: null,
-  refreshDataDisplay: null, // AJOUTER cette propriété
+  refreshDataDisplay: null,
   
   // État interne
   editingId: null,
@@ -25,7 +25,7 @@ export const EditHandler = {
   init: function(options) {
     this.dataManager = options.dataManager;
     this.showNotification = options.showNotification;
-    this.refreshDataDisplay = options.refreshDataDisplay; // AJOUTER cette ligne
+    this.refreshDataDisplay = options.refreshDataDisplay;
     
     // Appliquer les options de verrouillage si fournies
     if (options.lockOptions) {
@@ -38,7 +38,72 @@ export const EditHandler = {
   },
   
   /**
-   * AJOUTER : Méthode pour rafraîchir les tableaux
+   * NOUVEAU: Convertit des centimètres en mètres pour l'affichage
+   */
+  formatLengthForDisplay: function(lengthInCm) {
+    const meters = lengthInCm / 100;
+    // Afficher avec le minimum de décimales nécessaires, virgule comme séparateur
+    return meters % 1 === 0 ? meters.toString() : meters.toString().replace('.', ',');
+  },
+  
+  /**
+   * NOUVEAU: Convertit une valeur en mètres (avec virgule ou point) vers des centimètres
+   */
+  parseLengthFromDisplay: function(displayValue) {
+    if (!displayValue || displayValue.trim() === '') return null;
+    
+    // Remplacer la virgule par un point pour la conversion
+    const normalizedValue = displayValue.replace(',', '.');
+    const meters = parseFloat(normalizedValue);
+    
+    if (isNaN(meters) || meters <= 0) return null;
+    
+    // Convertir en centimètres et arrondir
+    return Math.round(meters * 100);
+  },
+  
+  /**
+   * NOUVEAU: Configure les gestionnaires d'événements pour les champs de longueur
+   */
+  setupLengthInputHandlers: function(inputElement) {
+    // Gérer la touche Entrée
+    inputElement.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.saveItem();
+      }
+    });
+    
+    // Formatage automatique lors de la perte de focus
+    inputElement.addEventListener('blur', (e) => {
+      const value = e.target.value.trim();
+      if (value !== '') {
+        const parsed = this.parseLengthFromDisplay(value);
+        if (parsed !== null) {
+          e.target.value = this.formatLengthForDisplay(parsed);
+        }
+      }
+    });
+  },
+  
+  /**
+   * NOUVEAU: Configure les gestionnaires pour tous les champs du formulaire
+   */
+  setupFormKeyHandlers: function() {
+    const form = document.querySelector('.panel-form');
+    if (form) {
+      // Ajouter un gestionnaire pour la touche Entrée sur tous les champs
+      form.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          this.saveItem();
+        }
+      });
+    }
+  },
+  
+  /**
+   * Méthode pour rafraîchir les tableaux
    */
   refreshTables: function() {
     this.renderSection();
@@ -192,7 +257,7 @@ export const EditHandler = {
   },
   
   /**
-   * Rend le tableau des barres mères avec tri automatique (sans colonne nom)
+   * Rend le tableau des barres mères avec tri automatique et longueurs en mètres
    */
   renderStockBarsTable: function() {
     const tableContainer = document.querySelector('#stock-bars-table');
@@ -207,7 +272,7 @@ export const EditHandler = {
     // Trier les barres selon l'ordre défini (profil puis longueur pour les barres mères)
     const sortedBars = this.sortBars(allMotherBars);
     
-    // Générer l'en-tête du tableau (sans colonne nom)
+    // Générer l'en-tête du tableau
     let html = `
       <table class="data-table">
         <thead>
@@ -221,12 +286,13 @@ export const EditHandler = {
         <tbody>
     `;
     
-    // Générer les lignes du tableau (sans colonne nom)
+    // Générer les lignes du tableau avec longueurs en mètres
     for (const bar of sortedBars) {
+      const lengthInMeters = this.formatLengthForDisplay(bar.length);
       html += `
         <tr data-id="${bar.id}">
           <td>${bar.profile}</td>
-          <td>${Math.round(bar.length)} cm</td>
+          <td>${lengthInMeters} m</td>
           <td>${bar.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-stock-btn" 
@@ -437,13 +503,16 @@ export const EditHandler = {
       });
     }
     
+    // Configurer les gestionnaires d'événements pour les formulaires
+    this.setupFormKeyHandlers();
+    
     // Afficher le panneau et l'overlay
     panel.classList.add('visible');
     overlay.classList.add('visible');
   },
   
   /**
-   * Ouvre le panneau des barres mères (édition ou création) - sans champ nom
+   * Ouvre le panneau des barres mères (édition ou création) avec longueurs en mètres
    * @param {string} mode - Mode du panneau ('edit' ou 'create')
    * @param {string} id - ID de la barre à éditer (seulement en mode 'edit')
    */
@@ -466,7 +535,10 @@ export const EditHandler = {
       
       title.textContent = `Éditer la barre mère ${item.profile}`;
       
-      // Générer le formulaire d'édition (sans champ nom)
+      // Convertir la longueur en mètres pour l'affichage
+      const lengthInMeters = this.formatLengthForDisplay(item.length);
+      
+      // Générer le formulaire d'édition
       form.innerHTML = `
         <div class="form-group">
           <label for="stock-profile">Profil :</label>
@@ -475,8 +547,8 @@ export const EditHandler = {
           </select>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur (cm) :</label>
-          <input type="number" id="stock-length" min="1" step="1" value="${Math.round(item.length)}">
+          <label for="stock-length">Longueur (m) :</label>
+          <input type="text" id="stock-length" value="${lengthInMeters}" placeholder="ex : 12 ou 3,5">
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -484,7 +556,7 @@ export const EditHandler = {
         </div>
       `;
     } else {
-      // Mode création (sans champ nom)
+      // Mode création
       title.textContent = 'Nouvelle barre mère';
       
       form.innerHTML = `
@@ -495,8 +567,8 @@ export const EditHandler = {
           </select>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur (cm) :</label>
-          <input type="number" id="stock-length" min="1" step="1">
+          <label for="stock-length">Longueur (m) :</label>
+          <input type="text" id="stock-length" placeholder="ex : 12 ou 3,5">
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -504,6 +576,15 @@ export const EditHandler = {
         </div>
       `;
     }
+    
+    // Configurer les gestionnaires spéciaux pour le champ de longueur
+    const lengthInput = document.getElementById('stock-length');
+    if (lengthInput) {
+      this.setupLengthInputHandlers(lengthInput);
+    }
+    
+    // Configurer les gestionnaires d'événements pour les formulaires
+    this.setupFormKeyHandlers();
     
     // Afficher le panneau et l'overlay
     panel.classList.add('visible');
@@ -577,30 +658,24 @@ export const EditHandler = {
           }
           
           const updatedPiece = {
-            nom: nom || undefined,
+            nom,
             profile: profileValue,
             length,
             quantity,
             orientation,
-            angles: {
-              1: angle1,
-              2: angle2
-            }
+            angles: { 1: angle1, 2: angle2 }
           };
           
           success = this.dataManager.updatePiece(id, updatedPiece);
         } else {
           const pieceData = {
-            nom: nom || undefined,
+            nom,
             profile: profileValue,
             length,
             quantity,
-            type: 'fille',
             orientation,
-            angles: {
-              1: angle1,
-              2: angle2
-            }
+            angles: { 1: angle1, 2: angle2 },
+            type: 'fille'
           };
           
           if (this.dataManager.addBars([pieceData]).length > 0) {
@@ -617,7 +692,7 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
-          // AJOUTER : Rafraîchir l'affichage global
+          // Rafraîchir l'affichage global
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
@@ -629,10 +704,13 @@ export const EditHandler = {
       }
     } else if (type === 'stock') {
       const profileValue = document.getElementById('stock-profile').value;
-      const length = Math.round(parseFloat(document.getElementById('stock-length').value));
+      const lengthInput = document.getElementById('stock-length').value.trim();
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
-      if (profileValue && length && quantity) {
+      // Convertir la longueur de mètres vers centimètres
+      const lengthInCm = this.parseLengthFromDisplay(lengthInput);
+      
+      if (profileValue && lengthInCm && quantity) {
         if (mode === 'edit') {
           const bar = this.dataManager.getMotherBarById(id);
           
@@ -642,7 +720,7 @@ export const EditHandler = {
           
           const updatedMotherBar = {
             profile: profileValue,
-            length,
+            length: lengthInCm,
             quantity
           };
           
@@ -650,7 +728,7 @@ export const EditHandler = {
         } else {
           const barData = {
             profile: profileValue,
-            length,
+            length: lengthInCm,
             quantity,
             type: 'mother'
           };
@@ -669,7 +747,7 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
-          // AJOUTER : Rafraîchir l'affichage global
+          // Rafraîchir l'affichage global
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
@@ -678,13 +756,19 @@ export const EditHandler = {
           const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
           this.showNotification(`Barre mère ${action} avec succès`, 'success');
         }
+      } else {
+        // Afficher une erreur si la conversion de longueur a échoué
+        if (!lengthInCm) {
+          this.showNotification('Longueur invalide. Utilisez le format "12" ou "3,5"', 'error');
+          return;
+        }
       }
     }
     
     if (success) {
       this.closePanel();
     } else {
-      this.showNotification('Veuillez remplir correctement tous les champs', 'warning');
+      this.showNotification('Erreur lors de l\'enregistrement', 'error');
     }
   },
   
@@ -702,13 +786,8 @@ export const EditHandler = {
     // Mettre à jour la liste des profils dans le panneau d'ajout/édition de barre fille
     const pieceProfileSelect = document.getElementById('piece-profile-select');
     if (pieceProfileSelect) {
-      const customOption = pieceProfileSelect.querySelector('option[value="custom"]');
-      const currentValue = pieceProfileSelect.value !== 'custom' ? pieceProfileSelect.value : '';
-      
-      // Sauvegarder l'option "Saisie personnalisée"
-      const customHtml = customOption ? customOption.outerHTML : '<option value="custom">Saisie personnalisée</option>';
-      
-      pieceProfileSelect.innerHTML = customHtml + this.getProfileOptions(currentValue);
+      const currentValue = pieceProfileSelect.value;
+      pieceProfileSelect.innerHTML = '<option value="custom">Saisie personnalisée</option>' + this.getProfileOptions(currentValue);
     }
   },
   
@@ -733,7 +812,8 @@ export const EditHandler = {
     // Générer les options HTML
     let optionsHtml = '';
     for (const profile of profiles) {
-      optionsHtml += `<option value="${profile}" ${profile === currentValue ? 'selected' : ''}>${profile}</option>`;
+      const selected = profile === currentValue ? 'selected' : '';
+      optionsHtml += `<option value="${profile}" ${selected}>${profile}</option>`;
     }
     
     return optionsHtml;
@@ -751,10 +831,8 @@ export const EditHandler = {
       const overlay = document.createElement('div');
       overlay.id = 'panel-overlay';
       overlay.className = 'panel-overlay';
-      document.body.appendChild(overlay);
-      
-      // Fermer le panneau quand on clique sur l'overlay
       overlay.addEventListener('click', () => this.closePanel());
+      document.body.appendChild(overlay);
     }
     
     // Créer le panneau
@@ -796,10 +874,8 @@ export const EditHandler = {
       const overlay = document.createElement('div');
       overlay.id = 'panel-overlay';
       overlay.className = 'panel-overlay';
-      document.body.appendChild(overlay);
-      
-      // Fermer le panneau quand on clique sur l'overlay
       overlay.addEventListener('click', () => this.closePanel());
+      document.body.appendChild(overlay);
     }
     
     // Créer le panneau

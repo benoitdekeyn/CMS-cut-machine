@@ -204,6 +204,21 @@
   border-color: transparent;
 }
 
+/* NOUVEAU: Style spécial pour les champs de longueur avec placeholder */
+.form-group input[placeholder*="ex :"] {
+  color: var(--text-primary);
+}
+
+.form-group input[placeholder*="ex :"]:placeholder-shown {
+  color: var(--text-tertiary);
+}
+
+.form-group input[placeholder*="ex :"]::placeholder {
+  color: rgba(148, 163, 184, 0.6); /* Gris semi-transparent */
+  font-style: italic;
+  opacity: 1;
+}
+
 /* Styles pour les champs verrouillés */
 .form-group input[disabled] {
   background-color: #f5f5f5;
