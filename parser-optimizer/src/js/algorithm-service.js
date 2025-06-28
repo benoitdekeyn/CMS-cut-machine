@@ -561,5 +561,22 @@ export const AlgorithmService = {
       wasteLength: totalModelWasteLength,
       efficiency: modelEfficiency
     };
-  }
+  },
+  
+  /**
+   * Exécute FFD pour un modèle donné (asynchrone pour l'UI)
+   */
+  runFFDAlgorithmForModel: async function(modelKey, modelData) {
+    // Simule un calcul asynchrone pour l'affichage (remplace par le vrai algo si besoin)
+    await new Promise(resolve => setTimeout(resolve, 300));
+    // Ici, tu peux appeler le vrai algo sur modelData.pieces[modelKey] et modelData.motherBars[modelKey]
+  },
+
+  /**
+   * Exécute ILP pour un modèle donné (asynchrone pour l'UI)
+   */
+  runILPAlgorithmForModel: async function(modelKey, modelData) {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    // Ici, tu peux appeler le vrai algo sur modelData.pieces[modelKey] et modelData.motherBars[modelKey]
+  },
 };

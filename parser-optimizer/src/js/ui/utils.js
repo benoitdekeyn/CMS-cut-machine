@@ -107,5 +107,36 @@ export const UIUtils = {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
+  },
+  
+  /**
+   * Affiche le texte de l'étape courante dans le loading overlay (mode dynamique)
+   * @param {string} stepText - Texte à afficher (ex: "ILP pour le modèle 2/3")
+   */
+  setLoadingStepText: function(stepText) {
+    const subtitle = document.querySelector('#loading-overlay .loading-subtitle');
+    if (subtitle) {
+      subtitle.textContent = stepText;
+    }
+  },
+
+  /**
+   * Cache la barre de progression et les étapes (mode dynamique)
+   */
+  hideLoadingProgressBar: function() {
+    const progress = document.querySelector('#loading-overlay .loading-progress');
+    const steps = document.querySelector('#loading-overlay .loading-steps');
+    if (progress) progress.style.display = 'none';
+    if (steps) steps.style.display = 'none';
+  },
+
+  /**
+   * Réaffiche la barre de progression et les étapes (pour la fin ou le reset)
+   */
+  showLoadingProgressBar: function() {
+    const progress = document.querySelector('#loading-overlay .loading-progress');
+    const steps = document.querySelector('#loading-overlay .loading-steps');
+    if (progress) progress.style.display = '';
+    if (steps) steps.style.display = '';
+  },
 };

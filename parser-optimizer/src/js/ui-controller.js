@@ -3,7 +3,7 @@ import { AlgorithmService } from './algorithm-service.js';
 import { ImportManager } from './import-manager.js';
 import { PgmGenerator } from './pgm-generator.js';
 import { PgmManager } from './pgm-manager.js';
-import { ResultsRenderer } from './results-renderer.js';
+import { ResultsRenderer } from './results-renderer.js'; // Assure-toi que l'import existe
 
 // Importer les gestionnaires UI
 import { ImportHandler } from './ui/import-handler.js';
@@ -563,82 +563,120 @@ export const UIController = {
   },
 
   /**
-   * Lance l'optimisation avec sauvegarde préalable de l'état
+   * Lance l'optimisation avec étapes dynamiques et progression par modèle
    */
   runOptimization: async function() {
     try {
-      // Sauvegarder l'état original avant toute modification
       this.saveOriginalDataState();
-      
-      // Nettoyer les anciens résultats
       this.clearOptimizationResults();
-      
-      // Vérifier qu'il y a des données
+
       const data = this.dataManager.getData();
-      
-      // Afficher les statistiques avant validation
       console.log('🔍 Vérification des données avant optimisation...');
       this.logDataStatistics(data);
-      
+
       if (!this.validateDataForOptimization(data)) {
         return;
       }
-      
-      // Afficher le loading avec étapes
+
       UIUtils.showLoadingOverlay();
-      UIUtils.updateLoadingProgress('step-transform', 10);
-      
-      // Petit délai pour permettre l'affichage du loading
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Lancer l'algorithme (compare automatiquement FFD et ILP)
-      console.log('Lancement de l\'optimisation...');
-      UIUtils.updateLoadingProgress('step-ffd', 30);
-      
-      const results = this.algorithmService.runAlgorithm('compare', data);
-      
-      if (!results) {
-        throw new Error('Aucun résultat retourné par l\'algorithme');
+      // Cache la barre de progression mais garde les étapes visibles
+      const progress = document.querySelector('#loading-overlay .loading-progress');
+      if (progress) progress.style.display = 'none';
+      const steps = document.querySelector('#loading-overlay .loading-steps');
+      if (steps) steps.style.display = '';
+
+      // Récupère les modèles à traiter
+      const modelData = this.algorithmService.transformDataToModels(data);
+      const modelKeys = Object.keys(modelData.pieces);
+      const totalModels = modelKeys.length;
+
+      // === 1. Générer dynamiquement les étapes dans le DOM ===
+      const stepsContainer = document.querySelector('#loading-overlay .loading-steps');
+      if (stepsContainer) {
+        stepsContainer.innerHTML = '';
+        // Étape 1 : Transformation
+        stepsContainer.appendChild(createStepDiv('step-transform', '1', 'Transformation des données'));
+        // Étapes dynamiques FFD/ILP
+        let stepNum = 2;
+        for (let i = 0; i < totalModels; i++) {
+          const modelKey = modelKeys[i];
+          const modelLabel = ResultsRenderer.formatModelName(modelKey);
+          stepsContainer.appendChild(
+            createStepDiv(`step-ffd-${i}`, stepNum++, `FFD modèle ${i + 1}/${totalModels} <span style="opacity:.7;">${modelLabel}</span>`)
+          );
+          stepsContainer.appendChild(
+            createStepDiv(`step-ilp-${i}`, stepNum++, `ILP modèle ${i + 1}/${totalModels} <span style="opacity:.7;">${modelLabel}</span>`)
+          );
+        }
+        // Étape comparaison
+        stepsContainer.appendChild(createStepDiv('step-compare', stepNum++, 'Comparaison et sélection'));
+        // Étape PGM
+        stepsContainer.appendChild(createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM'));
       }
-      
-      // Stocker les résultats
+
+      function createStepDiv(id, icon, label) {
+        const div = document.createElement('div');
+        div.className = 'loading-step';
+        div.id = id;
+        div.innerHTML = `<div class="step-icon">${icon}</div><span>${label}</span>`;
+        return div;
+      }
+
+      // === 2. Animation des étapes ===
+
+      // 1. Transformation des données
+      const stepTransform = document.getElementById('step-transform');
+      if (stepTransform) stepTransform.classList.add('active');
+      await new Promise(resolve => setTimeout(resolve, 400));
+      if (stepTransform) stepTransform.classList.remove('active'), stepTransform.classList.add('completed');
+
+      // 2. FFD et ILP pour chaque modèle
+      for (let i = 0; i < totalModels; i++) {
+        const modelKey = modelKeys[i];
+        const modelLabel = ResultsRenderer.formatModelName(modelKey);
+
+        // FFD
+        const stepFfd = document.getElementById(`step-ffd-${i}`);
+        if (stepFfd) stepFfd.classList.add('active');
+        await this.algorithmService.runFFDAlgorithmForModel(modelKey, modelData);
+        if (stepFfd) stepFfd.classList.remove('active'), stepFfd.classList.add('completed');
+
+        // ILP
+        const stepIlp = document.getElementById(`step-ilp-${i}`);
+        if (stepIlp) stepIlp.classList.add('active');
+        await this.algorithmService.runILPAlgorithmForModel(modelKey, modelData);
+        if (stepIlp) stepIlp.classList.remove('active'), stepIlp.classList.add('completed');
+      }
+
+      // 3. Comparaison et sélection
+      const stepCompare = document.getElementById('step-compare');
+      if (stepCompare) stepCompare.classList.add('active');
+      const results = this.algorithmService.compareAlgorithms(data);
+      if (stepCompare) stepCompare.classList.remove('active'), stepCompare.classList.add('completed');
+
+      if (!results) throw new Error('Aucun résultat retourné par l\'algorithme');
       this.currentResults = results;
-      UIUtils.updateLoadingProgress('step-compare', 70);
-      
-      // Afficher les schémas de coupe dans la console
-      this.displayCuttingSchemesInConsole(results);
-      
-      // Générer les objets PGM
-      console.log('Génération des objets PGM...');
-      UIUtils.updateLoadingProgress('step-pgm', 85);
-      
+
+      // 4. Génération des fichiers PGM
+      const stepPgm = document.getElementById('step-pgm');
+      if (stepPgm) stepPgm.classList.add('active');
       this.currentPgmObjects = this.pgmManager.generatePgmObjects(results);
-      
-      // Rendre les résultats
-      UIUtils.updateLoadingProgress('step-pgm', 95);
       ResultsRenderer.renderResults(results, this.algorithmService);
-      
-      // Générer les aperçus PGM
       this.resultsHandler.generatePgmPreviews();
-      
-      // Finaliser
-      UIUtils.updateLoadingProgress('step-pgm', 100, true);
-      
-      // Petit délai avant de cacher le loading pour montrer la complétion
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Afficher les onglets de résultats
+      if (stepPgm) stepPgm.classList.remove('active'), stepPgm.classList.add('completed');
+
+      // Fin
+      await new Promise(resolve => setTimeout(resolve, 800));
       this.showResultsTabs();
-      
+
     } catch (error) {
       console.error('Erreur lors de l\'optimisation:', error);
       this.showNotification(`Erreur: ${error.message}`, 'error');
-      
-      // En cas d'erreur, restaurer l'état original
       this.restoreOriginalDataState();
       this.clearOptimizationResults();
     } finally {
       UIUtils.hideLoadingOverlay();
+      UIUtils.showLoadingProgressBar();
     }
   },
 
