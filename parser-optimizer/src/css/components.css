@@ -771,3 +771,67 @@
     justify-content: center;
   }
 }
+
+/* AJOUT: Styles pour les notifications */
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.notification {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px;
+  pointer-events: auto;
+  transform: translateX(100%);
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.notification.notification-success {
+  border-left: 4px solid #10b981;
+}
+
+.notification.notification-warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.notification.notification-error {
+  border-left: 4px solid #ef4444;
+}
+
+.notification.notification-info {
+  border-left: 4px solid #3b82f6;
+}
+
+/* Amélioration de l'aide contextuelle dans les formulaires */
+.form-help {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.form-group input:focus + .form-help,
+.form-group select:focus + .form-help {
+  color: var(--primary);
+}
+
+/* Style pour les messages d'erreur de validation dans les champs */
+.form-group.error input,
+.form-group.error select {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+.form-group.error .form-help {
+  color: var(--danger);
+  font-weight: 500;
+}

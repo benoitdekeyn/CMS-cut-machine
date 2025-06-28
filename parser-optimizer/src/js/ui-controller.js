@@ -241,17 +241,58 @@ export const UIController = {
   },
   
   /**
-   * Valide les données pour l'optimisation
+   * MODIFIÉ: Valide les données pour l'optimisation avec messages concis
    */
   validateDataForOptimization: function(data) {
-    if (!data.pieces || Object.keys(data.pieces).length === 0) {
-      this.showNotification('Aucune pièce à découper n\'a été importée', 'warning');
+    // Vérifier qu'il y a des pièces à découper
+    let totalPieces = 0;
+    
+    for (const profile in data.pieces) {
+      for (const piece of data.pieces[profile]) {
+        totalPieces += piece.quantity;
+      }
+    }
+    
+    if (totalPieces === 0) {
+      this.showNotification('Aucune barre à découper importée', 'warning');
       return false;
     }
     
-    if (!data.motherBars || Object.keys(data.motherBars).length === 0) {
-      this.showNotification('Aucune barre mère n\'a été définie', 'warning');
+    // Vérifier qu'il y a des barres mères
+    let totalMotherBars = 0;
+    
+    for (const profile in data.motherBars) {
+      for (const bar of data.motherBars[profile]) {
+        totalMotherBars += bar.quantity;
+      }
+    }
+    
+    if (totalMotherBars === 0) {
+      this.showNotification('Aucune barre mère définie', 'warning');
       return false;
+    }
+    
+    // Vérification de cohérence simplifiée
+    const incompatibleProfiles = [];
+    
+    for (const profile in data.pieces) {
+      const pieces = data.pieces[profile];
+      const minPieceLength = Math.min(...pieces.map(p => p.length));
+      
+      const motherBars = data.motherBars[profile];
+      if (!motherBars || motherBars.length === 0) {
+        incompatibleProfiles.push(profile);
+      } else {
+        const maxMotherBarLength = Math.max(...motherBars.map(b => b.length));
+        if (maxMotherBarLength < minPieceLength) {
+          incompatibleProfiles.push(profile);
+        }
+      }
+    }
+    
+    if (incompatibleProfiles.length > 0) {
+      this.showNotification(`Problème profil ${incompatibleProfiles[0]}`, 'warning');
+      // Continuer quand même
     }
     
     return true;

@@ -74,7 +74,7 @@ export const EditHandler = {
       }
     });
     
-    // Formatage automatique lors de la perte de focus
+    // Formatage automatique lors de la perte de focus seulement
     inputElement.addEventListener('blur', (e) => {
       const value = e.target.value.trim();
       if (value !== '') {
@@ -87,18 +87,56 @@ export const EditHandler = {
   },
   
   /**
-   * NOUVEAU: Configure les gestionnaires pour tous les champs du formulaire
+   * CORRECTION COMPLÈTE: Configure les gestionnaires pour tous les champs du formulaire
    */
   setupFormKeyHandlers: function() {
+    // Supprimer tous les anciens gestionnaires pour éviter les doublons
     const form = document.querySelector('.panel-form');
-    if (form) {
-      // Ajouter un gestionnaire pour la touche Entrée sur tous les champs
-      form.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+    if (!form) return;
+    
+    // Créer un gestionnaire unique pour toute la fenêtre quand un panneau est ouvert
+    const globalKeyHandler = (e) => {
+      if (e.key === 'Enter') {
+        // Vérifier qu'un panneau est ouvert
+        const piecePanel = document.getElementById('piece-panel');
+        const stockPanel = document.getElementById('stock-panel');
+        const isPanelOpen = (piecePanel && piecePanel.classList.contains('visible')) || 
+                          (stockPanel && stockPanel.classList.contains('visible'));
+        
+        if (isPanelOpen) {
           e.preventDefault();
+          e.stopPropagation();
           this.saveItem();
         }
-      });
+      }
+    };
+    
+    // Supprimer l'ancien gestionnaire s'il existe
+    if (this._globalKeyHandler) {
+      document.removeEventListener('keydown', this._globalKeyHandler);
+    }
+    
+    // Ajouter le nouveau gestionnaire global
+    this._globalKeyHandler = globalKeyHandler;
+    document.addEventListener('keydown', this._globalKeyHandler);
+    
+    // Également ajouter sur le formulaire comme backup
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.saveItem();
+      }
+    });
+  },
+  
+  /**
+   * NOUVEAU: Supprime les gestionnaires d'événements globaux
+   */
+  removeGlobalKeyHandlers: function() {
+    if (this._globalKeyHandler) {
+      document.removeEventListener('keydown', this._globalKeyHandler);
+      this._globalKeyHandler = null;
     }
   },
   
@@ -503,7 +541,7 @@ export const EditHandler = {
       });
     }
     
-    // Configurer les gestionnaires d'événements pour les formulaires
+    // CORRECTION: Configurer les gestionnaires APRÈS génération du formulaire
     this.setupFormKeyHandlers();
     
     // Afficher le panneau et l'overlay
@@ -517,6 +555,11 @@ export const EditHandler = {
    * @param {string} id - ID de la barre à éditer (seulement en mode 'edit')
    */
   openStockPanel: function(mode, id = null) {
+    // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
+    if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
+      return;
+    }
+    
     this.editingMode = mode;
     this.editingId = id;
     this.editingType = 'stock';
@@ -549,10 +592,12 @@ export const EditHandler = {
         <div class="form-group">
           <label for="stock-length">Longueur (m) :</label>
           <input type="text" id="stock-length" value="${lengthInMeters}" placeholder="ex : 12 ou 3,5">
+          <small class="form-help">Saisissez la longueur en mètres</small>
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
-          <input type="number" id="stock-quantity" min="1" value="${item.quantity}">
+          <input type="number" id="stock-quantity" min="1" max="1000000" value="${item.quantity}">
+          <small class="form-help">Quantité disponible de cette barre mère</small>
         </div>
       `;
     } else {
@@ -565,25 +610,28 @@ export const EditHandler = {
           <select id="stock-profile">
             ${this.getProfileOptions()}
           </select>
+          <small class="form-help">Sélectionnez un profil existant ou saisissez-en un nouveau</small>
         </div>
         <div class="form-group">
           <label for="stock-length">Longueur (m) :</label>
           <input type="text" id="stock-length" placeholder="ex : 12 ou 3,5">
+          <small class="form-help">Saisissez la longueur en mètres</small>
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
-          <input type="number" id="stock-quantity" min="1" value="1000000">
+          <input type="number" id="stock-quantity" min="1" max="1000000" value="1000000">
+          <small class="form-help">Quantité disponible (1000000 = illimitée)</small>
         </div>
       `;
     }
     
-    // Configurer les gestionnaires spéciaux pour le champ de longueur
+    // Configurer les gestionnaires spéciaux pour le champ de longueur (SANS Entrée)
     const lengthInput = document.getElementById('stock-length');
     if (lengthInput) {
       this.setupLengthInputHandlers(lengthInput);
     }
     
-    // Configurer les gestionnaires d'événements pour les formulaires
+    // CORRECTION: Configurer les gestionnaires APRÈS génération du formulaire
     this.setupFormKeyHandlers();
     
     // Afficher le panneau et l'overlay
@@ -603,7 +651,7 @@ export const EditHandler = {
   },
 
   /**
-   * Ferme le panneau d'édition actif
+   * Ferme le panneau d'édition actif et nettoie les gestionnaires
    */
   closePanel: function() {
     const piecePanel = document.getElementById('piece-panel');
@@ -613,6 +661,9 @@ export const EditHandler = {
     piecePanel.classList.remove('visible');
     stockPanel.classList.remove('visible');
     overlay.classList.remove('visible');
+    
+    // CORRECTION: Nettoyer les gestionnaires d'événements globaux
+    this.removeGlobalKeyHandlers();
     
     this.editingId = null;
     this.editingType = null;
@@ -634,36 +685,54 @@ export const EditHandler = {
     
     if (type === 'piece') {
       const nom = document.getElementById('piece-nom').value.trim();
-      const profileValue = document.getElementById('piece-profile').value;
+      const profileValue = document.getElementById('piece-profile').value.trim();
       const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
       const orientation = document.getElementById('piece-orientation').value;
       
       // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
-      let length, angle1, angle2;
+      let length = null;
+      let angle1 = 90, angle2 = 90;
       
-      if (this.lockOptions.lockPieceLengths && mode === 'edit') {
-        // Si verrouillé en mode édition, garder la valeur existante
-        const existingPiece = this.dataManager.getPieceById(id);
-        length = existingPiece ? existingPiece.length : Math.round(parseFloat(document.getElementById('piece-length').value));
-      } else {
-        length = Math.round(parseFloat(document.getElementById('piece-length').value));
+      if (!this.lockOptions.lockPieceLengths) {
+        const lengthInput = document.getElementById('piece-length').value;
+        length = parseInt(lengthInput, 10);
+      } else if (mode === 'edit') {
+        const item = this.dataManager.getPieceById(id);
+        length = item ? item.length : null;
       }
       
-      if (this.lockOptions.lockPieceAngles && mode === 'edit') {
-        // Si verrouillé en mode édition, garder les valeurs existantes
-        const existingPiece = this.dataManager.getPieceById(id);
-        angle1 = existingPiece ? existingPiece.angles?.[1] || 90 : parseFloat(parseFloat(document.getElementById('piece-angle-1').value).toFixed(2));
-        angle2 = existingPiece ? existingPiece.angles?.[2] || 90 : parseFloat(parseFloat(document.getElementById('piece-angle-2').value).toFixed(2));
-      } else {
-        angle1 = parseFloat(parseFloat(document.getElementById('piece-angle-1').value).toFixed(2));
-        angle2 = parseFloat(parseFloat(document.getElementById('piece-angle-2').value).toFixed(2));
+      if (!this.lockOptions.lockPieceAngles) {
+        angle1 = parseFloat(document.getElementById('piece-angle-1').value);
+        angle2 = parseFloat(document.getElementById('piece-angle-2').value);
+      } else if (mode === 'edit') {
+        const item = this.dataManager.getPieceById(id);
+        if (item && item.angles) {
+          angle1 = item.angles[1] || 90;
+          angle2 = item.angles[2] || 90;
+        }
+      }
+      
+      // Préparer les données à valider
+      const pieceData = {
+        nom,
+        profile: profileValue,
+        length,
+        quantity,
+        orientation,
+        angles: { 1: angle1, 2: angle2 }
+      };
+      
+      // Valider les données
+      const errors = this.validatePieceData(pieceData);
+      if (errors.length > 0) {
+        this.showNotification(errors[0], 'error'); // Afficher seulement la première erreur
+        return;
       }
       
       if (profileValue && length && quantity) {
         if (mode === 'edit') {
           const piece = this.dataManager.getPieceById(id);
           
-          // Vérifier si c'est un nouveau profil
           if (piece && piece.profile !== profileValue) {
             updatedProfile = true;
           }
@@ -710,16 +779,30 @@ export const EditHandler = {
           
           // Afficher notification de succès
           const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
-          this.showNotification(`Barre ${action} avec succès`, 'success');
+          this.showNotification(`Barre ${action}`, 'success');
         }
       }
     } else if (type === 'stock') {
-      const profileValue = document.getElementById('stock-profile').value;
+      const profileValue = document.getElementById('stock-profile').value.trim();
       const lengthInput = document.getElementById('stock-length').value.trim();
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
       // Convertir la longueur de mètres vers centimètres
       const lengthInCm = this.parseLengthFromDisplay(lengthInput);
+      
+      // Préparer les données à valider
+      const motherBarData = {
+        profile: profileValue,
+        length: lengthInCm,
+        quantity
+      };
+      
+      // Valider les données
+      const errors = this.validateMotherBarData(motherBarData);
+      if (errors.length > 0) {
+        this.showNotification(`Erreur de validation :\n• ${errors.join('\n• ')}`, 'error');
+        return;
+      }
       
       if (profileValue && lengthInCm && quantity) {
         if (mode === 'edit') {
@@ -765,7 +848,7 @@ export const EditHandler = {
           
           // Afficher notification de succès
           const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
-          this.showNotification(`Barre mère ${action} avec succès`, 'success');
+          this.showNotification(`Barre mère ${action}`, 'success');
         }
       } else {
         // Afficher une erreur si la conversion de longueur a échoué
@@ -779,7 +862,397 @@ export const EditHandler = {
     if (success) {
       this.closePanel();
     } else {
-      this.showNotification('Erreur lors de l\'enregistrement', 'error');
+      this.showNotification('Erreur lors de l\'enregistrement. Vérifiez vos données.', 'error');
+    }
+  },
+  
+  /**
+   * NOUVEAU: Valide les données d'une barre fille
+   */
+  validatePieceData: function(data) {
+    const errors = [];
+    
+    if (data.nom && data.nom.length > 50) {
+      errors.push('Nom trop long (max 50 caractères)');
+    }
+    
+    if (!data.profile || data.profile.trim() === '') {
+      errors.push('Profil obligatoire');
+    } else if (data.profile.length > 20) {
+      errors.push('Profil trop long (max 20 caractères)');
+    }
+    
+    if (!data.length || isNaN(data.length) || data.length <= 0) {
+      errors.push('Longueur invalide');
+    } else if (data.length > 100000) {
+      errors.push('Longueur trop grande (max 100 000 cm)');
+    } else if (data.length < 1) {
+      errors.push('Longueur minimale 1 cm');
+    }
+    
+    if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
+      errors.push('Quantité invalide');
+    } else if (!Number.isInteger(data.quantity)) {
+      errors.push('Quantité doit être un entier');
+    } else if (data.quantity > 10000) {
+      errors.push('Quantité trop élevée (max 10 000)');
+    }
+    
+    if (data.angles) {
+      if (isNaN(data.angles[1]) || data.angles[1] < 0 || data.angles[1] > 360) {
+        errors.push('Angle 1 invalide (0-360°)');
+      }
+      if (isNaN(data.angles[2]) || data.angles[2] < 0 || data.angles[2] > 360) {
+        errors.push('Angle 2 invalide (0-360°)');
+      }
+    }
+    
+    if (data.orientation && !['a-plat', 'debout'].includes(data.orientation)) {
+      errors.push('Orientation invalide');
+    }
+    
+    return errors;
+  },
+
+  /**
+   * NOUVEAU: Valide les données d'une barre mère
+   */
+  validateMotherBarData: function(data) {
+    const errors = [];
+    
+    if (!data.profile || data.profile.trim() === '') {
+      errors.push('Profil obligatoire');
+    } else if (data.profile.length > 20) {
+      errors.push('Profil trop long (max 20 caractères)');
+    }
+    
+    if (!data.length || isNaN(data.length) || data.length <= 0) {
+      errors.push('Longueur invalide');
+    } else if (data.length > 100000) {
+      errors.push('Longueur trop grande (max 100 000 cm)');
+    } else if (data.length < 10) {
+      errors.push('Longueur minimale 10 cm');
+    }
+    
+    if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
+      errors.push('Quantité invalide');
+    } else if (!Number.isInteger(data.quantity)) {
+      errors.push('Quantité doit être un entier');
+    } else if (data.quantity > 1000000) {
+      errors.push('Quantité trop élevée (max 1 000 000)');
+    }
+    
+    return errors;
+  },
+
+  /**
+   * NOUVEAU: Vérifie s'il y a des barres filles avant d'ajouter une barre mère
+   */
+  checkPiecesExistBeforeAddingMotherBar: function(mode) {
+    if (mode === 'create') {
+      const data = this.dataManager.getData();
+      let totalPieces = 0;
+      
+      for (const profile in data.pieces) {
+        for (const piece of data.pieces[profile]) {
+          totalPieces += piece.quantity;
+        }
+      }
+      
+      if (totalPieces === 0) {
+        this.showNotification('Importez d\'abord des barres à découper', 'warning');
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
+   * MODIFIÉ: Ouvre le panneau des barres mères avec validation
+   */
+  openStockPanel: function(mode, id = null) {
+    // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
+    if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
+      return;
+    }
+    
+    this.editingMode = mode;
+    this.editingId = id;
+    this.editingType = 'stock';
+    
+    const panel = document.getElementById('stock-panel');
+    const overlay = document.getElementById('panel-overlay');
+    const form = panel.querySelector('.panel-form');
+    const title = panel.querySelector('.panel-title');
+    
+    // Vider le formulaire
+    form.innerHTML = '';
+    
+    if (mode === 'edit') {
+      const item = this.dataManager.getMotherBarById(id);
+      if (!item) return;
+      
+      title.textContent = `Éditer la barre mère ${item.profile}`;
+      
+      // Convertir la longueur en mètres pour l'affichage
+      const lengthInMeters = this.formatLengthForDisplay(item.length);
+      
+      // Générer le formulaire d'édition
+      form.innerHTML = `
+        <div class="form-group">
+          <label for="stock-profile">Profil :</label>
+          <select id="stock-profile">
+            ${this.getProfileOptions(item.profile)}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="stock-length">Longueur (m) :</label>
+          <input type="text" id="stock-length" value="${lengthInMeters}" placeholder="ex : 12 ou 3,5">
+          <small class="form-help">Saisissez la longueur en mètres</small>
+        </div>
+        <div class="form-group">
+          <label for="stock-quantity">Quantité :</label>
+          <input type="number" id="stock-quantity" min="1" max="1000000" value="${item.quantity}">
+          <small class="form-help">Quantité disponible de cette barre mère</small>
+        </div>
+      `;
+    } else {
+      // Mode création
+      title.textContent = 'Nouvelle barre mère';
+      
+      form.innerHTML = `
+        <div class="form-group">
+          <label for="stock-profile">Profil :</label>
+          <select id="stock-profile">
+            ${this.getProfileOptions()}
+          </select>
+          <small class="form-help">Sélectionnez un profil existant ou saisissez-en un nouveau</small>
+        </div>
+        <div class="form-group">
+          <label for="stock-length">Longueur (m) :</label>
+          <input type="text" id="stock-length" placeholder="ex : 12 ou 3,5">
+          <small class="form-help">Saisissez la longueur en mètres</small>
+        </div>
+        <div class="form-group">
+          <label for="stock-quantity">Quantité :</label>
+          <input type="number" id="stock-quantity" min="1" max="1000000" value="1000000">
+          <small class="form-help">Quantité disponible (1000000 = illimitée)</small>
+        </div>
+      `;
+    }
+    
+    // Configurer les gestionnaires spéciaux pour le champ de longueur (SANS Entrée)
+    const lengthInput = document.getElementById('stock-length');
+    if (lengthInput) {
+      this.setupLengthInputHandlers(lengthInput);
+    }
+    
+    // CORRECTION: Configurer les gestionnaires APRÈS génération du formulaire
+    this.setupFormKeyHandlers();
+    
+    // Afficher le panneau et l'overlay
+    panel.classList.add('visible');
+    overlay.classList.add('visible');
+    
+    // NOUVEAU: Mettre le focus sur le champ de longueur en mode création
+    if (mode === 'create') {
+      // Utiliser un petit délai pour s'assurer que le panneau est visible
+      setTimeout(() => {
+        const lengthInput = document.getElementById('stock-length');
+        if (lengthInput) {
+          lengthInput.focus();
+        }
+      }, 100);
+    }
+  },
+
+  /**
+   * MODIFIÉ: Enregistre les modifications avec validation concise
+   */
+  saveItem: function() {
+    const type = this.editingType;
+    const id = this.editingId;
+    const mode = this.editingMode;
+    
+    if (!type) return;
+    
+    let success = false;
+    let updatedProfile = false;
+    
+    if (type === 'piece') {
+      const nom = document.getElementById('piece-nom').value.trim();
+      const profileValue = document.getElementById('piece-profile').value.trim();
+      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
+      const orientation = document.getElementById('piece-orientation').value;
+      
+      // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
+      let length = null;
+      let angle1 = 90, angle2 = 90;
+      
+      if (!this.lockOptions.lockPieceLengths) {
+        const lengthInput = document.getElementById('piece-length').value;
+        length = parseInt(lengthInput, 10);
+      } else if (mode === 'edit') {
+        const item = this.dataManager.getPieceById(id);
+        length = item ? item.length : null;
+      }
+      
+      if (!this.lockOptions.lockPieceAngles) {
+        angle1 = parseFloat(document.getElementById('piece-angle-1').value);
+        angle2 = parseFloat(document.getElementById('piece-angle-2').value);
+      } else if (mode === 'edit') {
+        const item = this.dataManager.getPieceById(id);
+        if (item && item.angles) {
+          angle1 = item.angles[1] || 90;
+          angle2 = item.angles[2] || 90;
+        }
+      }
+      
+      // Préparer les données à valider
+      const pieceData = {
+        nom,
+        profile: profileValue,
+        length,
+        quantity,
+        orientation,
+        angles: { 1: angle1, 2: angle2 }
+      };
+      
+      // Valider les données
+      const errors = this.validatePieceData(pieceData);
+      if (errors.length > 0) {
+        this.showNotification(errors[0], 'error'); // Afficher seulement la première erreur
+        return;
+      }
+      
+      if (profileValue && length && quantity) {
+        if (mode === 'edit') {
+          const piece = this.dataManager.getPieceById(id);
+          
+          if (piece && piece.profile !== profileValue) {
+            updatedProfile = true;
+          }
+          
+          const updatedPiece = {
+            nom,
+            profile: profileValue,
+            length,
+            quantity,
+            orientation,
+            angles: { 1: angle1, 2: angle2 }
+          };
+          
+          success = this.dataManager.updatePiece(id, updatedPiece);
+        } else {
+          const pieceData = {
+            nom,
+            profile: profileValue,
+            length,
+            quantity,
+            orientation,
+            angles: { 1: angle1, 2: angle2 },
+            type: 'fille'
+          };
+          
+          if (this.dataManager.addBars([pieceData]).length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
+        }
+        
+        if (success) {
+          // Re-render avec tri automatique
+          this.renderPiecesTable();
+          
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+          
+          // Rafraîchir l'affichage global
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          
+          // Afficher notification de succès
+          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
+          this.showNotification(`Barre ${action}`, 'success');
+        }
+      }
+    } else if (type === 'stock') {
+      const profileValue = document.getElementById('stock-profile').value.trim();
+      const lengthInput = document.getElementById('stock-length').value.trim();
+      const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
+      
+      // Convertir la longueur de mètres vers centimètres
+      const lengthInCm = this.parseLengthFromDisplay(lengthInput);
+      
+      // Préparer les données à valider
+      const motherBarData = {
+        profile: profileValue,
+        length: lengthInCm,
+        quantity
+      };
+      
+      // Valider les données
+      const errors = this.validateMotherBarData(motherBarData);
+      if (errors.length > 0) {
+        this.showNotification(`Erreur de validation :\n• ${errors.join('\n• ')}`, 'error');
+        return;
+      }
+      
+      if (profileValue && lengthInCm && quantity) {
+        if (mode === 'edit') {
+          const bar = this.dataManager.getMotherBarById(id);
+          
+          if (bar && bar.profile !== profileValue) {
+            updatedProfile = true;
+          }
+          
+          const updatedMotherBar = {
+            profile: profileValue,
+            length: lengthInCm,
+            quantity
+          };
+          
+          success = this.dataManager.updateMotherBar(id, updatedMotherBar);
+        } else {
+          const barData = {
+            profile: profileValue,
+            length: lengthInCm,
+            quantity,
+            type: 'mother'
+          };
+          
+          if (this.dataManager.addBars([barData]).length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
+        }
+        
+        if (success) {
+          // Re-render avec tri automatique
+          this.renderStockBarsTable();
+          
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+          
+          // Rafraîchir l'affichage global
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          
+          // Afficher notification de succès
+          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
+          this.showNotification(`Barre mère ${action}`, 'success');
+        }
+      }
+    }
+    
+    if (success) {
+      this.closePanel();
+    } else {
+      this.showNotification('Erreur lors de l\'enregistrement. Vérifiez vos données.', 'error');
     }
   },
   
