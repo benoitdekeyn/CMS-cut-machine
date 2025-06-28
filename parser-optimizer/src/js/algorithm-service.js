@@ -133,6 +133,9 @@ export const AlgorithmService = {
     // Transform data to models format
     const modelData = this.transformDataToModels(data);
     
+    // NOUVEAU: Afficher les données transformées avant exécution
+    this.displayTransformedDataForAlgorithms(modelData, 'FFD');
+    
     // Run algorithm with transformed data
     const results = algorithms.solveGreedyFFD(modelData.motherBars, modelData.pieces);
     results.algorithmName = 'First-Fit Decreasing';
@@ -149,13 +152,149 @@ export const AlgorithmService = {
     // Transform data to models format
     const modelData = this.transformDataToModels(data);
     
+    // NOUVEAU: Afficher les données transformées avant exécution
+    this.displayTransformedDataForAlgorithms(modelData, 'ILP');
+    
     // Run algorithm with transformed data
     const results = algorithms.solveWithILP(modelData.motherBars, modelData.pieces);
     results.algorithmName = 'Programmation Linéaire (ILP)';
     results.algorithmType = 'ilp';
     return results;
   },
-  
+
+  /**
+   * NOUVEAU: Affiche les données transformées qui seront envoyées aux algorithmes
+   * @param {Object} modelData - Données transformées par modèle
+   * @param {string} algorithmName - Nom de l'algorithme (FFD ou ILP)
+   */
+  displayTransformedDataForAlgorithms: function(modelData, algorithmName) {
+    console.log(`\n📊 ===== DONNÉES ENVOYÉES À L'ALGORITHME ${algorithmName} =====`);
+    
+    const { pieces, motherBars } = modelData;
+    
+    // Afficher les modèles traités
+    const modelKeys = Object.keys(pieces);
+    console.log(`🔧 Modèles à traiter: ${modelKeys.join(', ')}`);
+    
+    // Pour chaque modèle, afficher les détails
+    for (const modelKey of modelKeys) {
+      console.log(`\n📋 Modèle: ${modelKey}`);
+      console.log('─'.repeat(60));
+      
+      // Afficher les barres filles (pièces à découper)
+      const modelPieces = pieces[modelKey] || [];
+      if (modelPieces.length > 0) {
+        console.log('  🔩 Barres filles (pièces à découper):');
+        
+        // Grouper par longueur pour un affichage plus clair
+        const piecesByLength = new Map();
+        modelPieces.forEach(piece => {
+          const length = piece.length;
+          const quantity = piece.quantity;
+          
+          if (piecesByLength.has(length)) {
+            piecesByLength.set(length, piecesByLength.get(length) + quantity);
+          } else {
+            piecesByLength.set(length, quantity);
+          }
+        });
+        
+        // Trier par longueur décroissante et afficher
+        const sortedPieces = Array.from(piecesByLength.entries())
+          .sort((a, b) => b[0] - a[0]);
+          
+        sortedPieces.forEach(([length, totalQuantity]) => {
+          console.log(`    • ${totalQuantity}× ${length}cm`);
+        });
+        
+        const totalPiecesQuantity = sortedPieces.reduce((sum, [, qty]) => sum + qty, 0);
+        console.log(`    📦 Total: ${totalPiecesQuantity} pièces`);
+      } else {
+        console.log('  🔩 Barres filles: Aucune');
+      }
+      
+      // Afficher les barres mères disponibles
+      const modelMotherBars = motherBars[modelKey] || [];
+      if (modelMotherBars.length > 0) {
+        console.log('  📏 Barres mères disponibles:');
+        
+        // Grouper par longueur
+        const motherBarsByLength = new Map();
+        modelMotherBars.forEach(bar => {
+          const length = bar.length;
+          const quantity = bar.quantity;
+          
+          if (motherBarsByLength.has(length)) {
+            motherBarsByLength.set(length, motherBarsByLength.get(length) + quantity);
+          } else {
+            motherBarsByLength.set(length, quantity);
+          }
+        });
+        
+        // Trier par longueur décroissante et afficher
+        const sortedMotherBars = Array.from(motherBarsByLength.entries())
+          .sort((a, b) => b[0] - a[0]);
+          
+        sortedMotherBars.forEach(([length, totalQuantity]) => {
+          console.log(`    • ${totalQuantity}× ${length}cm`);
+        });
+        
+        const totalMotherBarsQuantity = sortedMotherBars.reduce((sum, [, qty]) => sum + qty, 0);
+        console.log(`    📦 Total: ${totalMotherBarsQuantity} barres mères`);
+      } else {
+        console.log('  📏 Barres mères: Aucune');
+      }
+      
+      // Calcul de faisabilité pour ce modèle
+      const totalDemandLength = modelPieces.reduce((sum, piece) => sum + (piece.length * piece.quantity), 0);
+      const totalSupplyLength = modelMotherBars.reduce((sum, bar) => sum + (bar.length * bar.quantity), 0);
+      
+      console.log(`  📊 Longueur demandée: ${totalDemandLength}cm`);
+      console.log(`  📦 Longueur disponible: ${totalSupplyLength}cm`);
+      
+      if (totalSupplyLength >= totalDemandLength) {
+        const ratio = totalDemandLength > 0 ? ((totalDemandLength / totalSupplyLength) * 100).toFixed(1) : 0;
+        console.log(`  ✅ Faisable (ratio demande/stock: ${ratio}%)`);
+      } else {
+        const deficit = totalDemandLength - totalSupplyLength;
+        console.log(`  ❌ Stock insuffisant (manque ${deficit}cm)`);
+      }
+    }
+    
+    // Statistiques globales
+    let globalTotalPieces = 0;
+    let globalTotalMotherBars = 0;
+    let globalDemandLength = 0;
+    let globalSupplyLength = 0;
+    
+    for (const modelKey of modelKeys) {
+      const modelPieces = pieces[modelKey] || [];
+      const modelMotherBars = motherBars[modelKey] || [];
+      
+      globalTotalPieces += modelPieces.reduce((sum, piece) => sum + piece.quantity, 0);
+      globalTotalMotherBars += modelMotherBars.reduce((sum, bar) => sum + bar.quantity, 0);
+      globalDemandLength += modelPieces.reduce((sum, piece) => sum + (piece.length * piece.quantity), 0);
+      globalSupplyLength += modelMotherBars.reduce((sum, bar) => sum + (bar.length * bar.quantity), 0);
+    }
+    
+    console.log(`\n🌍 RÉSUMÉ GLOBAL:`);
+    console.log(`  • ${modelKeys.length} modèles à traiter`);
+    console.log(`  • ${globalTotalPieces} pièces à découper au total`);
+    console.log(`  • ${globalTotalMotherBars} barres mères disponibles au total`);
+    console.log(`  • ${globalDemandLength}cm de longueur demandée`);
+    console.log(`  • ${globalSupplyLength}cm de longueur disponible`);
+    
+    if (globalSupplyLength >= globalDemandLength) {
+      const globalRatio = globalDemandLength > 0 ? ((globalDemandLength / globalSupplyLength) * 100).toFixed(1) : 0;
+      console.log(`  ✅ Globalement faisable (efficacité théorique max: ${globalRatio}%)`);
+    } else {
+      const globalDeficit = globalDemandLength - globalSupplyLength;
+      console.log(`  ❌ Stock global insuffisant (manque ${globalDeficit}cm)`);
+    }
+    
+    console.log(`📊 ====================================================\n`);
+  },
+
   /**
    * Compare results and select the best algorithm
    * @param {Object} ffdResults - FFD algorithm results
