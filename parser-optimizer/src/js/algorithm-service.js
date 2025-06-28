@@ -17,11 +17,18 @@ export const AlgorithmService = {
       let results;
       
       if (type === 'compare') {
-        // Run both algorithms and compare results
+        // Run FFD first
         const ffdResults = this.runFFDAlgorithm(data);
-        const ilpResults = this.runILPAlgorithm(data);
         
-        // Compare results and select the best
+        // Try ILP, but fallback to FFD if it fails
+        let ilpResults = null;
+        try {
+          ilpResults = this.runILPAlgorithm(data);
+        } catch (error) {
+          console.warn('ILP failed, using FFD only:', error.message);
+        }
+        
+        // Compare results (handles ILP failure gracefully)
         results = this.compareAndSelectBest(ffdResults, ilpResults);
       }
       else if (type === 'greedy' || type === 'ffd') {
@@ -297,15 +304,21 @@ export const AlgorithmService = {
 
   /**
    * Compare results and select the best algorithm
-   * @param {Object} ffdResults - FFD algorithm results
-   * @param {Object} ilpResults - ILP algorithm results 
-   * @returns {Object} Best algorithm results with comparison data
+   * Si ILP échoue, utiliser seulement FFD
    */
   compareAndSelectBest: function(ffdResults, ilpResults) {
+    // Si ILP a échoué, utiliser seulement FFD
+    if (!ilpResults || !ilpResults.globalStats?.statistics?.utilizationRate) {
+        console.log(`  ⚠️ ILP échoué, utilisation de FFD seul`);
+        ffdResults.bestAlgorithm = 'ffd';
+        ffdResults.algorithmName = 'First-Fit Decreasing (seul disponible)';
+        ffdResults.algorithmType = 'ffd';
+        return ffdResults;
+    }
+    
     // Validate results have needed properties
-    if (!ffdResults?.globalStats?.statistics?.utilizationRate || 
-        !ilpResults?.globalStats?.statistics?.utilizationRate) {
-      throw new Error("Les résultats d'algorithme sont incomplets pour la comparaison.");
+    if (!ffdResults?.globalStats?.statistics?.utilizationRate) {
+        throw new Error("Les résultats FFD sont incomplets pour la comparaison.");
     }
     
     // Get efficiency values from results
@@ -316,7 +329,7 @@ export const AlgorithmService = {
     const ffdBarsUsed = ffdResults.globalStats.totalBarsUsed;
     const ilpBarsUsed = ilpResults.globalStats.totalBarsUsed;
     
-    // Determine best algorithm with improved logic
+    // Determine best algorithm
     let bestAlgorithm;
     let bestResults;
     
@@ -325,46 +338,38 @@ export const AlgorithmService = {
     console.log(`  ILP: ${ilpEfficiency}% efficacité, ${ilpBarsUsed} barres mères`);
     
     if (ffdEfficiency > ilpEfficiency) {
-      // FFD est plus efficace
-      bestAlgorithm = 'ffd';
-      bestResults = ffdResults;
-      console.log(`  ✅ FFD choisi: meilleure efficacité`);
-    } else if (ilpEfficiency > ffdEfficiency) {
-      // ILP est plus efficace
-      bestAlgorithm = 'ilp';
-      bestResults = ilpResults;
-      console.log(`  ✅ ILP choisi: meilleure efficacité`);
-    } else {
-      // Même efficacité, comparer le nombre de barres mères
-      if (ffdBarsUsed < ilpBarsUsed) {
         bestAlgorithm = 'ffd';
         bestResults = ffdResults;
-        console.log(`  ✅ FFD choisi: même efficacité mais moins de barres mères`);
-      } else if (ilpBarsUsed < ffdBarsUsed) {
+        console.log(`  ✅ FFD choisi: meilleure efficacité`);
+    } else if (ilpEfficiency > ffdEfficiency) {
         bestAlgorithm = 'ilp';
         bestResults = ilpResults;
-        console.log(`  ✅ ILP choisi: même efficacité mais moins de barres mères`);
-      } else {
-        // Même efficacité et même nombre de barres : choisir ILP par défaut
-        bestAlgorithm = 'ilp';
-        bestResults = ilpResults;
-        console.log(`  ✅ ILP choisi: résultats identiques, préférence ILP`);
-      }
+        console.log(`  ✅ ILP choisi: meilleure efficacité`);
+    } else {
+        if (ffdBarsUsed < ilpBarsUsed) {
+            bestAlgorithm = 'ffd';
+            bestResults = ffdResults;
+            console.log(`  ✅ FFD choisi: même efficacité mais moins de barres mères`);
+        } else {
+            bestAlgorithm = 'ilp';
+            bestResults = ilpResults;
+            console.log(`  ✅ ILP choisi: même efficacité ou moins de barres mères`);
+        }
     }
     
     // Add comparison data to results
     bestResults.comparison = {
-      ffdEfficiency,
-      ilpEfficiency,
-      ffdBarsUsed,
-      ilpBarsUsed,
-      bestAlgorithm,
-      differencePercentage: Math.abs(ffdEfficiency - ilpEfficiency).toFixed(2)
+        ffdEfficiency,
+        ilpEfficiency,
+        ffdBarsUsed,
+        ilpBarsUsed,
+        bestAlgorithm,
+        differencePercentage: Math.abs(ffdEfficiency - ilpEfficiency).toFixed(2)
     };
     
     bestResults.bestAlgorithm = bestAlgorithm;
     bestResults.algorithmName = bestAlgorithm === 'ffd' ? 
-      'First-Fit Decreasing (meilleur)' : 'Programmation Linéaire (meilleur)';
+        'First-Fit Decreasing (meilleur)' : 'Programmation Linéaire (meilleur)';
     bestResults.algorithmType = 'compare';
     
     return bestResults;
@@ -427,18 +432,32 @@ export const AlgorithmService = {
     // Calculate totals across all models
     for (const model in modelResults) {
       const modelResult = modelResults[model];
-      totalUsedBars += modelResult.rawData.usedBars.length;
       
-      // Calculate waste and total length
-      for (const bar of modelResult.rawData.usedBars) {
-        totalBarLength += bar.originalLength;
-        totalWaste += bar.remainingLength || bar.waste || 0;
+      // CORRECTION: Adapter au nouveau format des résultats
+      if (modelResult.rawData) {
+        totalUsedBars += modelResult.rawData.totalMotherBarsUsed || 0;
+        totalWaste += modelResult.rawData.wasteLength || 0;
+      }
+      
+      // CORRECTION: Calculer la longueur totale depuis les layouts
+      if (modelResult.layouts && Array.isArray(modelResult.layouts)) {
+        for (const layout of modelResult.layouts) {
+          const barLength = layout.originalLength || layout.length || 0;
+          const count = layout.count || 1;
+          totalBarLength += barLength * count;
+        }
+      }
+      // Fallback pour l'ancien format FFD
+      else if (modelResult.rawData && modelResult.rawData.usedBars) {
+        for (const bar of modelResult.rawData.usedBars) {
+          totalBarLength += bar.originalLength || bar.length || 0;
+        }
       }
     }
     
     // Calculate global efficiency
     const totalEfficiency = totalBarLength > 0 
-      ? ((1 - (totalWaste / totalBarLength)) * 100).toFixed(2)
+      ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(2)
       : "100.00";
       
     return {
@@ -455,24 +474,50 @@ export const AlgorithmService = {
    * @returns {Object} Calculated model statistics
    */
   calculateModelStats: function(modelResult) {
-    const usedBars = modelResult.rawData.usedBars;
-    
     let totalModelBarLength = 0;
     let totalModelWasteLength = 0;
+    let barCount = 0;
     
-    // Calculate model totals
-    for (const bar of usedBars) {
-      totalModelBarLength += bar.originalLength;
-      totalModelWasteLength += bar.remainingLength || bar.waste || 0;
+    // CORRECTION: Adapter au nouveau format des résultats
+    if (modelResult.layouts && Array.isArray(modelResult.layouts)) {
+      // Nouveau format ILP/PGM
+      for (const layout of modelResult.layouts) {
+        const barLength = layout.originalLength || layout.length || 0;
+        const count = layout.count || 1;
+        const waste = layout.waste || 0;
+        
+        totalModelBarLength += barLength * count;
+        totalModelWasteLength += waste * count;
+        barCount += count;
+      }
+    }
+    // Fallback pour l'ancien format FFD
+    else if (modelResult.rawData && modelResult.rawData.usedBars) {
+      const usedBars = modelResult.rawData.usedBars;
+      
+      for (const bar of usedBars) {
+        totalModelBarLength += bar.originalLength || bar.length || 0;
+        totalModelWasteLength += bar.remainingLength || bar.waste || 0;
+      }
+      barCount = usedBars.length;
+    }
+    // Utiliser les données rawData comme fallback
+    else if (modelResult.rawData) {
+      barCount = modelResult.rawData.totalMotherBarsUsed || 0;
+      totalModelWasteLength = modelResult.rawData.wasteLength || 0;
+      // Estimer la longueur totale si pas disponible
+      if (modelResult.rawData.motherBarLength && barCount > 0) {
+        totalModelBarLength = modelResult.rawData.motherBarLength * barCount;
+      }
     }
     
     // Calculate model efficiency
     const modelEfficiency = totalModelBarLength > 0 
-      ? ((1 - (totalModelWasteLength / totalModelBarLength)) * 100).toFixed(2)
+      ? ((totalModelBarLength - totalModelWasteLength) / totalModelBarLength * 100).toFixed(2)
       : "100.00";
       
     return {
-      barCount: usedBars.length,
+      barCount: barCount,
       totalLength: totalModelBarLength,
       wasteLength: totalModelWasteLength,
       efficiency: modelEfficiency

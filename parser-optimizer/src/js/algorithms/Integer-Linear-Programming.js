@@ -22,23 +22,15 @@ export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
         console.log(`🎯 Optimisation ILP avancée pour le modèle ${model}`);
         progressCallback({ step: `Traitement du modèle ${model}`, percentage: 10 });
 
-        try {
-            const modelResult = solveModelWithAdvancedILP(motherBars[model], pieces[model], model, progressCallback);
-            
-            globalStats.totalBarsUsed += modelResult.rawData.totalMotherBarsUsed;
-            globalStats.totalWaste += modelResult.rawData.wasteLength;
-            globalStats.totalRemainingPieces += modelResult.rawData.remainingPieces.length;
-            
-            results[model] = modelResult;
-            
-            console.log(`✅ Modèle ${model}: ${modelResult.rawData.totalMotherBarsUsed} barres, efficacité ${modelResult.stats.utilizationRate}%`);
-            
-        } catch (error) {
-            console.error(`❌ Erreur ILP pour ${model}:`, error);
-            // Fallback vers FFD en cas d'erreur
-            const fallbackResult = fallbackToGreedyAlgorithm(motherBars[model], pieces[model], model);
-            results[model] = fallbackResult;
-        }
+        const modelResult = solveModelWithAdvancedILP(motherBars[model], pieces[model], model, progressCallback);
+        
+        globalStats.totalBarsUsed += modelResult.rawData.totalMotherBarsUsed;
+        globalStats.totalWaste += modelResult.rawData.wasteLength;
+        globalStats.totalRemainingPieces += modelResult.rawData.remainingPieces.length;
+        
+        results[model] = modelResult;
+        
+        console.log(`✅ Modèle ${model}: ${modelResult.rawData.totalMotherBarsUsed} barres, efficacité ${modelResult.stats.utilizationRate}%`);
         
         progressCallback({ step: `Modèle ${model} terminé`, percentage: 100 });
     }
@@ -58,14 +50,13 @@ export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
 function solveModelWithAdvancedILP(stockBars, demandPieces, model, progressCallback = () => {}) {
     console.log(`  🔍 Analyse du modèle ${model}:`);
     
-    // 1. Préparer les données - CORRECTION: Grouper correctement les pièces par longueur
+    // 1. Préparer les données
     const stockSizes = stockBars.map(bar => ({
         size: parseInt(bar.length),
-        cost: 1, // Coût uniforme, on minimise le nombre de barres
+        cost: 1,
         quantity: parseInt(bar.quantity)
     }));
     
-    // CORRECTION: Grouper les pièces par longueur pour avoir les quantités totales exactes
     const pieceCounts = {};
     const cutSizes = [];
     
@@ -93,36 +84,94 @@ function solveModelWithAdvancedILP(stockBars, demandPieces, model, progressCallb
     const totalStockLength = stockSizes.reduce((sum, stock) => sum + (stock.size * stock.quantity), 0);
     
     if (totalDemandLength > totalStockLength) {
-        console.warn(`⚠️ Stock insuffisant: ${totalDemandLength}cm demandés vs ${totalStockLength}cm disponibles`);
         throw new Error("Stock insuffisant");
     }
 
     progressCallback({ step: `Génération des patterns pour ${model}`, percentage: 30 });
 
-    // 2. Générer tous les patterns de découte possibles
+    // 2. Générer les patterns de découpe
     const cuttingPatterns = generateAdvancedCuttingPatterns(stockSizes, cutSizes, 0);
-    
     console.log(`    🔧 ${cuttingPatterns.totalPatterns} patterns générés au total`);
 
     progressCallback({ step: `Résolution ILP pour ${model}`, percentage: 70 });
 
-    // 3. Construire et résoudre le modèle ILP
-    let ilpSolution = solveAdvancedILPModel(cuttingPatterns, requiredCuts);
+    // 3. Résoudre le modèle ILP
+    const ilpSolution = solveAdvancedILPModel(cuttingPatterns, requiredCuts);
     
-    // CORRECTION: Vérifier la structure correcte de la solution
     if (!ilpSolution || !ilpSolution.solution || !ilpSolution.solution.feasible) {
-        console.warn('❌ ILP: Aucune solution optimale trouvée avec contraintes exactes');
         throw new Error("Aucune solution ILP trouvée");
     }
     
     progressCallback({ step: `Finalisation pour ${model}`, percentage: 90 });
 
-    // 4. Convertir la solution ILP en format attendu
-    return convertAdvancedILPSolutionToResult(ilpSolution, cuttingPatterns, stockSizes, model);
+    // 4. Convertir la solution
+    return convertILPSolutionToResult(ilpSolution, model);
 }
 
 /**
- * Génère les patterns de découpe de manière exhaustive mais optimisée
+ * NOUVEAU: Convertit la solution ILP en format attendu
+ */
+function convertILPSolutionToResult(ilpSolution, model) {
+    console.log(`    🔄 Conversion de la solution ILP pour ${model}:`);
+    
+    const { solution, patterns } = ilpSolution;
+    const layouts = [];
+    let totalWaste = 0;
+    let totalUsedBars = 0;
+    
+    // Traiter chaque pattern sélectionné
+    for (const [varName, quantity] of Object.entries(solution)) {
+        if (varName.startsWith('stock') && quantity > 0) {
+            const pattern = patterns.patterns.find(p => p.varName === varName);
+            if (pattern) {
+                // Extraire les coupes de ce pattern
+                const cuts = [];
+                for (const [cutKey, cutCount] of Object.entries(pattern.cuts)) {
+                    if (cutKey.startsWith('cut') && cutCount > 0) {
+                        const cutSize = parseInt(cutKey.replace('cut', ''));
+                        for (let i = 0; i < cutCount; i++) {
+                            cuts.push(cutSize);
+                        }
+                    }
+                }
+                
+                const usedLength = cuts.reduce((sum, cut) => sum + cut, 0);
+                const waste = pattern.stockSize - usedLength;
+                
+                layouts.push({
+                    originalLength: pattern.stockSize,
+                    length: pattern.stockSize,
+                    cuts: cuts,
+                    count: quantity,
+                    waste: waste
+                });
+                
+                totalWaste += waste * quantity;
+                totalUsedBars += quantity;
+            }
+        }
+    }
+    
+    const totalBarLength = layouts.reduce((sum, layout) => sum + (layout.originalLength * layout.count), 0);
+    const utilizationRate = totalBarLength > 0 ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(3) : 0;
+    
+    console.log(`    📊 Résultat final: ${totalUsedBars} barres, ${totalWaste}cm de chutes, efficacité ${utilizationRate}%`);
+    
+    return {
+        layouts: layouts,
+        rawData: {
+            totalMotherBarsUsed: totalUsedBars,
+            wasteLength: totalWaste,
+            remainingPieces: []
+        },
+        stats: {
+            utilizationRate: parseFloat(utilizationRate)
+        }
+    };
+}
+
+/**
+ * Génère les patterns de découpe
  */
 function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
     console.log(`    🔄 Génération exhaustive des patterns...`);
@@ -130,16 +179,16 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
     const waysOfCuttingStocks = stockSizes.map(({ size, cost, quantity }) => {
         console.log(`      📏 Analyse barre ${size}cm:`);
         
-        // Générer toutes les façons de découper cette barre
         const waysOfCutting = generateAllWaysToCut(size, cutSizes, bladeSize);
+        const uniquePatterns = removeDuplicatesAndSubsets(waysOfCutting);
         
-        console.log(`        ✓ ${waysOfCutting.length} patterns générés`);
+        console.log(`        ✓ ${uniquePatterns.length} patterns générés`);
         
-        // Afficher les 5 meilleurs patterns
-        const sortedWays = waysOfCutting
+        // Afficher les meilleurs patterns
+        const sortedWays = uniquePatterns
             .map(way => ({
                 cuts: way,
-                efficiency: (way.reduce((sum, cut) => sum + cut, 0) / size * 100).toFixed(1),
+                efficiency: way.length > 0 ? (way.reduce((sum, cut) => sum + cut, 0) / size * 100).toFixed(1) : 0,
                 waste: size - way.reduce((sum, cut) => sum + cut, 0)
             }))
             .sort((a, b) => parseFloat(b.efficiency) - parseFloat(a.efficiency));
@@ -152,25 +201,23 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
             });
             const cutStr = Object.entries(cutCounts)
                 .map(([cut, count]) => `${count}×${cut}cm`)
-                .join(' + ');
+                .join(' + ') || 'Barre vide';
             console.log(`          ${index + 1}. ${cutStr} (${pattern.efficiency}% efficacité, ${pattern.waste}cm chute)`);
         });
         
-        // CORRECTION: Transformer en format pour ILP avec les bonnes clés
-        const versions = waysOfCutting.map(way => {
+        // Transformer en format ILP
+        const versions = uniquePatterns.map(way => {
             const stockCut = {};
-            // Initialiser toutes les tailles de coupes à 0
             for (const cut of cutSizes) {
                 stockCut[`cut${cut}`] = 0;
             }
-            // Compter chaque coupe dans ce pattern
             for (const cut of way) {
                 stockCut[`cut${cut}`] = stockCut[`cut${cut}`] + 1;
             }
             return stockCut;
         });
 
-        return { size, cost, quantity, versions, waysOfCutting };
+        return { size, cost, quantity, versions };
     });
 
     // Créer les variables pour le modèle ILP
@@ -203,92 +250,70 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
         variables,
         ints,
         patterns: allPatterns,
-        waysOfCuttingStocks,
         totalPatterns: patternIndex
     };
 }
 
 /**
  * Génère récursivement toutes les façons de découper une barre
- * Inspiré de l'algorithme de référence
  */
-function generateAllWaysToCut(barSize, cuts, bladeSize, state = []) {
-    const waysToCut = [];
+function generateAllWaysToCut(barSize, cuts, bladeSize, state = [], maxDepth = 25, currentDepth = 0) {
+    if (currentDepth > maxDepth) {
+        return [state];
+    }
     
-    // Essayer chaque type de coupe
+    const waysToCut = [];
+    waysToCut.push([...state]);
+    
     for (const cut of cuts) {
-        const remainder = barSize - cut;
-        if (remainder >= 0) {
-            // Récursion pour remplir le reste de la barre
+        const remainderAfterCut = barSize - cut;
+        
+        if (remainderAfterCut >= 0) {
             const subWays = generateAllWaysToCut(
-                remainder - bladeSize, // Soustraire la largeur de lame
+                remainderAfterCut,
                 cuts,
                 bladeSize,
-                [...state, cut]
+                [...state, cut],
+                maxDepth,
+                currentDepth + 1
             );
             waysToCut.push(...subWays);
         }
     }
     
-    // Ajouter l'état actuel (peut être vide pour la barre complète)
-    waysToCut.push([...state]);
-    
-    // Éliminer les doublons et sous-ensembles
-    return removeDuplicatesAndSubsets(waysToCut);
+    return waysToCut;
 }
 
 /**
- * Supprime les doublons et les sous-ensembles des patterns
+ * Supprime les doublons des patterns
  */
 function removeDuplicatesAndSubsets(ways) {
-    let results = [];
+    const results = [];
+    const seen = new Set();
     
     for (const way of ways) {
-        // Vérifier si ce pattern est un sous-ensemble d'un pattern existant
-        const isSubsetOfExisting = results.some(existing => 
-            isSubset(way, existing)
-        );
+        const sortedWay = [...way].sort((a, b) => a - b);
+        const key = sortedWay.join(',');
         
-        if (!isSubsetOfExisting) {
-            // Supprimer les patterns existants qui sont des sous-ensembles du nouveau
-            results = results.filter(existing => 
-                !isSubset(existing, way)
-            );
-            
+        if (!seen.has(key)) {
+            seen.add(key);
             results.push(way);
         }
     }
     
+    console.log(`        🔍 ${ways.length} patterns bruts → ${results.length} patterns uniques`);
     return results;
 }
 
 /**
- * Vérifie si 'a' est un sous-ensemble de 'b'
- */
-function isSubset(a, b) {
-    if (a.length > b.length) return false;
-    
-    const aCopy = [...a];
-    for (const item of b) {
-        const index = aCopy.indexOf(item);
-        if (index !== -1) {
-            aCopy.splice(index, 1);
-            if (aCopy.length === 0) return true;
-        }
-    }
-    return aCopy.length === 0;
-}
-
-/**
- * CORRECTION: Résout le modèle ILP avec contraintes exactes obligatoires
+ * Résout le modèle ILP avec timeout
  */
 function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     console.log(`    🧮 Construction du modèle ILP:`);
     
-    // CORRECTION: Créer les contraintes avec égalité exacte au lieu de minimum
     const constraints = {};
     requiredCuts.forEach(({ size, count }) => {
-        constraints[`cut${size}`] = { equal: count }; // CORRECTION: equal au lieu de min
+        constraints[`cut${size}`] = { equal: count };
         console.log(`      📐 Contrainte: exactement ${count} pièces de ${size}cm`);
     });
 
@@ -302,299 +327,71 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
 
     console.log(`    📊 Modèle final: ${Object.keys(model.variables).length} variables, ${Object.keys(model.constraints).length} contraintes`);
 
-    // Résolution avec gestion d'erreur
-    try {
-        const startTime = Date.now();
-        console.log(`    ⏳ Résolution en cours...`);
-        
-        const solution = solver.Solve(model);
-        const elapsedTime = Date.now() - startTime;
-        
-        console.log(`    ⏱️ Résolution terminée en ${elapsedTime}ms`);
-        
-        // CORRECTION: La structure de retour du solver est différente
-        if (!solution.feasible) {
-            console.warn("    ⚠️ Aucune solution faisable trouvée");
-            return null;
-        }
-        
-        if (typeof solution.result !== 'number' || isNaN(solution.result)) {
-            throw new Error(`Solution invalide: ${solution.result}`);
-        }
-        
-        console.log(`    ✅ Solution optimale trouvée: coût total ${solution.result}`);
-        
-        // CORRECTION: Vérifier que toutes les contraintes sont satisfaites
-        console.log(`    🔍 Vérification des contraintes:`);
-        for (const { size, count } of requiredCuts) {
-            let totalProduced = 0;
-            for (const [varName, quantity] of Object.entries(solution)) {
-                if (varName.startsWith('stock') && quantity > 0) {
-                    const pattern = cuttingPatterns.patterns.find(p => p.varName === varName);
-                    if (pattern && pattern.cuts[`cut${size}`]) {
-                        totalProduced += pattern.cuts[`cut${size}`] * quantity;
-                    }
-                }
-            }
-            console.log(`      ✓ ${size}cm: ${totalProduced}/${count} pièces (${totalProduced >= count ? 'OK' : 'MANQUE'})`);
-            
-            if (totalProduced < count) {
-                console.warn(`    ⚠️ Solution incomplète pour ${size}cm`);
-                throw new Error(`Solution incomplète: ${totalProduced}/${count} pièces de ${size}cm`);
-            }
-        }
-        
-        // Afficher les patterns choisis
-        console.log(`    📋 Patterns sélectionnés:`);
-        let totalBars = 0;
+    const startTime = Date.now();
+    console.log(`    ⏳ Résolution en cours...`);
+    
+    // Timeout simple : pas de retry, pas de patterns d'urgence
+    const solution = solver.Solve(model);
+    
+    const elapsedTime = Date.now() - startTime;
+    console.log(`    ⏱️ Résolution terminée en ${elapsedTime}ms`);
+    
+    if (!solution || !solution.feasible) {
+        console.log(`    ⚠️ Aucune solution faisable trouvée`);
+        throw new Error("Aucune solution ILP trouvée");
+    }
+    
+    console.log(`    ✅ Solution optimale trouvée: coût total ${solution.result}`);
+    
+    // Vérification des contraintes
+    console.log(`    🔍 Vérification des contraintes:`);
+    for (const { size, count } of requiredCuts) {
+        let totalProduced = 0;
         for (const [varName, quantity] of Object.entries(solution)) {
             if (varName.startsWith('stock') && quantity > 0) {
                 const pattern = cuttingPatterns.patterns.find(p => p.varName === varName);
-                if (pattern) {
-                    const cuts = [];
-                    for (const [cutKey, cutCount] of Object.entries(pattern.cuts)) {
-                        if (cutKey.startsWith('cut') && cutCount > 0) {
-                            const cutSize = parseInt(cutKey.replace('cut', ''));
-                            for (let i = 0; i < cutCount; i++) {
-                                cuts.push(cutSize);
-                            }
-                        }
-                    }
-                    const usedLength = cuts.reduce((sum, cut) => sum + cut, 0);
-                    const waste = pattern.stockSize - usedLength;
-                    const efficiency = (usedLength / pattern.stockSize * 100).toFixed(1);
-                    
-                    console.log(`      • ${quantity}× barre ${pattern.stockSize}cm: [${cuts.join(', ')}] (${efficiency}% efficacité, ${waste}cm chute)`);
-                    totalBars += quantity;
+                if (pattern && pattern.cuts[`cut${size}`]) {
+                    totalProduced += pattern.cuts[`cut${size}`] * quantity;
                 }
             }
         }
-        console.log(`    📦 Total: ${totalBars} barres utilisées`);
+        console.log(`      ✓ ${size}cm: ${totalProduced}/${count} pièces (${totalProduced >= count ? 'OK' : 'MANQUE'})`);
         
-        // CORRECTION: Retourner l'objet solution directement, pas un wrapper
-        return { 
-            solution: solution,  // solution contient déjà feasible, result, etc.
-            model, 
-            patterns: cuttingPatterns 
-        };
-        
-    } catch (error) {
-        console.error("    ❌ Erreur lors de la résolution ILP:", error);
-        throw error;
+        if (totalProduced < count) {
+            throw new Error(`Solution incomplète: ${totalProduced}/${count} pièces de ${size}cm`);
+        }
     }
-}
-
-/**
- * Convertit la solution ILP au format attendu par l'application
- */
-function convertAdvancedILPSolutionToResult(ilpSolution, cuttingPatterns, stockSizes, model) {
-    const { solution } = ilpSolution;
-    const usedBars = [];
-    let barId = 1;
-    let totalWaste = 0;
-
-    console.log(`    🔄 Conversion de la solution ILP pour ${model}:`);
-
-    // Parcourir les variables de la solution
+    
+    // Affichage des patterns sélectionnés
+    console.log(`    📋 Patterns sélectionnés:`);
+    let totalBars = 0;
     for (const [varName, quantity] of Object.entries(solution)) {
         if (varName.startsWith('stock') && quantity > 0) {
-            // Trouver le pattern correspondant
             const pattern = cuttingPatterns.patterns.find(p => p.varName === varName);
-            
             if (pattern) {
-                // Créer les barres utilisées
-                for (let i = 0; i < quantity; i++) {
-                    const cuts = [];
-                    
-                    // Reconstruire la liste des coupes à partir du pattern
-                    for (const [cutKey, cutCount] of Object.entries(pattern.cuts)) {
-                        if (cutKey.startsWith('cut') && cutCount > 0) {
-                            const cutSize = parseInt(cutKey.replace('cut', ''));
-                            for (let j = 0; j < cutCount; j++) {
-                                cuts.push(cutSize);
-                            }
+                const cuts = [];
+                for (const [cutKey, cutCount] of Object.entries(pattern.cuts)) {
+                    if (cutKey.startsWith('cut') && cutCount > 0) {
+                        const cutSize = parseInt(cutKey.replace('cut', ''));
+                        for (let i = 0; i < cutCount; i++) {
+                            cuts.push(cutSize);
                         }
                     }
-                    
-                    const usedLength = cuts.reduce((sum, cut) => sum + cut, 0);
-                    const waste = pattern.stockSize - usedLength;
-                    
-                    usedBars.push({
-                        id: barId++,
-                        cuts: cuts,
-                        pieces: cuts, // Alias pour compatibilité
-                        waste: waste,
-                        remainingLength: waste,
-                        originalLength: pattern.stockSize,
-                        model: model
-                    });
-                    
-                    totalWaste += waste;
                 }
-            }
-        }
-    }
-
-    // Calculer les pièces restantes (il ne devrait pas y avoir avec ILP optimal)
-    const remainingPieces = [];
-
-    // Créer les layouts groupés
-    const layouts = createLayoutsFromBars(usedBars);
-    
-    // Calculer les statistiques
-    const stats = calculateStats(usedBars, stockSizes);
-
-    console.log(`    📊 Résultat final: ${usedBars.length} barres, ${totalWaste}cm de chutes, efficacité ${stats.utilizationRate}%`);
-
-    return {
-        rawData: {
-            usedBars,
-            wasteLength: totalWaste,
-            totalMotherBarsUsed: usedBars.length,
-            remainingPieces,
-            motherBarLength: stockSizes[0]?.size || 0
-        },
-        layouts,
-        stats,
-        method: 'ILP_Advanced'
-    };
-}
-
-/**
- * Algorithme de fallback en cas d'échec ILP
- */
-function fallbackToGreedyAlgorithm(stockBars, demandPieces, model) {
-    console.log("    🔄 Utilisation de l'algorithme glouton comme fallback");
-    
-    const usedBars = [];
-    const remainingPieces = [...demandPieces];
-    let barId = 1;
-    let totalWaste = 0;
-    
-    // Trier les pièces par taille décroissante
-    remainingPieces.sort((a, b) => parseInt(b.length) - parseInt(a.length));
-    
-    while (remainingPieces.length > 0) {
-        // Prendre la première barre disponible
-        const availableBar = stockBars.find(bar => parseInt(bar.quantity) > 0);
-        if (!availableBar) break;
-        
-        const barLength = parseInt(availableBar.length);
-        const cuts = [];
-        let remainingLength = barLength;
-        
-        // Remplir la barre avec les pièces les plus grandes possibles
-        for (let i = remainingPieces.length - 1; i >= 0; i--) {
-            const piece = remainingPieces[i];
-            const pieceLength = parseInt(piece.length);
-            
-            if (pieceLength <= remainingLength) {
-                cuts.push(pieceLength);
-                remainingLength -= pieceLength;
+                const usedLength = cuts.reduce((sum, cut) => sum + cut, 0);
+                const waste = pattern.stockSize - usedLength;
+                const efficiency = (usedLength / pattern.stockSize * 100).toFixed(1);
                 
-                // Décrémenter la quantité
-                piece.quantity = parseInt(piece.quantity) - 1;
-                if (piece.quantity <= 0) {
-                    remainingPieces.splice(i, 1);
-                }
-                break;
+                console.log(`      • ${quantity}× barre ${pattern.stockSize}cm: [${cuts.join(', ')}] (${efficiency}% efficacité, ${waste}cm chute)`);
+                totalBars += quantity;
             }
         }
-        
-        // Si aucune pièce ne rentre, utiliser la plus petite
-        if (cuts.length === 0 && remainingPieces.length > 0) {
-            const smallestPiece = remainingPieces[remainingPieces.length - 1];
-            const pieceLength = parseInt(smallestPiece.length);
-            
-            cuts.push(pieceLength);
-            remainingLength -= pieceLength;
-            
-            smallestPiece.quantity = parseInt(smallestPiece.quantity) - 1;
-            if (smallestPiece.quantity <= 0) {
-                remainingPieces.pop();
-            }
-        }
-        
-        usedBars.push({
-            id: barId++,
-            cuts: cuts,
-            pieces: cuts,
-            waste: remainingLength,
-            remainingLength: remainingLength,
-            originalLength: barLength,
-            model: model
-        });
-        
-        totalWaste += remainingLength;
-        availableBar.quantity = parseInt(availableBar.quantity) - 1;
     }
+    console.log(`    📦 Total: ${totalBars} barres utilisées`);
     
-    const layouts = createLayoutsFromBars(usedBars);
-    const stats = calculateStats(usedBars, stockBars.map(bar => ({ size: parseInt(bar.length) })));
-    
-    return {
-        rawData: {
-            usedBars,
-            wasteLength: totalWaste,
-            totalMotherBarsUsed: usedBars.length,
-            remainingPieces: remainingPieces.filter(piece => parseInt(piece.quantity) > 0),
-            motherBarLength: stockBars[0]?.length || 0
-        },
-        layouts,
-        stats: { ...stats, method: 'Greedy_Fallback' },
-        method: 'Greedy_Fallback'
-    };
-}
-
-/**
- * Crée les layouts groupés à partir des barres utilisées
- */
-function createLayoutsFromBars(usedBars) {
-    const layoutMap = new Map();
-    
-    for (const bar of usedBars) {
-        const sortedCuts = [...bar.cuts].sort((a, b) => b - a);
-        const key = sortedCuts.join(',') + '_' + bar.waste;
-        
-        if (layoutMap.has(key)) {
-            layoutMap.get(key).count++;
-        } else {
-            layoutMap.set(key, {
-                count: 1,
-                pieces: sortedCuts,
-                cuts: sortedCuts,
-                waste: bar.waste,
-                remainingLength: bar.remainingLength,
-                originalLength: bar.originalLength,
-                efficiency: ((bar.originalLength - bar.waste) / bar.originalLength * 100).toFixed(1)
-            });
-        }
-    }
-    
-    return Array.from(layoutMap.values()).sort((a, b) => b.count - a.count);
-}
-
-/**
- * Calcule les statistiques du modèle
- */
-function calculateStats(usedBars, stockSizes) {
-    let totalUsedLength = 0;
-    let totalBarsLength = 0;
-    
-    for (const bar of usedBars) {
-        // Calculer la longueur totale utilisée (somme des pièces découpées)
-        const piecesLength = bar.cuts.reduce((sum, cut) => sum + cut, 0);
-        totalUsedLength += piecesLength;
-        
-        // Calculer la longueur totale des barres (longueur originale)
-        totalBarsLength += bar.originalLength;
-    }
-    
-    return {
-        totalUsedLength,
-        totalBarsLength,
-        utilizationRate: totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3) : 0,
-        averageWastePerBar: usedBars.length > 0 ? (usedBars.reduce((sum, bar) => sum + bar.waste, 0) / usedBars.length).toFixed(1) : 0
+    return { 
+        solution: solution,
+        patterns: cuttingPatterns 
     };
 }
 
@@ -602,19 +399,28 @@ function calculateStats(usedBars, stockSizes) {
  * Calcule les statistiques globales
  */
 function calculateGlobalStatistics(results) {
-    let totalUsedLength = 0;
-    let totalBarsLength = 0;
+    let totalBarsUsed = 0;
+    let totalWaste = 0;
+    let totalBarLength = 0;
     
-    for (const modelResult of Object.values(results)) {
-        if (modelResult.stats) {
-            totalUsedLength += modelResult.stats.totalUsedLength;
-            totalBarsLength += modelResult.stats.totalBarsLength;
+    for (const model in results) {
+        const modelResult = results[model];
+        totalBarsUsed += modelResult.rawData.totalMotherBarsUsed;
+        totalWaste += modelResult.rawData.wasteLength;
+        
+        for (const layout of modelResult.layouts) {
+            totalBarLength += layout.originalLength * layout.count;
         }
     }
     
+    const utilizationRate = totalBarLength > 0 
+        ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(3)
+        : "100.000";
+        
     return {
-        totalUsedLength,
-        totalBarsLength,
-        utilizationRate: totalBarsLength > 0 ? ((totalUsedLength / totalBarsLength) * 100).toFixed(3) : 0
+        utilizationRate: parseFloat(utilizationRate),
+        totalBarsUsed,
+        totalWaste,
+        totalBarLength
     };
 }
