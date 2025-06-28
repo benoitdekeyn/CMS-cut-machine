@@ -508,328 +508,154 @@
 
 /* Ajouter à la fin du fichier */
 
-/* Bouton large */
-.btn-lg {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-/* Conteneur du bouton de génération */
+/* Conteneur des actions d'optimisation */
 .optimization-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
   margin: 2rem 0;
-  padding: 1.5rem;
-  background-color: var(--bg-secondary);
-  border-radius: 8px;
-  text-align: center;
-}
-
-/* Aperçus PGM */
-.pgm-preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: var(--surface-color);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-
-.pgm-preview-header h3 {
-  margin: 0;
-  color: var(--text-color);
-  font-size: 1.25rem;
-}
-
-.pgm-file-item {
-  margin-bottom: 0.75rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.pgm-file-item:hover {
-  background: var(--surface-color);
-  border-color: var(--primary-color);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.pgm-file-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 1rem;
 }
 
-.pgm-file-name {
-  font-weight: 500;
-  color: var(--text-color);
-  font-size: 1rem;
-  flex: 1;
+/* Bouton de test */
+#test-algorithms-btn {
+  background-color: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  transition: all 0.3s ease;
 }
 
-.pgm-file-actions {
-  display: flex;
-  gap: 0.5rem;
+#test-algorithms-btn:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Modal d'informations PGM avec fond opaque */
-.pgm-info-modal {
+/* Modal pour sélection de scénario */
+.modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 10000;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.pgm-info-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.75);
-}
-
-.pgm-info-content {
-  position: relative;
-  background: var(--bg-primary);
+.modal-content {
+  background: white;
   border-radius: 8px;
-  width: 90vw;
-  max-width: 800px;
-  max-height: 90vh;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.pgm-info-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem;
-  background: var(--surface-color);
+  padding: 1.5rem;
   border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
-.pgm-info-header h3 {
+.modal-header h3 {
   margin: 0;
-  color: var(--text-color);
-  font-size: 1.2rem;
+  color: var(--text-primary);
 }
 
-.pgm-info-close {
+.close-modal {
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--text-secondary);
-  padding: 0.25rem;
+  padding: 0.5rem;
   border-radius: 4px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.pgm-info-close:hover {
-  background: var(--border-color);
-  color: var(--text-color);
+.close-modal:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
-.pgm-info-body {
-  flex: 1;
-  overflow: auto;
+.modal-body {
   padding: 1.5rem;
-}
-
-.pgm-main-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.25rem;
-  background: var(--surface-color);
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-}
-
-.info-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-group label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-group span {
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 1rem;
-}
-
-/* Section BODY avec style cohérent */
-.pgm-body-info {
-  margin-bottom: 2rem;
-}
-
-.pgm-body-info h4 {
-  margin: 0 0 1rem 0;
-  color: var(--text-color);
-  font-size: 1.1rem;
-  border-bottom: 2px solid var(--primary-color);
-  padding-bottom: 0.5rem;
-}
-
-.body-f4c {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.5rem;
-  padding: 1rem;
-  background: var(--surface-color);
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-}
-
-.body-f4c span {
-  padding: 0.4rem 0.75rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  color: var(--text-color);
-  text-align: center;
-  font-weight: 500;
-}
-
-.pgm-pieces-info h4 {
-  margin: 0 0 1rem 0;
-  color: var(--text-color);
-  font-size: 1.1rem;
-  border-bottom: 2px solid var(--primary-color);
-  padding-bottom: 0.5rem;
-}
-
-.pieces-list {
-  max-height: 300px;
+  max-height: 60vh;
   overflow-y: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--surface-color);
 }
 
-.piece-item {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.piece-item:last-child {
-  border-bottom: none;
-}
-
-.piece-item:hover {
-  background: var(--bg-primary);
-}
-
-.piece-name {
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-}
-
-.piece-f4c {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.5rem;
-}
-
-.piece-f4c span {
-  padding: 0.4rem 0.75rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  color: var(--text-color);
-  text-align: center;
-  font-weight: 500;
-}
-
-.pgm-info-actions {
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  background: var(--surface-color);
-  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
-/* Scrollbar personnalisée pour la liste des pièces */
-.pieces-list::-webkit-scrollbar {
-  width: 8px;
+/* Liste des scénarios */
+.scenario-list {
+  display: grid;
+  gap: 1rem;
 }
 
-.pieces-list::-webkit-scrollbar-track {
-  background: var(--border-color);
-  border-radius: 4px;
+.scenario-item {
+  padding: 1.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--bg-primary);
 }
 
-.pieces-list::-webkit-scrollbar-thumb {
-  background: var(--text-secondary);
-  border-radius: 4px;
+.scenario-item:hover {
+  border-color: var(--primary);
+  background: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.pieces-list::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-color);
+.scenario-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.scenario-item p {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.scenario-item small {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 0.85rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .pgm-file-header {
+  .optimization-actions {
     flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
+    gap: 0.5rem;
   }
   
-  .pgm-file-actions {
-    justify-content: center;
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
   }
   
-  .pgm-main-info {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .body-f4c {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .piece-f4c {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .pgm-info-content {
-    width: 95vw;
-    max-height: 95vh;
-  }
-  
-  .pgm-info-body {
+  .scenario-item {
     padding: 1rem;
   }
 }

@@ -174,31 +174,63 @@ function generateAllCuttingPatterns(stockSizes, requiredCuts) {
 }
 
 /**
- * Génère toutes les façons de découper une barre (récursif) - Version améliorée
+ * Génère toutes les façons de découper une barre (récursif) - Version limitée
  */
-function generateWaysToCut(barSize, cuts, bladeSize, state = []) {
+function generateWaysToCut(barSize, cuts, bladeSize, state = [], maxDepth = 3) {
+    // LIMITATION : Arrêter si on dépasse la profondeur max ou si on a trop de patterns
+    if (state.length >= maxDepth) {
+        return [[...state]];
+    }
+    
     const waysToCut = [];
     
     // Essayer chaque type de coupe
     for (const cut of cuts) {
         const remainder = barSize - cut - bladeSize;
         if (remainder >= 0) {
-            // Récursion pour découper le reste
-            const subWays = generateWaysToCut(remainder, cuts, bladeSize, [...state, cut]);
+            // Récursion pour découper le reste (avec profondeur limitée)
+            const subWays = generateWaysToCut(remainder, cuts, bladeSize, [...state, cut], maxDepth);
             waysToCut.push(...subWays);
         }
     }
     
-    // Toujours ajouter l'état actuel (pattern partiel ou vide)
+    // Toujours ajouter l'état actuel
     waysToCut.push([...state]);
     
-    // Éliminer les doublons mais garder tous les patterns utiles
+    // LIMITATION : Ne garder que les meilleurs patterns (top 20)
     const uniquePatterns = removeDuplicatePatterns(waysToCut);
+    const limitedPatterns = limitPatternsForPerformance(uniquePatterns, barSize);
     
-    // Filtrer pour garder seulement les patterns non-vides ET le pattern vide
-    return uniquePatterns.filter((pattern, index) => 
-        pattern.length > 0 || index === 0 // Garder le premier pattern même s'il est vide
+    return limitedPatterns.filter((pattern, index) => 
+        pattern.length > 0 || index === 0
     );
+}
+
+/**
+ * NOUVEAU : Limite le nombre de patterns pour éviter l'explosion combinatoire
+ */
+function limitPatternsForPerformance(patterns, barSize) {
+    // Scorer les patterns par efficacité
+    const scoredPatterns = patterns.map(pattern => {
+        const usedLength = pattern.reduce((sum, cut) => sum + cut, 0);
+        const efficiency = usedLength / barSize;
+        const pieceCount = pattern.length;
+        
+        return {
+            pattern,
+            score: efficiency * 0.7 + (pieceCount / 10) * 0.3 // Favoriser efficacité et nombre de pièces
+        };
+    });
+    
+    // Trier par score et garder seulement les 20 meilleurs
+    const topPatterns = scoredPatterns
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 20) // LIMITATION à 20 patterns max par barre
+        .map(item => item.pattern);
+    
+    console.log(`    ⚡ Patterns limités: ${patterns.length} → ${topPatterns.length}`);
+    
+    return topPatterns;
 }
 
 /**
