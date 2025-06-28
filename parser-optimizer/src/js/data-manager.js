@@ -514,6 +514,22 @@ export const DataManager = {
   },
   
   /**
+   * Récupère toutes les barres filles d'un profil et orientation donnés
+   * @param {string} profile - Le profil recherché
+   * @param {string} orientation - L'orientation recherchée ('a-plat' ou 'debout')
+   * @returns {Array} Liste des barres filles correspondantes
+   */
+  getPiecesByModel: function(profile, orientation) {
+    if (!profile || !orientation) return [];
+    
+    // Vérifier si le profil existe dans la structure pieces
+    if (!this.data.pieces[profile]) return [];
+    
+    // Filtrer les pièces par orientation
+    return this.data.pieces[profile].filter(piece => piece.orientation === orientation);
+  },
+  
+  /**
    * Efface toutes les données
    */
   clearAllData: function() {

@@ -65,28 +65,71 @@ export const PgmGenerator = {
   },
 
   /**
-   * Génère un fichier PGM à partir d'un objet PGM
-   * @param {Object} pgmObject - Objet PGM créé par le PGM-Manager
+   * MODIFIÉ: Génère le nom de fichier PGM adapté au nouveau format
+   * @param {Object} pgmObject - Objet PGM (nouveau format)
+   * @returns {string} - Nom du fichier
+   */
+  generatePgmFileName: function(pgmObject) {
+    // NOUVEAU FORMAT : accès direct aux propriétés
+    const profil = pgmObject.profile;
+    const longueurCm = pgmObject.length;
+    const orientation = pgmObject.orientation;
+    const pieces = pgmObject.pieces || [];
+    
+    // Longueur en mètres avec POINT décimal pour les noms de fichiers
+    const longueurMetres = this.formatLengthInMeters(longueurCm, false); // false = utiliser le point
+    
+    // Noms des barres (limiter à 5 pour éviter des noms trop longs)
+    const nomsPieces = pieces.slice(0, 5).map(piece => {
+      const nom = piece.nom;
+      if (nom && nom.trim() !== '') {
+        // Nettoyer le nom (supprimer caractères spéciaux)
+        return nom.replace(/[^a-zA-Z0-9]/g, '');
+      } else {
+        // Utiliser le profil + longueur si pas de nom
+        return `${piece.profile}${piece.length}`;
+      }
+    });
+    
+    // Ajouter "..." si plus de 5 pièces
+    if (pieces.length > 5) {
+      nomsPieces.push('...');
+    }
+    
+    // Assembler le nom avec longueur précise (point décimal)
+    const nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.pgm`;
+    
+    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
+    return nomFichier.replace(/[<>:"/\\|?*]/g, '_');
+  },
+
+  /**
+   * Génère un fichier PGM à partir d'un objet PGM (nouveau format)
+   * @param {Object} pgmObject - Objet PGM (nouveau format)
    * @param {Object} dataManager - Instance du DataManager
    * @returns {string} - Contenu du fichier PGM
    */
   generatePgmFromObject: function(pgmObject, dataManager) {
-    console.log(`🔧 Génération PGM pour ${pgmObject.id}`);
+    console.log(`🔧 Génération PGM pour ${pgmObject.profile}_${pgmObject.orientation}`);
     
     try {
-      // Récupérer les informations de base
-      const motherBar = pgmObject.motherBar;
-      const pieces = pgmObject.pieces;
+      // NOUVEAU FORMAT : accès direct aux propriétés
+      const pieces = pgmObject.pieces || [];
+      const barLength = pgmObject.length;
       
       if (!pieces || pieces.length === 0) {
         throw new Error('Aucune pièce à découper dans l\'objet PGM');
       }
       
       // Prendre les données F4C de la première pièce comme base pour le BODY
-      const firstPiece = pieces[0].pieceReference;
+      const firstPiece = pieces[0];
       
       // Générer le BODY avec les données de la première pièce
-      const bodyContent = this.generateBody(firstPiece, motherBar);
+      const bodyContent = this.generateBody(firstPiece, {
+        profile: pgmObject.profile,
+        length: barLength,
+        orientation: pgmObject.orientation
+      });
       
       // Grouper les pièces identiques pour optimiser les STEPs
       const groupedSteps = this.groupIdenticalSteps(pieces);
@@ -104,19 +147,19 @@ export const PgmGenerator = {
       return pgmContent;
       
     } catch (error) {
-      console.error(`❌ Erreur génération PGM ${pgmObject.id}:`, error);
+      console.error(`❌ Erreur génération PGM ${pgmObject.profile}_${pgmObject.orientation}:`, error);
       throw error;
     }
   },
   
   /**
-   * Génère le contenu du BODY
-   * @param {Object} pieceReference - Référence de la première pièce
-   * @param {Object} motherBar - Informations de la barre mère
+   * MODIFIÉ: Génère le contenu du BODY (adapté au nouveau format)
+   * @param {Object} firstPiece - Première pièce du PGM
+   * @param {Object} motherBarInfo - Informations de la barre mère
    * @returns {string} - Contenu du BODY
    */
-  generateBody: function(pieceReference, motherBar) {
-    const f4cData = pieceReference.f4cData || {};
+  generateBody: function(firstPiece, motherBarInfo) {
+    const f4cData = firstPiece.f4cData || {};
     
     // Template par défaut pour le BODY
     const bodyTemplate = {
@@ -158,7 +201,7 @@ export const PgmGenerator = {
       bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
     } else {
       // Générer B021 à partir du profil
-      bodyTemplate.B021 = pieceReference.profile.substring(0, 3).padEnd(8, ' ');
+      bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
     }
     
     if (f4cData.B035) {
@@ -178,7 +221,7 @@ export const PgmGenerator = {
   },
   
   /**
-   * Groupe les pièces identiques pour optimiser les STEPs
+   * MODIFIÉ: Groupe les pièces identiques pour optimiser les STEPs (adapté au nouveau format)
    * @param {Array} pieces - Liste des pièces à découper
    * @returns {Array} - Groupes de pièces identiques avec leur quantité
    */
@@ -186,16 +229,14 @@ export const PgmGenerator = {
     const groups = new Map();
     
     pieces.forEach(piece => {
-      const pieceRef = piece.pieceReference;
-      
       // Créer une clé unique basée sur les propriétés importantes
       const key = JSON.stringify({
         length: piece.length,
-        angles: pieceRef.angles,
+        angles: piece.angles,
         f4cData: {
-          S051: pieceRef.f4cData?.S051,
-          S054: pieceRef.f4cData?.S054,
-          S055: pieceRef.f4cData?.S055
+          S051: piece.f4cData?.S051,
+          S054: piece.f4cData?.S054,
+          S055: piece.f4cData?.S055
         }
       });
       
@@ -213,14 +254,13 @@ export const PgmGenerator = {
   },
   
   /**
-   * Génère un STEP pour une pièce
+   * MODIFIÉ: Génère un STEP pour une pièce (adapté au nouveau format)
    * @param {Object} piece - Pièce à découper
    * @param {number} quantity - Quantité de pièces identiques
    * @returns {string} - Contenu du STEP
    */
   generateStep: function(piece, quantity) {
-    const pieceRef = piece.pieceReference;
-    const f4cData = pieceRef.f4cData || {};
+    const f4cData = piece.f4cData || {};
     
     // Template par défaut pour le STEP
     const stepTemplate = {
@@ -260,7 +300,7 @@ export const PgmGenerator = {
       stepTemplate.S054 = f4cData.S054;
     } else {
       // Convertir l'angle en centièmes de degré
-      const angle1 = pieceRef.angles?.[1] || 90;
+      const angle1 = piece.angles?.[1] || 90;
       stepTemplate.S054 = Math.round(angle1 * 100).toString();
     }
     
@@ -268,7 +308,7 @@ export const PgmGenerator = {
       stepTemplate.S055 = f4cData.S055;
     } else {
       // Convertir l'angle en centièmes de degré
-      const angle2 = pieceRef.angles?.[2] || 90;
+      const angle2 = piece.angles?.[2] || 90;
       stepTemplate.S055 = Math.round(angle2 * 100).toString();
     }
     
@@ -281,48 +321,6 @@ export const PgmGenerator = {
     return `<STEP ${stepParts.join(' ')} ></STEP>`;
   },
   
-  /**
-   * MODIFIÉ: Génère le nom de fichier PGM avec longueurs précises (POINT décimal)
-   * @param {Object} pgmObject - Objet PGM
-   * @returns {string} - Nom du fichier
-   */
-  generatePgmFileName: function(pgmObject) {
-    const motherBar = pgmObject.motherBar;
-    const pieces = pgmObject.pieces;
-    
-    // Profil
-    const profil = motherBar.profile;
-    
-    // CORRECTION: Longueur en mètres avec POINT décimal pour les noms de fichiers
-    const longueurMetres = this.formatLengthInMeters(motherBar.length, false); // false = utiliser le point
-    
-    // Orientation
-    const orientation = motherBar.orientation;
-    
-    // Noms des barres (limiter à 5 pour éviter des noms trop longs)
-    const nomsPieces = pieces.slice(0, 5).map(piece => {
-      const nom = piece.pieceReference.nom;
-      if (nom && nom.trim() !== '') {
-        // Nettoyer le nom (supprimer caractères spéciaux)
-        return nom.replace(/[^a-zA-Z0-9]/g, '');
-      } else {
-        // Utiliser le profil + longueur si pas de nom
-        return `${piece.pieceReference.profile}${piece.length}`;
-      }
-    });
-    
-    // Ajouter "..." si plus de 5 pièces
-    if (pieces.length > 5) {
-      nomsPieces.push('...');
-    }
-    
-    // CORRECTION: Assembler le nom avec longueur précise (point décimal)
-    const nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.pgm`;
-    
-    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
-    return nomFichier.replace(/[<>:"/\\|?*]/g, '_');
-  },
-
   /**
    * CORRIGÉ: Génère le nom du fichier ZIP au format demandé
    * @param {Array} pgmObjects - Liste des objets PGM

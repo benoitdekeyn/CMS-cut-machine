@@ -46,6 +46,24 @@ export const ResultsHandler = {
         return;
       }
       
+      // Filtrer les objets PGM valides
+      const validPgmObjects = pgmObjects.filter(pgmObject => {
+        if (!pgmObject) {
+          console.warn('Objet PGM undefined trouvé');
+          return false;
+        }
+        if (!pgmObject.profile) {
+          console.warn('Objet PGM sans profile:', pgmObject);
+          return false;
+        }
+        return true;
+      });
+      
+      if (validPgmObjects.length === 0) {
+        container.innerHTML = '<p class="error-text">Aucun objet PGM valide trouvé.</p>';
+        return;
+      }
+      
       let html = `<div class="pgm-preview-header">
         <h3>Fichiers PGM à générer</h3>
         <button id="download-all-pgm-btn" class="btn btn-primary">
@@ -53,27 +71,41 @@ export const ResultsHandler = {
         </button>
       </div>`;
       
-      // Générer l'aperçu pour chaque objet PGM
-      pgmObjects.forEach((pgmObject, index) => {
-        const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
-        
-        html += `
-          <div class="pgm-file-item" data-pgm-index="${index}">
-            <div class="pgm-file-header">
-              <span class="pgm-file-name">${fileName}</span>
-              <div class="pgm-file-actions">
-                <button class="btn btn-sm btn-outline info-pgm-btn" 
-                        data-pgm-index="${index}">
-                  Détails
-                </button>
-                <button class="btn btn-sm btn-primary download-pgm-btn" 
-                        data-pgm-index="${index}">
-                  Télécharger
-                </button>
+      // Générer l'aperçu pour chaque objet PGM valide
+      validPgmObjects.forEach((pgmObject, index) => {
+        try {
+          const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
+          
+          html += `
+            <div class="pgm-file-item" data-pgm-index="${index}">
+              <div class="pgm-file-header">
+                <span class="pgm-file-name">${fileName}</span>
+                <div class="pgm-file-actions">
+                  <button class="btn btn-sm btn-outline info-pgm-btn" 
+                          data-pgm-index="${index}">
+                    Détails
+                  </button>
+                  <button class="btn btn-sm btn-primary download-pgm-btn" 
+                          data-pgm-index="${index}">
+                    Télécharger
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        } catch (error) {
+          console.error('Erreur lors de la génération du nom de fichier PGM:', error, pgmObject);
+          html += `
+            <div class="pgm-file-item error">
+              <div class="pgm-file-header">
+                <span class="pgm-file-name">Erreur - PGM ${index + 1}</span>
+                <div class="pgm-file-actions">
+                  <span class="error-text">Erreur</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
       });
       
       container.innerHTML = html;
@@ -81,7 +113,7 @@ export const ResultsHandler = {
       // Configurer les événements
       this.setupPgmPreviewEvents();
       
-      console.log(`${pgmObjects.length} aperçus PGM générés`);
+      console.log(`${validPgmObjects.length} aperçus PGM générés`);
       
     } catch (error) {
       console.error('Erreur lors de la génération des aperçus PGM:', error);
@@ -215,17 +247,22 @@ export const ResultsHandler = {
    * Affiche une modal avec les informations du PGM
    */
   showPgmInfoModal: function(fileName, pgmObject) {
-    const motherBar = pgmObject.motherBar;
-    const pieces = pgmObject.pieces;
-    const firstPiece = pieces[0]?.pieceReference;
+    // Adapter au nouveau format PGM
+    const profile = pgmObject.profile;
+    const orientation = pgmObject.orientation;
+    const length = pgmObject.length;
+    const pieces = pgmObject.pieces || [];
+    const b021 = pgmObject.B021 || 'N/A';
+    const b035 = pgmObject.B035 || '0';
     
-    // Récupérer les valeurs B021 et B035
-    const b021 = firstPiece?.f4cData?.B021 || firstPiece?.profile?.substring(0, 3) || 'N/A';
-    const b035 = firstPiece?.f4cData?.B035 || '10000';
+    // Calculer la chute et l'efficacité
+    const totalPiecesLength = pieces.reduce((sum, piece) => sum + piece.length, 0);
+    const waste = length - totalPiecesLength;
+    const efficiency = length > 0 ? ((totalPiecesLength / length) * 100).toFixed(1) : 0;
     
     // Créer la modal en utilisant les classes existantes
     const modal = document.createElement('div');
-    modal.className = 'modal'; // Utilise la classe existante
+    modal.className = 'modal';
     modal.innerHTML = `
       <div class="modal-content">
         <div class="modal-header">
@@ -238,15 +275,15 @@ export const ResultsHandler = {
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
             <div style="text-align: center;">
               <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Profil</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${motherBar.profile}</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${profile}</div>
             </div>
             <div style="text-align: center;">
               <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Orientation</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${this.formatOrientation(motherBar.orientation)}</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${this.formatOrientation(orientation)}</div>
             </div>
             <div style="text-align: center;">
               <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Longueur</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${this.formatLengthInMeters(motherBar.length)}</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${this.formatLengthInMeters(length)}</div>
             </div>
           </div>
           
@@ -263,11 +300,11 @@ export const ResultsHandler = {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
             <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
               <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Chute</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${motherBar.waste} cm</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${waste} cm</div>
             </div>
             <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
               <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Efficacité</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${pgmObject.metadata.efficiency}%</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${efficiency}%</div>
             </div>
           </div>
           
@@ -276,15 +313,15 @@ export const ResultsHandler = {
             <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Barres à découper (${pieces.length}):</h4>
             
             ${pieces.map((piece, index) => {
-              const pieceRef = piece.pieceReference;
-              const f4c = pieceRef.f4cData || {};
+              // Accès direct aux propriétés de la pièce
+              const f4c = piece.f4cData || {};
               
               // Calculer les valeurs F4C
               const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-              const s052 = '1'; // Quantité par défaut
-              const s053 = '1'; // Quantité par défaut
-              const s054 = f4c.S054 || Math.round((pieceRef.angles?.[1] || 90) * 100).toString();
-              const s055 = f4c.S055 || Math.round((pieceRef.angles?.[2] || 90) * 100).toString();
+              const s052 = f4c.S052 || '1';
+              const s053 = f4c.S053 || '1';
+              const s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
+              const s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
               
               return `
                 <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius); margin-bottom: 1rem; position: relative;">
@@ -295,7 +332,7 @@ export const ResultsHandler = {
                   
                   <!-- Nom de la pièce -->
                   <div style="font-weight: 500; color: var(--text-primary); margin-bottom: 0.75rem; padding-right: 3rem;">
-                    ${pieceRef.nom || `Pièce ${index + 1} - ${piece.length}cm`}
+                    ${piece.nom || `Pièce ${index + 1} - ${piece.length}cm`}
                   </div>
                   
                   <!-- Codes F4C -->

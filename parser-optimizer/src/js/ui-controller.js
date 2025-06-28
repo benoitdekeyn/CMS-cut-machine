@@ -612,11 +612,7 @@ export const UIController = {
       console.log('Génération des objets PGM...');
       UIUtils.updateLoadingProgress('step-pgm', 85);
       
-      this.currentPgmObjects = this.pgmManager.generatePgmObjects(results, this.dataManager);
-      
-      // Afficher le rapport de synthèse des PGM
-      const summaryReport = this.pgmManager.generateSummaryReport(this.currentPgmObjects);
-      console.log('Rapport PGM:', summaryReport);
+      this.currentPgmObjects = this.pgmManager.generatePgmObjects(results);
       
       // Rendre les résultats
       UIUtils.updateLoadingProgress('step-pgm', 95);
