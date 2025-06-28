@@ -230,9 +230,11 @@ export const UIController = {
       // Afficher les onglets de résultats
       this.showResultsTabs();
       
+      // PAS de notification de succès - l'utilisateur voit les résultats
+      
     } catch (error) {
       console.error('Erreur lors de l\'optimisation:', error);
-      this.showNotification(`Erreur lors de l'optimisation: ${error.message}`, 'error');
+      this.showNotification(`Erreur: ${error.message}`, 'error');
       this.currentResults = null;
       this.currentPgmObjects = null;
     } finally {

@@ -136,7 +136,6 @@ export const ResultsHandler = {
       const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
       
       UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
-      this.showNotification(`Fichier ${fileName} téléchargé`, 'success');
       
     } catch (error) {
       console.error('Erreur lors du téléchargement PGM:', error);
@@ -352,7 +351,6 @@ export const ResultsHandler = {
       try {
         const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
         UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
-        this.showNotification(`Fichier ${fileName} téléchargé`, 'success');
         this.closePgmInfoModal();
       } catch (error) {
         console.error('Erreur téléchargement:', error);
@@ -367,7 +365,6 @@ export const ResultsHandler = {
   downloadAllPgm: async function() {
     try {
       UIUtils.showLoadingOverlay();
-      this.showNotification('Génération des fichiers PGM en cours...', 'info');
       
       const pgmObjects = this.uiController.getCurrentPgmObjects();
       
@@ -380,7 +377,6 @@ export const ResultsHandler = {
       const zipFileName = `pgm_files_${Date.now()}.zip`;
       UIUtils.downloadFile(blob, zipFileName, 'application/zip');
       
-      this.showNotification(`${pgmObjects.length} fichiers PGM téléchargés avec succès`, 'success');
       
     } catch (error) {
       console.error('Erreur lors de la génération des fichiers PGM:', error);

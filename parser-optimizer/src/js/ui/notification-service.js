@@ -102,7 +102,7 @@ export const NotificationService = {
     // Fermeture automatique et manuelle
     const autoRemove = setTimeout(() => {
       this.removeNotification(notification);
-    }, type === 'error' ? 6000 : 4000); // Réduit les durées
+    }, type === 'error' ? 6000 : 1000); // Réduit les durées
     
     closeBtn.addEventListener('click', () => {
       clearTimeout(autoRemove);

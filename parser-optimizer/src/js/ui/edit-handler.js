@@ -725,7 +725,7 @@ export const EditHandler = {
       // Valider les données
       const errors = this.validatePieceData(pieceData);
       if (errors.length > 0) {
-        this.showNotification(errors[0], 'error'); // Afficher seulement la première erreur
+        this.showNotification(errors[0], 'error');
         return;
       }
       
@@ -772,12 +772,12 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
-          // Rafraîchir l'affichage global
+          // Rafraîchir l'affichage global SANS notification
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
           
-          // Afficher notification de succès
+          // Notification de succès seulement
           const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
           this.showNotification(`Barre ${action}`, 'success');
         }
@@ -841,20 +841,14 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
-          // Rafraîchir l'affichage global
+          // Rafraîchir l'affichage global SANS notification
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
           
-          // Afficher notification de succès
+          // Notification de succès seulement
           const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
           this.showNotification(`Barre mère ${action}`, 'success');
-        }
-      } else {
-        // Afficher une erreur si la conversion de longueur a échoué
-        if (!lengthInCm) {
-          this.showNotification('Longueur invalide. Utilisez le format "12" ou "3,5"', 'error');
-          return;
         }
       }
     }
@@ -862,7 +856,183 @@ export const EditHandler = {
     if (success) {
       this.closePanel();
     } else {
-      this.showNotification('Erreur lors de l\'enregistrement. Vérifiez vos données.', 'error');
+      this.showNotification('Erreur lors de l\'enregistrement', 'error');
+    }
+  },
+  
+  /**
+   * MODIFIÉ: Enregistre sans AUCUNE notification de succès
+   */
+  saveItem: function() {
+    const type = this.editingType;
+    const id = this.editingId;
+    const mode = this.editingMode;
+    
+    if (!type) return;
+    
+    let success = false;
+    let updatedProfile = false;
+    
+    if (type === 'piece') {
+      const nom = document.getElementById('piece-nom').value.trim();
+      const profileValue = document.getElementById('piece-profile').value.trim();
+      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
+      const orientation = document.getElementById('piece-orientation').value;
+      
+      let length = null;
+      let angle1 = 90, angle2 = 90;
+      
+      if (!this.lockOptions.lockPieceLengths) {
+        const lengthInput = document.getElementById('piece-length').value;
+        length = parseInt(lengthInput, 10);
+      } else if (mode === 'edit') {
+        const item = this.dataManager.getPieceById(id);
+        length = item ? item.length : null;
+      }
+      
+      if (!this.lockOptions.lockPieceAngles) {
+        angle1 = parseFloat(document.getElementById('piece-angle-1').value);
+        angle2 = parseFloat(document.getElementById('piece-angle-2').value);
+      } else if (mode === 'edit') {
+        const item = this.dataManager.getPieceById(id);
+        if (item && item.angles) {
+          angle1 = item.angles[1] || 90;
+          angle2 = item.angles[2] || 90;
+        }
+      }
+      
+      const pieceData = {
+        nom,
+        profile: profileValue,
+        length,
+        quantity,
+        orientation,
+        angles: { 1: angle1, 2: angle2 }
+      };
+      
+      const errors = this.validatePieceData(pieceData);
+      if (errors.length > 0) {
+        this.showNotification(errors[0], 'error');
+        return;
+      }
+      
+      if (profileValue && length && quantity) {
+        if (mode === 'edit') {
+          const piece = this.dataManager.getPieceById(id);
+          
+          if (piece && piece.profile !== profileValue) {
+            updatedProfile = true;
+          }
+          
+          const updatedPiece = {
+            nom,
+            profile: profileValue,
+            length,
+            quantity,
+            orientation,
+            angles: { 1: angle1, 2: angle2 }
+          };
+          
+          success = this.dataManager.updatePiece(id, updatedPiece);
+        } else {
+          const pieceData = {
+            nom,
+            profile: profileValue,
+            length,
+            quantity,
+            orientation,
+            angles: { 1: angle1, 2: angle2 },
+            type: 'fille'
+          };
+          
+          if (this.dataManager.addBars([pieceData]).length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
+        }
+        
+        if (success) {
+          this.renderPiecesTable();
+          
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+          
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          
+          // SUPPRIMÉ: Notification de succès
+        }
+      }
+    } else if (type === 'stock') {
+      const profileValue = document.getElementById('stock-profile').value.trim();
+      const lengthInput = document.getElementById('stock-length').value.trim();
+      const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
+      
+      const lengthInCm = this.parseLengthFromDisplay(lengthInput);
+      
+      const motherBarData = {
+        profile: profileValue,
+        length: lengthInCm,
+        quantity
+      };
+      
+      const errors = this.validateMotherBarData(motherBarData);
+      if (errors.length > 0) {
+        this.showNotification(errors[0], 'error');
+        return;
+      }
+      
+      if (profileValue && lengthInCm && quantity) {
+        if (mode === 'edit') {
+          const bar = this.dataManager.getMotherBarById(id);
+          
+          if (bar && bar.profile !== profileValue) {
+            updatedProfile = true;
+          }
+          
+          const updatedMotherBar = {
+            profile: profileValue,
+            length: lengthInCm,
+            quantity
+          };
+          
+          success = this.dataManager.updateMotherBar(id, updatedMotherBar);
+        } else {
+          const barData = {
+            profile: profileValue,
+            length: lengthInCm,
+            quantity,
+            type: 'mother'
+          };
+          
+          if (this.dataManager.addBars([barData]).length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
+        }
+        
+        if (success) {
+          this.renderStockBarsTable();
+          
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+          
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          
+          // SUPPRIMÉ: Notification de succès
+        }
+      }
+    }
+    
+    if (success) {
+      this.closePanel();
+    } else {
+      this.showNotification('Erreur lors de l\'enregistrement', 'error');
     }
   },
   
@@ -1067,7 +1237,7 @@ export const EditHandler = {
   },
 
   /**
-   * MODIFIÉ: Enregistre les modifications avec validation concise
+   * MODIFIÉ: Enregistre les modifications avec notification seulement en cas d'erreur ou de succès explicite
    */
   saveItem: function() {
     const type = this.editingType;
@@ -1121,7 +1291,7 @@ export const EditHandler = {
       // Valider les données
       const errors = this.validatePieceData(pieceData);
       if (errors.length > 0) {
-        this.showNotification(errors[0], 'error'); // Afficher seulement la première erreur
+        this.showNotification(errors[0], 'error');
         return;
       }
       
@@ -1168,14 +1338,15 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
-          // Rafraîchir l'affichage global
+          // Rafraîchir l'affichage global SANS notification
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
           
-          // Afficher notification de succès
-          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
-          this.showNotification(`Barre ${action}`, 'success');
+          // Notification de succès seulement
+          if (mode === 'edit') {
+            this.showNotification(`Barre modifiée`, 'success');
+          }
         }
       }
     } else if (type === 'stock') {
@@ -1237,14 +1408,15 @@ export const EditHandler = {
             this.updateAllProfileSelects();
           }
           
-          // Rafraîchir l'affichage global
+          // Rafraîchir l'affichage global SANS notification
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
-          
-          // Afficher notification de succès
-          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
-          this.showNotification(`Barre mère ${action}`, 'success');
+
+          // Notification de succès seulement
+          if (mode === 'edit') {
+            this.showNotification(`Barre mère modifiée`, 'success');
+          }
         }
       }
     }
@@ -1252,7 +1424,7 @@ export const EditHandler = {
     if (success) {
       this.closePanel();
     } else {
-      this.showNotification('Erreur lors de l\'enregistrement. Vérifiez vos données.', 'error');
+      this.showNotification('Erreur lors de l\'enregistrement', 'error');
     }
   },
   

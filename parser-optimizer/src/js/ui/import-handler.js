@@ -118,6 +118,47 @@ export const ImportHandler = {
   },
   
   /**
+   * MODIFIÉ: Traite les fichiers sans notifications de succès
+   */
+  processFiles: async function(files) {
+    if (!files || files.length === 0) return;
+    
+    const showLoadingOverlay = this.showLoadingOverlay || (() => {});
+    const hideLoadingOverlay = this.hideLoadingOverlay || (() => {});
+    
+    showLoadingOverlay();
+    
+    try {
+      const results = await this.importManager.processFiles(files);
+      
+      if (results.success.length > 0) {
+        const addedBars = this.dataManager.addBars(results.bars);
+        
+        if (addedBars.length > 0) {
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          // SUPPRIMÉ: Notification de succès
+        }
+      }
+      
+      // Afficher seulement les erreurs
+      if (results.errors.length > 0) {
+        const errorMsg = results.errors.length === 1 
+          ? results.errors[0] 
+          : `${results.errors.length} erreurs d'import`;
+        this.showNotification(errorMsg, 'error');
+      }
+      
+    } catch (error) {
+      console.error('Erreur lors du traitement des fichiers:', error);
+      this.showNotification('Erreur lors de l\'import', 'error');
+    } finally {
+      hideLoadingOverlay();
+    }
+  },
+  
+  /**
    * Affiche une erreur d'import
    */
   showError: function(message) {
