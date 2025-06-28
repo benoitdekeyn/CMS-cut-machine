@@ -121,33 +121,33 @@ export const UIController = {
    */
   setupEventListeners: function() {
     try {
-      console.log('🔗 Configuration des gestionnaires d\'événements...');
+      console.log('Configuration des gestionnaires d\'événements...');
       
       // CORRECTION : Utiliser le bon ID du bouton
       const setupOptimizeButton = () => {
-        const optimizeBtn = document.getElementById('generate-cuts-btn'); // ✅ Bon ID
+        const optimizeBtn = document.getElementById('generate-cuts-btn');
         if (optimizeBtn) {
-          console.log('✅ Bouton de génération trouvé');
+          console.log('Bouton de génération trouvé');
           
           // Supprimer les anciens listeners pour éviter les doublons
           optimizeBtn.replaceWith(optimizeBtn.cloneNode(true));
           
           // Récupérer le nouveau bouton et ajouter le listener
-          const newOptimizeBtn = document.getElementById('generate-cuts-btn'); // ✅ Bon ID
+          const newOptimizeBtn = document.getElementById('generate-cuts-btn');
           newOptimizeBtn.addEventListener('click', (e) => {
-            console.log('🎯 Clic sur le bouton de génération détecté');
+            console.log('Clic sur le bouton de génération détecté');
             e.preventDefault();
             
             // Pas de sélection d'algorithme dans le HTML actuel, utiliser la comparaison par défaut
             const algorithmType = 'compare';
-            console.log(`🔍 Algorithme sélectionné: ${algorithmType}`);
+            console.log(`Algorithme sélectionné: ${algorithmType}`);
             
             this.runOptimization(algorithmType);
           });
           
-          console.log('✅ Event listener attaché au bouton de génération');
+          console.log('Event listener attaché au bouton de génération');
         } else {
-          console.warn('⚠️ Bouton de génération non trouvé');
+          console.warn('Bouton de génération non trouvé');
         }
       };
       
@@ -156,51 +156,39 @@ export const UIController = {
         const testBtn = document.getElementById('test-algorithms-btn');
         if (testBtn) {
           testBtn.addEventListener('click', (e) => {
-            console.log('🧪 Clic sur le bouton de test détecté');
+            console.log('Clic sur le bouton de test détecté');
             e.preventDefault();
             this.showTestScenarioModal();
           });
-          console.log('✅ Event listener attaché au bouton de test');
+          console.log('Event listener attaché au bouton de test');
         }
       };
       
       // Configurer les boutons
       setupOptimizeButton();
-      setupTestButton(); // NOUVEAU
+      setupTestButton();
       
-      // Gestionnaire pour le bouton "Retour aux données"
-      const setupBackButton = () => {
-        const backBtn = document.getElementById('back-to-data-btn');
-        if (backBtn) {
-          backBtn.addEventListener('click', () => {
-            this.showSection('data');
-          });
-          console.log('✅ Event listener attaché au bouton de retour');
-        }
-      };
-      
-      setupBackButton();
-      
-      // Gestionnaire pour le téléchargement de tous les PGM
-      const setupDownloadButton = () => {
-        const downloadAllBtn = document.getElementById('download-all-pgm');
-        if (downloadAllBtn) {
-          downloadAllBtn.addEventListener('click', () => {
-            this.resultsHandler.downloadAllPgm();
-          });
-          console.log('✅ Event listener attaché au bouton de téléchargement');
-        }
-      };
-      
-      setupDownloadButton();
+      // Supprimer la configuration du bouton retour
+      // const setupBackButton = () => {
+      //   const backBtn = document.getElementById('back-to-data-btn');
+      //   if (backBtn) {
+      //     backBtn.addEventListener('click', () => {
+      //       this.showSection('data');
+      //     });
+      //   }
+      // };
+      // setupBackButton();
       
       // Configuration des onglets de navigation
       this.setupNavigationTabs();
       
-      console.log('✅ Gestionnaires d\'événements configurés');
+      // NOUVEAU : Configuration de la sélection d'algorithme
+      this.setupAlgorithmSelection();
+      
+      console.log('Gestionnaires d\'événements configurés');
       
     } catch (error) {
-      console.error('❌ Erreur lors de la configuration des événements:', error);
+      console.error('Erreur lors de la configuration des événements:', error);
     }
   },
   
@@ -257,10 +245,11 @@ export const UIController = {
       }
       
       UIUtils.showLoadingOverlay();
-      this.showNotification('Optimisation en cours...', 'info');
+      // SUPPRESSION: Plus de notification de chargement
+      // this.showNotification('Optimisation en cours...', 'info');
       
       // Lancer l'algorithme
-      console.log(`🧮 Lancement de l'optimisation (${algorithmType})`);
+      console.log(`Lancement de l'optimisation (${algorithmType})`);
       const results = this.algorithmService.runAlgorithm(algorithmType, data);
       
       if (!results) {
@@ -271,12 +260,12 @@ export const UIController = {
       this.currentResults = results;
       
       // Générer les objets PGM
-      console.log('🔧 Génération des objets PGM...');
+      console.log('Génération des objets PGM...');
       this.currentPgmObjects = this.pgmManager.generatePgmObjects(results, this.dataManager);
       
       // Afficher le rapport de synthèse des PGM
       const summaryReport = this.pgmManager.generateSummaryReport(this.currentPgmObjects);
-      console.log('📊 Rapport PGM:', summaryReport);
+      console.log('Rapport PGM:', summaryReport);
       
       // Rendre les résultats
       ResultsRenderer.renderResults(results, this.algorithmService);
@@ -287,10 +276,11 @@ export const UIController = {
       // Afficher les onglets de résultats
       this.showResultsTabs();
       
-      this.showNotification(`Optimisation terminée - ${summaryReport.totalPgmObjects} barres à découper`, 'success');
+      // SUPPRESSION: Plus de notification de succès
+      // this.showNotification(`Optimisation terminée - ${summaryReport.totalPgmObjects} barres à découper`, 'success');
       
     } catch (error) {
-      console.error('❌ Erreur lors de l\'optimisation:', error);
+      console.error('Erreur lors de l\'optimisation:', error);
       this.showNotification(`Erreur lors de l'optimisation: ${error.message}`, 'error');
       this.currentResults = null;
       this.currentPgmObjects = null;
@@ -451,47 +441,45 @@ export const UIController = {
   /**
    * NOUVEAU : Crée différents cas de test pour démontrer la supériorité d'ILP
    */
-  createAdvancedTestData: function(scenario = 'academic_hard') {
+  createAdvancedTestData: function(scenario = 'ILP_meilleur') {
     const testScenarios = {
-      // CAS DIABOLIQUE : Multiples tailles qui s'emboîtent parfaitement
-      'diabolical_fit': {
+      // CAS où FFD devrait être meilleur : Multiples tailles qui s'emboîtent parfaitement pour FFD
+      'FFD_meilleur': {
         pieces: {
-          'DIABLO_debout': [
-            // 400 + 300 + 200 + 100 = 1000 parfait, mais FFD ne le verra pas facilement
-            { id: 'test_1', nom: 'Big', profile: 'DIABLO', length: 400, quantity: 5, orientation: 'debout', type: 'fille' },
-            { id: 'test_2', nom: 'Med', profile: 'DIABLO', length: 300, quantity: 5, orientation: 'debout', type: 'fille' },
-            { id: 'test_3', nom: 'Small', profile: 'DIABLO', length: 200, quantity: 5, orientation: 'debout', type: 'fille' },
-            { id: 'test_4', nom: 'Tiny', profile: 'DIABLO', length: 100, quantity: 5, orientation: 'debout', type: 'fille' },
-            // Pièges pour FFD
-            { id: 'test_5', nom: 'Trap', profile: 'DIABLO', length: 350, quantity: 10, orientation: 'debout', type: 'fille' }
+          'FFDBEST_debout': [
+            // FFD placera efficacement ces pièces en ordre décroissant
+            { id: 'test_1', nom: 'Big', profile: 'FFDBEST', length: 500, quantity: 10, orientation: 'debout', type: 'fille' },
+            { id: 'test_2', nom: 'Med', profile: 'FFDBEST', length: 300, quantity: 10, orientation: 'debout', type: 'fille' },
+            { id: 'test_3', nom: 'Small', profile: 'FFDBEST', length: 200, quantity: 10, orientation: 'debout', type: 'fille' },
+            // Ces pièces s'emboîtent bien : 500+300+200=1000 (parfait)
           ]
         },
         motherBars: {
-          'DIABLO_debout': [
-            { id: 'mother_1', profile: 'DIABLO', length: 1000, quantity: 1000000, type: 'mother' }
+          'FFDBEST_debout': [
+            { id: 'mother_1', profile: 'FFDBEST', length: 1000, quantity: 1000000, type: 'mother' }
           ]
         }
       },
 
-      // CAS ACADÉMIQUE : Le problème classique du "Bin Packing" difficile
-      'academic_hard': {
+      // CAS où ILP devrait être meilleur : Le problème classique du "Bin Packing" difficile
+      'ILP_meilleur': {
         pieces: {
-          'ACADEMIC_debout': [
+          'ILPBEST_debout': [
             // Sized to create the classic "First Fit Decreasing" vs "Optimal" problem
-            { id: 'test_1', nom: 'A', profile: 'ACADEMIC', length: 420, quantity: 8, orientation: 'debout', type: 'fille' },
-            { id: 'test_2', nom: 'B', profile: 'ACADEMIC', length: 320, quantity: 8, orientation: 'debout', type: 'fille' },
-            { id: 'test_3', nom: 'C', profile: 'ACADEMIC', length: 260, quantity: 8, orientation: 'debout', type: 'fille' }
+            { id: 'test_1', nom: 'A', profile: 'ILPBEST', length: 420, quantity: 8, orientation: 'debout', type: 'fille' },
+            { id: 'test_2', nom: 'B', profile: 'ILPBEST', length: 320, quantity: 8, orientation: 'debout', type: 'fille' },
+            { id: 'test_3', nom: 'C', profile: 'ILPBEST', length: 260, quantity: 8, orientation: 'debout', type: 'fille' }
           ]
         },
         motherBars: {
-          'ACADEMIC_debout': [
-            { id: 'mother_1', profile: 'ACADEMIC', length: 1000, quantity: 1000000, type: 'mother' }
+          'ILPBEST_debout': [
+            { id: 'mother_1', profile: 'ILPBEST', length: 1000, quantity: 1000000, type: 'mother' }
           ]
         }
       }
     };
     
-    return testScenarios[scenario] || testScenarios['academic_hard'];
+    return testScenarios[scenario] || testScenarios['ILP_meilleur'];
   },
   
   /**
@@ -547,6 +535,8 @@ export const UIController = {
       
       // Afficher les résultats
       ResultsRenderer.renderResults(bestResults, this.algorithmService);
+      
+      // Générer les aperçus PGM
       this.resultsHandler.generatePgmPreviews();
       this.showResultsTabs();
       
@@ -615,13 +605,13 @@ export const UIController = {
     console.log('\n🎯 PRÉDICTION DE PERFORMANCE:');
     
     switch(scenario) {
-      case 'diabolical_fit':
-        console.log('FFD: Placera probablement 400+350=750cm ou 350+350=700cm (sous-optimal)');
-        console.log('ILP: Trouvera 400+300+200+100=1000cm (combinaison parfaite)');
-        console.log('🎖️ Avantage prédit: ILP >> FFD');
+      case 'FFD_meilleur':
+        console.log('FFD: Placera probablement 500+300+200=1000cm (combinaison parfaite)');
+        console.log('ILP: Trouvera la même solution optimale');
+        console.log('🎖️ Avantage prédit: FFD == ILP (égalité)');
         break;
         
-      case 'academic_hard':
+      case 'ILP_meilleur':
         console.log('FFD: Placera 420 seuls ou avec petites pièces (inefficace)');
         console.log('ILP: Trouvera 420+320+260=1000cm (optimisation parfaite)');
         console.log('🎖️ Avantage prédit: ILP >> FFD');
@@ -711,6 +701,139 @@ export const UIController = {
   },
   
   /**
+   * NOUVEAU : Crée un élément de sélection d'algorithme
+   */
+  createAlgorithmSelectionElement: function(algorithm) {
+    const isSelected = algorithm.type === 'ilp' ? 'best' : '';
+    return `
+      <div class="efficiency-comparison ${isSelected}" data-algorithm="${algorithm.type}">
+        <div class="algorithm-info">
+          <span class="algorithm-name">${algorithm.name}</span>
+          <span class="algorithm-tag">${algorithm.tag}</span>
+        </div>
+        <div class="algorithm-stats">
+          <div class="stat-item">
+            <span class="stat-label">Barres utilisées:</span>
+            <span class="stat-value" id="ffd-bars">${algorithm.ffd.bars}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Efficacité:</span>
+            <span class="stat-value" id="ffd-efficiency">${algorithm.ffd.efficiency}%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Temps:</span>
+            <span class="stat-value" id="ffd-time">${algorithm.ffd.time}ms</span>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+  
+  /**
+   * Configure la sélection d'algorithme interactive
+   */
+  setupAlgorithmSelection: function() {
+    // Utiliser la délégation d'événements pour les éléments générés dynamiquement
+    document.addEventListener('click', (e) => {
+      const algorithmCard = e.target.closest('.efficiency-comparison');
+      if (algorithmCard && algorithmCard.hasAttribute('data-algorithm')) {
+        const selectedAlgorithm = algorithmCard.getAttribute('data-algorithm');
+        this.switchToAlgorithm(selectedAlgorithm);
+      }
+    });
+  },
+  
+  /**
+   * NOUVEAU : Bascule vers un algorithme spécifique et recalcule les PGM
+   */
+  switchToAlgorithm: async function(algorithmType) {
+    try {
+      if (!this.currentResults) {
+        console.error('Aucun résultat disponible pour basculer');
+        return;
+      }
+
+      UIUtils.showLoadingOverlay();
+      
+      console.log(`Basculement vers l'algorithme: ${algorithmType}`);
+      
+      // Récupérer les données originales
+      const data = this.dataManager.getData();
+      
+      // Exécuter l'algorithme sélectionné
+      let newResults;
+      if (algorithmType === 'ffd') {
+        newResults = this.algorithmService.runFFDAlgorithm(data);
+        newResults.algorithmName = 'First-Fit Decreasing (sélectionné)';
+        newResults.algorithmType = 'ffd';
+      } else if (algorithmType === 'ilp') {
+        newResults = this.algorithmService.runILPAlgorithm(data);
+        newResults.algorithmName = 'Programmation Linéaire (sélectionné)';
+        newResults.algorithmType = 'ilp';
+      }
+      
+      // Conserver les données de comparaison originales
+      if (this.currentResults.comparison) {
+        newResults.comparison = this.currentResults.comparison;
+        newResults.bestAlgorithm = algorithmType;
+      }
+      
+      // Mettre à jour les résultats courants
+      this.currentResults = newResults;
+      
+      // Recalculer les objets PGM
+      console.log('Recalcul des objets PGM...');
+      this.currentPgmObjects = this.pgmManager.generatePgmObjects(newResults, this.dataManager);
+      
+      // Re-rendre les résultats
+      ResultsRenderer.renderResults(newResults, this.algorithmService);
+      
+      // Mettre à jour les aperçus PGM
+      this.resultsHandler.generatePgmPreviews();
+      
+      // Mettre à jour l'interface de sélection
+      this.updateAlgorithmSelection(algorithmType);
+      
+      console.log(`Basculement vers ${algorithmType} terminé`);
+      
+    } catch (error) {
+      console.error('Erreur lors du basculement d\'algorithme:', error);
+      this.showNotification(`Erreur lors du changement d'algorithme: ${error.message}`, 'error');
+    } finally {
+      UIUtils.hideLoadingOverlay();
+    }
+  },
+  
+  /**
+   * NOUVEAU : Met à jour l'interface de sélection d'algorithme
+   */
+  updateAlgorithmSelection: function(selectedAlgorithm) {
+    // Mettre à jour les classes visuelles
+    document.querySelectorAll('.efficiency-comparison').forEach(card => {
+      card.classList.remove('best');
+    });
+    
+    const selectedCard = document.querySelector(`[data-algorithm="${selectedAlgorithm}"]`);
+    if (selectedCard) {
+      selectedCard.classList.add('best');
+    }
+    
+    // Mettre à jour le texte affiché
+    const algorithmNameSpan = document.getElementById('selected-algorithm-name');
+    const algorithmTagSpan = document.getElementById('selected-algorithm-tag');
+    
+    if (algorithmNameSpan && algorithmTagSpan) {
+      if (selectedAlgorithm === 'ffd') {
+        algorithmNameSpan.textContent = 'First-Fit Decreasing';
+        algorithmTagSpan.textContent = 'FFD';
+      } else {
+        algorithmNameSpan.textContent = 'Programmation Linéaire';
+        algorithmTagSpan.textContent = 'ILP';
+      }
+    }
+  },
+  
+  /**
    * NOUVEAU : Affiche une modal pour sélectionner le scénario de test
    */
   showTestScenarioModal: function() {
@@ -724,16 +847,16 @@ export const UIController = {
         </div>
         <div class="modal-body">
           <div class="scenario-list">
-            <div class="scenario-item" data-scenario="diabolical_fit">
-              <h4>😈 Emboîtement diabolique</h4>
-              <p>400+300+200+100 = 1000cm parfait avec pièges</p>
-              <small>Attendu: ILP >> FFD</small>
+            <div class="scenario-item" data-scenario="FFD_meilleur">
+              <h4>FFD Meilleur</h4>
+              <p>Test avec des pièces qui s'emboîtent parfaitement pour l'algorithme FFD (First-Fit Decreasing).</p>
+              <small>Attendu: FFD égal ou légèrement meilleur qu'ILP</small>
             </div>
             
-            <div class="scenario-item" data-scenario="academic_hard">
-              <h4>🎓 Problème académique</h4>
-              <p>420cm + 320cm + 260cm - Bin packing classique</p>
-              <small>Attendu: ILP >> FFD</small>
+            <div class="scenario-item" data-scenario="ILP_meilleur">
+              <h4>ILP Meilleur</h4>
+              <p>Test avec des pièces qui nécessitent une optimisation avancée pour une solution optimale.</p>
+              <small>Attendu: ILP nettement meilleur que FFD</small>
             </div>
           </div>
         </div>

@@ -7,56 +7,21 @@ export const NotificationService = {
    * Initialise le service de notification
    */
   init: function() {
-    // Vérifier si un conteneur de notification existe
-    if (!document.getElementById('notification-container')) {
-      const container = document.createElement('div');
-      container.id = 'notification-container';
-      document.body.appendChild(container);
-    }
+    // Plus besoin de créer un conteneur de notification
+    // Les notifications sont maintenant uniquement dans la console
   },
   
   /**
-   * Affiche une notification à l'utilisateur
+   * Affiche une notification dans la console uniquement
    * @param {string} message - Message à afficher
    * @param {string} type - Type de notification ('success', 'warning', 'error', 'info')
    */
   show: function(message, type = 'info') {
-    // Obtenir le conteneur de notification
-    const notifContainer = document.getElementById('notification-container');
-    
-    // Créer la notification
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-      <span class="notification-message">${message}</span>
-      <button class="notification-close">&times;</button>
-    `;
-    
-    // Ajouter la notification au conteneur
-    notifContainer.appendChild(notification);
-    
-    // Configurer le bouton de fermeture
-    notification.querySelector('.notification-close').addEventListener('click', () => {
-      notification.classList.add('hiding');
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notifContainer.removeChild(notification);
-        }
-      }, 300);
-    });
-    
-    // Auto-fermeture après 5 secondes pour les notifications non-erreur
-    if (type !== 'error') {
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.classList.add('hiding');
-          setTimeout(() => {
-            if (notification.parentNode) {
-              notifContainer.removeChild(notification);
-            }
-          }, 300);
-        }
-      }, 5000);
+    // Afficher seulement les erreurs dans la console
+    if (type === 'error') {
+      console.error('❌', message);
     }
+    // Les autres types de notifications sont ignorés
+    // (pas d'affichage visuel ni de log console pour success, warning, info)
   }
 };

@@ -675,3 +675,19 @@
     align-items: stretch;
   }
 }
+
+/* Ajouter ces styles pour l'interaction */
+
+.efficiency-comparison {
+  transition: all 0.2s ease;
+}
+
+.efficiency-comparison:hover {
+  background-color: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+.efficiency-comparison.best {
+  border: 2px solid var(--success);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
