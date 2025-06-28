@@ -13,6 +13,9 @@ export const ResultsHandler = {
   // Callbacks
   showNotification: null,
   
+  // État pour gérer les modals
+  currentModal: null,
+  
   /**
    * Initialise le gestionnaire de résultats
    */
@@ -59,7 +62,7 @@ export const ResultsHandler = {
               <div class="pgm-file-actions">
                 <button class="btn btn-sm btn-outline info-pgm-btn" 
                         data-pgm-index="${index}">
-                  Infos
+                  Détails
                 </button>
                 <button class="btn btn-sm btn-primary download-pgm-btn" 
                         data-pgm-index="${index}">
@@ -146,6 +149,9 @@ export const ResultsHandler = {
    */
   showPgmInfo: function(pgmIndex) {
     try {
+      // Fermer le modal existant s'il y en a un
+      this.closePgmInfoModal();
+      
       const pgmObjects = this.uiController.getCurrentPgmObjects();
       
       if (!pgmObjects || !pgmObjects[pgmIndex]) {
@@ -162,6 +168,24 @@ export const ResultsHandler = {
       console.error('Erreur lors de l\'affichage des infos PGM:', error);
       this.showNotification(`Erreur lors de l'affichage: ${error.message}`, 'error');
     }
+  },
+  
+  /**
+   * Ferme le modal PGM s'il existe
+   */
+  closePgmInfoModal: function() {
+    if (this.currentModal && this.currentModal.parentNode) {
+      this.currentModal.parentNode.removeChild(this.currentModal);
+      this.currentModal = null;
+    }
+    
+    // Nettoyer tous les modals PGM existants (au cas où)
+    const existingModals = document.querySelectorAll('.pgm-info-modal');
+    existingModals.forEach(modal => {
+      if (modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+      }
+    });
   },
   
   /**
@@ -198,99 +222,142 @@ export const ResultsHandler = {
     const b021 = firstPiece?.f4cData?.B021 || firstPiece?.profile?.substring(0, 3) || 'N/A';
     const b035 = firstPiece?.f4cData?.B035 || '10000';
     
-    // Créer la modal
+    // Créer la modal en utilisant les classes existantes
     const modal = document.createElement('div');
-    modal.className = 'pgm-info-modal';
+    modal.className = 'modal'; // Utilise la classe existante
     modal.innerHTML = `
-      <div class="pgm-info-overlay"></div>
-      <div class="pgm-info-content">
-        <div class="pgm-info-header">
-          <h3>Informations PGM: ${fileName}</h3>
-          <button class="pgm-info-close">&times;</button>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Détails du PGM: ${fileName}</h3>
+          <button class="close-modal" title="Fermer">&times;</button>
         </div>
         
-        <div class="pgm-info-body">
-          <div class="pgm-main-info">
-            <div class="info-group">
-              <label>Profil:</label>
-              <span>${motherBar.profile}</span>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <!-- En-tête simplifié -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+            <div style="text-align: center;">
+              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Profil</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${motherBar.profile}</div>
             </div>
-            <div class="info-group">
-              <label>Orientation:</label>
-              <span>${this.formatOrientation(motherBar.orientation)}</span>
+            <div style="text-align: center;">
+              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Orientation</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${this.formatOrientation(motherBar.orientation)}</div>
             </div>
-            <div class="info-group">
-              <label>Longueur barre mère:</label>
-              <span>${this.formatLengthInMeters(motherBar.length)}</span>
-            </div>
-          </div>
-          
-          <div class="pgm-body-info">
-            <h4>Paramètres BODY:</h4>
-            <div class="body-f4c">
-              <span>B021: ${b021}</span>
-              <span>B035: ${b035}</span>
+            <div style="text-align: center;">
+              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Longueur</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${this.formatLengthInMeters(motherBar.length)}</div>
             </div>
           </div>
           
-          <div class="pgm-pieces-info">
-            <h4>Barres à découper (${pieces.length}):</h4>
-            <div class="pieces-list">
-              ${pieces.map((piece, index) => {
-                const pieceRef = piece.pieceReference;
-                const f4c = pieceRef.f4cData || {};
-                
-                // Calculer les valeurs F4C
-                const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-                const s052 = '1'; // Quantité par défaut
-                const s053 = '1'; // Quantité par défaut
-                const s054 = f4c.S054 || Math.round((pieceRef.angles?.[1] || 90) * 100).toString();
-                const s055 = f4c.S055 || Math.round((pieceRef.angles?.[2] || 90) * 100).toString();
-                
-                return `
-                  <div class="piece-item">
-                    <div class="piece-name">${pieceRef.nom || `Pièce ${index + 1}`}</div>
-                    <div class="piece-f4c">
-                      <span>S051: ${s051}</span>
-                      <span>S052: ${s052}</span>
-                      <span>S053: ${s053}</span>
-                      <span>S054: ${s054}</span>
-                      <span>S055: ${s055}</span>
-                    </div>
+          <!-- Paramètres BODY -->
+          <div style="margin-bottom: 2rem;">
+            <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Paramètres BODY:</h4>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <span style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--text-primary); border: 1px solid var(--border-color);">B021: ${b021}</span>
+              <span style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--text-primary); border: 1px solid var(--border-color);">B035: ${b035}</span>
+            </div>
+          </div>
+          
+          <!-- Informations de performance -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+            <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Chute</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${motherBar.waste} cm</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Efficacité</div>
+              <div style="font-weight: 600; color: var(--text-primary);">${pgmObject.metadata.efficiency}%</div>
+            </div>
+          </div>
+          
+          <!-- Barres à découper -->
+          <div>
+            <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Barres à découper (${pieces.length}):</h4>
+            
+            ${pieces.map((piece, index) => {
+              const pieceRef = piece.pieceReference;
+              const f4c = pieceRef.f4cData || {};
+              
+              // Calculer les valeurs F4C
+              const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
+              const s052 = '1'; // Quantité par défaut
+              const s053 = '1'; // Quantité par défaut
+              const s054 = f4c.S054 || Math.round((pieceRef.angles?.[1] || 90) * 100).toString();
+              const s055 = f4c.S055 || Math.round((pieceRef.angles?.[2] || 90) * 100).toString();
+              
+              return `
+                <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius); margin-bottom: 1rem; position: relative;">
+                  <!-- Index aligné à droite -->
+                  <div style="position: absolute; top: 0.5rem; right: 1rem; background: var(--primary); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
+                    #${index + 1}
                   </div>
-                `;
-              }).join('')}
-            </div>
+                  
+                  <!-- Nom de la pièce -->
+                  <div style="font-weight: 500; color: var(--text-primary); margin-bottom: 0.75rem; padding-right: 3rem;">
+                    ${pieceRef.nom || `Pièce ${index + 1} - ${piece.length}cm`}
+                  </div>
+                  
+                  <!-- Codes F4C -->
+                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S051: ${s051}</span>
+                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S052: ${s052}</span>
+                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S053: ${s053}</span>
+                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S054: ${s054}</span>
+                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S055: ${s055}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
         
-        <div class="pgm-info-actions">
-          <button class="btn btn-secondary pgm-info-close">Fermer</button>
-          <button class="btn btn-primary pgm-info-download">Télécharger</button>
+        <div class="modal-footer">
+          <button class="btn btn-secondary close-modal">Fermer</button>
+          <button class="btn btn-primary modal-download">Télécharger</button>
         </div>
       </div>
     `;
     
+    // Stocker la référence du modal
+    this.currentModal = modal;
+    
     // Ajouter au DOM
     document.body.appendChild(modal);
     
-    // Gérer les événements
-    modal.querySelectorAll('.pgm-info-close').forEach(btn => {
+    // Gérer les événements de fermeture
+    modal.querySelectorAll('.close-modal').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.body.removeChild(modal);
+        this.closePgmInfoModal();
       });
     });
     
-    // Fermer en cliquant sur l'overlay
-    modal.querySelector('.pgm-info-overlay').addEventListener('click', () => {
-      document.body.removeChild(modal);
+    // Fermer en cliquant sur l'overlay (background du modal)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        this.closePgmInfoModal();
+      }
     });
     
-    modal.querySelector('.pgm-info-download').addEventListener('click', () => {
-      const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
-      UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
-      this.showNotification(`Fichier ${fileName} téléchargé`, 'success');
-      document.body.removeChild(modal);
+    // Fermer avec la touche Escape
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        this.closePgmInfoModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    // Bouton de téléchargement
+    modal.querySelector('.modal-download').addEventListener('click', () => {
+      try {
+        const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
+        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+        this.showNotification(`Fichier ${fileName} téléchargé`, 'success');
+        this.closePgmInfoModal();
+      } catch (error) {
+        console.error('Erreur téléchargement:', error);
+        this.showNotification('Erreur lors du téléchargement', 'error');
+      }
     });
   },
   
