@@ -141,7 +141,7 @@ export const ImportManager = {
     
     // Format adapté à la nouvelle structure du parser
     return {
-      nom: parsedData.nom || shortName.replace(/\.[^/.]+$/, ""), // Nom de la barre sans extension
+      nom: parsedData.nom || shortName.replace(/\.[^/.]+$/, ""),
       profile: parsedData.profil || 'INCONNU',
       length: parsedData.longueur || 0,
       quantity: parsedData.quantite || 1,
@@ -159,7 +159,8 @@ export const ImportManager = {
         S052: parsedData.S052 || '',
         S053: parsedData.S053 || '',
         S054: parsedData.S054 || '',
-        S055: parsedData.S055 || ''
+        S055: parsedData.S055 || '',
+        S058: parsedData.S058 || '' 
       },
       id: `${shortName.replace(/\W/g, '_')}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       originalFile: shortName

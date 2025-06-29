@@ -62,7 +62,8 @@ export const Parser = {
       S052: '',
       S053: '',
       S054: '',
-      S055: ''
+      S055: '',
+      S058: '',
     };
   },
   
@@ -82,7 +83,7 @@ export const Parser = {
       }
       
       // Quantité
-      if (indexLigne == 4) {
+      if (indexLigne == 8) {
         const quantite = parseInt(ligne.split('.')[0].trim());
         if (!isNaN(quantite)) {
           barreActuelle.quantite = quantite;
@@ -160,6 +161,9 @@ export const Parser = {
     // S054 et S055 = Angles (en centièmes de degré)
     barre.S054 = Math.round((90 + barre.angle_1) * 100).toString();
     barre.S055 = Math.round((90 + barre.angle_2) * 100).toString();
+
+    // S058 = 1 sauf si les angles sont opposes = 2
+    barre.S058 = (barre.angle_1 * barre.angle_2 < 0) ? '2' : '1';
 
     // S051 = longueur en fonction des angles
     let position_AK_S051 = [0, 0, 0];

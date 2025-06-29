@@ -320,6 +320,7 @@ export const ResultsHandler = {
               const s053 = f4c.S053 || '1';
               const s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
               const s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
+              const s058 = f4c.S058 || piece.S058 || '';
               
               return `
                 <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius); margin-bottom: 1rem; position: relative;">
@@ -340,6 +341,7 @@ export const ResultsHandler = {
                     <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S053: ${s053}</span>
                     <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S054: ${s054}</span>
                     <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S055: ${s055}</span>
+                    <span style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S058: ${s058}</span>
                   </div>
                 </div>
               `;

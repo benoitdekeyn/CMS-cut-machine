@@ -214,6 +214,15 @@ export const PgmGenerator = {
       bodyTemplate.B035 = "10000";
     }
     
+    // Gestion de S058 (nouvelle logique)
+    if (f4cData.S058) {
+      bodyTemplate.S058 = f4cData.S058;
+    } else if (firstPiece.S058) {
+      bodyTemplate.S058 = firstPiece.S058;
+    } else {
+      bodyTemplate.S058 = "1";
+    }
+    
     // Construire la chaîne BODY
     const bodyParts = [];
     for (const [key, value] of Object.entries(bodyTemplate)) {
@@ -313,6 +322,15 @@ export const PgmGenerator = {
       // Convertir l'angle en centièmes de degré
       const angle2 = piece.angles?.[2] || 90;
       stepTemplate.S055 = Math.round(angle2 * 100).toString();
+    }
+    
+    // Gestion de S058 (nouvelle logique)
+    if (f4cData.S058) {
+      stepTemplate.S058 = f4cData.S058;
+    } else if (piece.S058) {
+      stepTemplate.S058 = piece.S058;
+    } else {
+      stepTemplate.S058 = "1";
     }
     
     // Construire la chaîne STEP
