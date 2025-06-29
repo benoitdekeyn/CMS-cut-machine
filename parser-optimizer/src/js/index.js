@@ -3,6 +3,7 @@ import '../css/base.css';
 import '../css/layout.css';
 import '../css/components.css';
 import '../css/sections.css';
+import '../css/spinner.css';
 
 // Importer tous les modules nécessaires
 import { DataManager } from './data-manager.js';
