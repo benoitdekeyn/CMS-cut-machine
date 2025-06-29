@@ -316,8 +316,8 @@ export const ResultsHandler = {
               
               // Calculer les valeurs F4C
               const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-              const s052 = f4c.S052 || '1';
-              const s053 = f4c.S053 || '1';
+              const s052 = '1';
+              const s053 = '1';
               const s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
               const s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
               const s058 = f4c.S058 || piece.S058 || '';

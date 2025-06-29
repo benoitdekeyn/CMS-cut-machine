@@ -275,7 +275,7 @@ export const PgmGenerator = {
     const f4cData = piece.f4cData || {};
     
     // Template par défaut pour le STEP
-    const stepTemplate = {
+    let stepTemplate = {
       S051: "15000000", // Longueur en micromètres - sera remplacé
       S052: "1",        // Quantité - sera remplacé
       S053: "1",        // Quantité - sera remplacé
@@ -296,42 +296,18 @@ export const PgmGenerator = {
     };
     
     // Appliquer les données F4C de la pièce
-    if (f4cData.S051) {
-      stepTemplate.S051 = f4cData.S051;
-    } else {
-      // Convertir la longueur en micromètres (cm → µm)
-      stepTemplate.S051 = Math.round(piece.length * 10000).toString();
-    }
+    stepTemplate.S051 = f4cData.S051;
     
     // Quantités
-    stepTemplate.S052 = quantity.toString();
-    stepTemplate.S053 = quantity.toString();
+    stepTemplate.S052 = "1"
+    stepTemplate.S053 = "1"
     
     // Angles
-    if (f4cData.S054) {
-      stepTemplate.S054 = f4cData.S054;
-    } else {
-      // Convertir l'angle en centièmes de degré
-      const angle1 = piece.angles?.[1] || 90;
-      stepTemplate.S054 = Math.round(angle1 * 100).toString();
-    }
-    
-    if (f4cData.S055) {
-      stepTemplate.S055 = f4cData.S055;
-    } else {
-      // Convertir l'angle en centièmes de degré
-      const angle2 = piece.angles?.[2] || 90;
-      stepTemplate.S055 = Math.round(angle2 * 100).toString();
-    }
+    stepTemplate.S054 = f4cData.S054;
+    stepTemplate.S055 = f4cData.S055;
     
     // Gestion de S058 (nouvelle logique)
-    if (f4cData.S058) {
-      stepTemplate.S058 = f4cData.S058;
-    } else if (piece.S058) {
-      stepTemplate.S058 = piece.S058;
-    } else {
-      stepTemplate.S058 = "1";
-    }
+    stepTemplate.S058 = f4cData.S058;
     
     // Construire la chaîne STEP
     const stepParts = [];
