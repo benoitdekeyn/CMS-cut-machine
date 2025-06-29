@@ -632,4 +632,44 @@ export const AlgorithmService = {
       efficiency: parseFloat(efficiency)
     };
   },
+
+  /**
+   * NOUVEAU: Exécute TOUS les algorithmes sur UN modèle spécifique
+   * Appelé directement par UI-Controller pour chaque étape de modèle
+   */
+  runAllAlgorithmsOnSingleModel: function(model) {
+    console.log(`🎯 Exécution complète des algorithmes pour ${model.label}`);
+    
+    const results = {
+      model: model,
+      ffdResult: null,
+      ilpResult: null
+    };
+    
+    // Exécuter FFD
+    try {
+      console.log(`  🔄 FFD pour ${model.key}`);
+      const ffdResult = this.runAlgorithmOnSingleModel('ffd', model);
+      results.ffdResult = ffdResult;
+      console.log(`    ✅ FFD: ${ffdResult.rawData.totalMotherBarsUsed} barres, ${ffdResult.stats.utilizationRate}% efficacité`);
+    } catch (error) {
+      console.error(`    ❌ Erreur FFD:`, error.message);
+      results.ffdResult = null;
+    }
+    
+    // Exécuter ILP
+    try {
+      console.log(`  🔄 ILP pour ${model.key}`);
+      const ilpResult = this.runAlgorithmOnSingleModel('ilp', model);
+      results.ilpResult = ilpResult;
+      console.log(`    ✅ ILP: ${ilpResult.rawData.totalMotherBarsUsed} barres, ${ilpResult.stats.utilizationRate}% efficacité`);
+    } catch (error) {
+      console.error(`    ❌ Erreur ILP:`, error.message);
+      results.ilpResult = null;
+    }
+    
+    console.log(`🏁 Optimisation terminée pour ${model.label}`);
+    return results;
+  },
+
 };

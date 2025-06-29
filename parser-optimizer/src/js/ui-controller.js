@@ -621,7 +621,8 @@ export const UIController = {
   },
 
   /**
-   * Génère les étapes d'exécution basées sur les modèles réels
+   * Génère les étapes d'exécution basées sur les modèles réels - VERSION SIMPLIFIÉE
+   * Une étape par modèle (FFD + ILP en arrière-plan)
    */
   generateExecutionSteps: function(models) {
     const stepsContainer = document.querySelector('#loading-overlay .loading-steps');
@@ -632,28 +633,18 @@ export const UIController = {
 
     // Étape 1 : Création des modèles
     stepsContainer.appendChild(
-      this.createStepDiv('step-transform', stepNum++, 'Création des modèles')
+      this.createStepDiv('step-transform', stepNum++, 'Préparation des modèles')
     );
 
-    // Étapes pour chaque modèle × chaque algorithme
+    // Une étape par modèle (FFD + ILP combinés)
     models.forEach((model, modelIndex) => {
       const modelLabel = model.label;
       
-      // FFD pour ce modèle
       stepsContainer.appendChild(
         this.createStepDiv(
-          `step-ffd-${modelIndex}`, 
+          `step-model-${modelIndex}`, 
           stepNum++, 
-          `FFD: ${modelLabel}`
-        )
-      );
-      
-      // ILP pour ce modèle
-      stepsContainer.appendChild(
-        this.createStepDiv(
-          `step-ilp-${modelIndex}`, 
-          stepNum++, 
-          `ILP: ${modelLabel}`
+          `Optimisation: ${modelLabel}`
         )
       );
     });
@@ -670,76 +661,6 @@ export const UIController = {
   },
 
   /**
-   * NOUVEAU: Exécute réellement chaque algorithme sur chaque modèle
-   * Une étape visuelle = Un appel d'algorithme réel
-   * ORDRE CORRIGÉ: FFD puis ILP pour chaque modèle successivement
-   */
-  runRealAlgorithmSteps: async function(models) {
-    console.log('🚀 Exécution réelle étape par étape');
-    
-    const allResults = {};
-    
-    // Initialiser la structure des résultats
-    models.forEach(model => {
-      allResults[model.key] = {
-        model: model,
-        ffdResult: null,
-        ilpResult: null
-      };
-    });
-
-    // EXÉCUTION DANS L'ORDRE DES ÉTAPES AFFICHÉES
-    // Pour chaque modèle: FFD puis ILP immédiatement après
-    for (let i = 0; i < models.length; i++) {
-      const model = models[i];
-      
-      // === ÉTAPE FFD pour ce modèle ===
-      const stepFFDId = `step-ffd-${i}`;
-      console.log(`🔄 FFD RÉEL pour ${model.key} (${i + 1}/${models.length})`);
-      
-      // ACTIVER l'étape avant l'exécution
-      await this.activateStep(stepFFDId, `Exécution FFD pour ${model.label}...`);
-      
-      try {
-        // EXÉCUTION RÉELLE de l'algorithme FFD
-        const ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
-        allResults[model.key].ffdResult = ffdResult;
-        
-        // COMPLÉTER l'étape après succès
-        await this.completeStep(stepFFDId, `FFD terminé pour ${model.label}`);
-        
-      } catch (error) {
-        console.error(`❌ Erreur FFD pour ${model.key}:`, error);
-        allResults[model.key].ffdResult = null;
-        await this.completeStep(stepFFDId, `FFD échoué pour ${model.label}`);
-      }
-
-      // === ÉTAPE ILP pour ce modèle (immédiatement après FFD) ===
-      const stepILPId = `step-ilp-${i}`;
-      console.log(`🔄 ILP RÉEL pour ${model.key} (${i + 1}/${models.length})`);
-      
-      // ACTIVER l'étape avant l'exécution
-      await this.activateStep(stepILPId, `Exécution ILP pour ${model.label}...`);
-      
-      try {
-        // EXÉCUTION RÉELLE de l'algorithme ILP
-        const ilpResult = this.algorithmService.runAlgorithmOnSingleModel('ilp', model);
-        allResults[model.key].ilpResult = ilpResult;
-        
-        // COMPLÉTER l'étape après succès
-        await this.completeStep(stepILPId, `ILP terminé pour ${model.label}`);
-        
-      } catch (error) {
-        console.error(`❌ Erreur ILP pour ${model.key}:`, error);
-        allResults[model.key].ilpResult = null;
-        await this.completeStep(stepILPId, `ILP échoué pour ${model.label}`);
-      }
-    }
-    
-    return allResults;
-  },
-
-  /**
    * NOUVEAU: Active une étape (état "en cours")
    */
   activateStep: async function(stepId, message) {
@@ -749,8 +670,8 @@ export const UIController = {
       step.classList.add('active');
       step.classList.remove('completed');
       
-      // Mettre à jour le message
-      UIUtils.setLoadingStepText(message);
+      // SUPPRIMÉ: Plus de mise à jour du texte dynamique
+      // UIUtils.setLoadingStepText(message);
       
       // Petite pause pour l'effet visuel
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -772,14 +693,84 @@ export const UIController = {
       step.classList.remove('active');
       step.classList.add('completed');
       
-      // Mettre à jour le message
-      UIUtils.setLoadingStepText(message);
+      // SUPPRIMÉ: Plus de mise à jour du texte dynamique
+      // UIUtils.setLoadingStepText(message);
       
       // Petite pause avant l'étape suivante
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     
     console.log(`✅ Étape ${stepId} terminée: ${message}`);
+  },
+
+  /**
+   * SIMPLIFIÉ: Exécute les deux algorithmes pour chaque modèle dans une seule étape
+   * Une étape visuelle = FFD + ILP pour un modèle
+   */
+  runRealAlgorithmSteps: async function(models) {
+    console.log('🚀 Exécution réelle étape par étape (version simplifiée)');
+    
+    const allResults = {};
+    
+    // Initialiser la structure des résultats
+    models.forEach(model => {
+      allResults[model.key] = {
+        model: model,
+        ffdResult: null,
+        ilpResult: null
+      };
+    });
+
+    // EXÉCUTION: Une étape par modèle (FFD + ILP combinés)
+    for (let i = 0; i < models.length; i++) {
+      const model = models[i];
+      const stepId = `step-model-${i}`;
+      
+      console.log(`🎯 Optimisation complète pour ${model.key} (${i + 1}/${models.length})`);
+      
+      // ACTIVER l'étape avant l'exécution
+      await this.activateStep(stepId, `Optimisation de ${model.label}...`);
+      
+      try {
+        // EXÉCUTION FFD en arrière-plan
+        console.log(`  🔄 FFD pour ${model.key}`);
+        const ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
+        allResults[model.key].ffdResult = ffdResult;
+        
+        // SUPPRIMÉ: Plus de mise à jour du message
+        // UIUtils.setLoadingStepText(`Optimisation de ${model.label} (FFD terminé)...`);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // EXÉCUTION ILP en arrière-plan
+        console.log(`  🔄 ILP pour ${model.key}`);
+        const ilpResult = this.algorithmService.runAlgorithmOnSingleModel('ilp', model);
+        allResults[model.key].ilpResult = ilpResult;
+        
+        // COMPLÉTER l'étape après les deux algorithmes
+        await this.completeStep(stepId, `${model.label} optimisé`);
+        
+      } catch (error) {
+        console.error(`❌ Erreur optimisation pour ${model.key}:`, error);
+        
+        // Essayer au moins un algorithme si l'autre a échoué
+        if (!allResults[model.key].ffdResult && !allResults[model.key].ilpResult) {
+          // Si les deux ont échoué, essayer juste FFD
+          try {
+            console.log(`  🔄 Tentative FFD seul pour ${model.key}`);
+            const ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
+            allResults[model.key].ffdResult = ffdResult;
+            await this.completeStep(stepId, `${model.label} optimisé (FFD uniquement)`);
+          } catch (ffdError) {
+            console.error(`❌ Erreur FFD pour ${model.key}:`, ffdError);
+            await this.completeStep(stepId, `${model.label} - Échec optimisation`);
+          }
+        } else {
+          await this.completeStep(stepId, `${model.label} partiellement optimisé`);
+        }
+      }
+    }
+    
+    return allResults;
   },
 
   /**

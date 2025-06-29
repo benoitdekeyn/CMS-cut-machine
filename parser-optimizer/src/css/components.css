@@ -352,9 +352,10 @@
 }
 
 .loading-subtitle {
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  font-size: 0.95em;
+  margin: 0 0 2rem 0;
+  text-align: center;
 }
 
 .spinner {
