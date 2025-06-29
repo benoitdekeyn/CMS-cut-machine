@@ -27,13 +27,13 @@
                 
                 <!-- Zone d'import -->
                 <div class="import-container">
-                    <div class="file-drop-zone">
-                        <input type="file" id="nc2-files-input" accept=".nc1,.nc2,.zip" multiple class="file-input">
-                        <label for="nc2-files-input" class="file-label">
+                    <div class="file-drop-zone" tabindex="0">
+                        <input type="file" id="nc2-files-input" accept=".nc1,.nc2,.zip" multiple class="file-input" style="display:none;">
+                        <div class="file-label">
                             <div class="file-icon">📁</div>
                             <span class="file-prompt">Déposez vos fichiers NC1/NC2 ou ZIP ici</span>
                             <span class="file-hint">ou cliquez pour sélectionner des fichiers</span>
-                        </label>
+                        </div>
                     </div>
                 </div>
                 
@@ -124,8 +124,7 @@
 <div id="loading-overlay" class="hidden">
   <div class="loading-content">
     <h3 class="loading-title">Optimisation en cours</h3>
-    <p class="loading-subtitle">Calcul de la meilleure solution de découpe...</p>
-    <div class="banter-loader-container">
+        <p class="loading-subtitle">Calcul de la meilleure solution de découpe...<br><span style="color:var(--text-tertiary);font-size:0.95em;">Cette étape peut prendre plusieurs minutes selon la taille du projet.</span></p>    <div class="banter-loader-container">
         <div class="banter-loader">
             <div class="banter-loader__box"></div>
             <div class="banter-loader__box"></div>

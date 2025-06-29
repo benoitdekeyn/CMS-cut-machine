@@ -441,12 +441,12 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-angle-1">Angle 1 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
-          <input type="number" id="piece-angle-1" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[1] || 90).toFixed(2)}" ${angleDisabled}>
+          <input type="number" id="piece-angle-1" min="-360" max="360" step="0.01" value="${parseFloat(item.angles?.[1] || 90).toFixed(2)}" ${angleDisabled}>
           ${this.lockOptions.lockPieceAngles ? '<small class="form-help">Les angles ne peuvent pas être modifiés pour les barres importées</small>' : ''}
         </div>
         <div class="form-group">
           <label for="piece-angle-2">Angle 2 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
-          <input type="number" id="piece-angle-2" min="0" max="360" step="0.01" value="${parseFloat(item.angles?.[2] || 90).toFixed(2)}" ${angleDisabled}>
+          <input type="number" id="piece-angle-2" min="-360" max="360" step="0.01" value="${parseFloat(item.angles?.[2] || 90).toFixed(2)}" ${angleDisabled}>
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -1069,11 +1069,11 @@ export const EditHandler = {
     }
     
     if (data.angles) {
-      if (isNaN(data.angles[1]) || data.angles[1] < 0 || data.angles[1] > 360) {
-        errors.push('Angle 1 invalide (0-360°)');
+      if (isNaN(data.angles[1]) || data.angles[1] < -360 || data.angles[1] > 360) {
+        errors.push('Angle 1 invalide (-360 à 360°)');
       }
-      if (isNaN(data.angles[2]) || data.angles[2] < 0 || data.angles[2] > 360) {
-        errors.push('Angle 2 invalide (0-360°)');
+      if (isNaN(data.angles[2]) || data.angles[2] < -360 || data.angles[2] > 360) {
+        errors.push('Angle 2 invalide (-360 à 360°)');
       }
     }
     

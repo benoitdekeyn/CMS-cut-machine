@@ -62,6 +62,14 @@ export const ImportHandler = {
     
     // Gérer le clic sur l'input file
     fileInput.addEventListener('change', () => this.processImportedFiles(fileInput.files));
+    
+    // Gérer le clic sur la zone de drop pour ouvrir le sélecteur de fichiers
+    dropZone.addEventListener('click', (e) => {
+      // Ne pas déclencher si clic sur l'input lui-même (évite double ouverture)
+      if (e.target !== fileInput) {
+        fileInput.click();
+      }
+    });
   },
   
   /**
