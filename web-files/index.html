@@ -27,13 +27,13 @@
                 
                 <!-- Zone d'import -->
                 <div class="import-container">
-                    <div class="file-drop-zone">
-                        <input type="file" id="nc2-files-input" accept=".nc1,.nc2,.zip" multiple class="file-input">
-                        <label for="nc2-files-input" class="file-label">
+                    <div class="file-drop-zone" tabindex="0">
+                        <input type="file" id="nc2-files-input" accept=".nc1,.nc2,.zip" multiple class="file-input" style="display:none;">
+                        <div class="file-label">
                             <div class="file-icon">📁</div>
                             <span class="file-prompt">Déposez vos fichiers NC1/NC2 ou ZIP ici</span>
                             <span class="file-hint">ou cliquez pour sélectionner des fichiers</span>
-                        </label>
+                        </div>
                     </div>
                 </div>
                 
@@ -102,11 +102,9 @@
                 <div class="section-header">
                     <h2>Résultats d'optimisation</h2>
                 </div>
-                
-                <div id="results-container">
-                    <!-- Contenu généré dynamiquement -->
+                <div id="global-summary-container">
+                    <!-- Résumé global généré dynamiquement -->
                 </div>
-                
                 <div id="pgm-generation" class="panel">
                     <div class="panel-header">
                         <h3>Fichiers PGM générés</h3>
@@ -115,15 +113,62 @@
                         <!-- Liste générée dynamiquement -->
                     </div>
                 </div>
+                <div id="model-details-container">
+                    <!-- Détails modèles générés dynamiquement -->
+                </div>
             </section>
         </main>
     </div>
 
-    <!-- Loading overlay -->
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-        <p>Calcul en cours...</p>
+    <!-- Loading overlay - AMÉLIORÉ -->
+<div id="loading-overlay" class="hidden">
+  <div class="loading-content">
+    <h3 class="loading-title">Optimisation en cours</h3>
+        <p class="loading-subtitle"><span style="color:var(--text-tertiary);font-size:0.95em;">Cette opération peut prendre plusieurs minutes...</span></p>    <div class="banter-loader-container">
+        <div class="banter-loader">
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+        </div>
     </div>
+    
+    <div class="loading-progress">
+      <div class="progress-text">Progression : <span id="progress-percentage">0%</span></div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+    
+    <div class="loading-steps">
+      <div class="loading-step" id="step-transform">
+        <div class="step-icon">1</div>
+        <span>Transformation des données</span>
+      </div>
+      <div class="loading-step" id="step-ffd">
+        <div class="step-icon">2</div>
+        <span>Algorithme First-Fit Decreasing</span>
+      </div>
+      <div class="loading-step" id="step-ilp">
+        <div class="step-icon">3</div>
+        <span>Programmation Linéaire (ILP)</span>
+      </div>
+      <div class="loading-step" id="step-compare">
+        <div class="step-icon">4</div>
+        <span>Comparaison et sélection</span>
+      </div>
+      <div class="loading-step" id="step-pgm">
+        <div class="step-icon">5</div>
+        <span>Génération des fichiers PGM</span>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Les scripts sont désormais chargés via webpack -->
 <script defer src="bundle.js"></script></body>

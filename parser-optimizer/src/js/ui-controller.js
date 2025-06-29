@@ -771,6 +771,9 @@ export const UIController = {
       // Basculer vers la section résultats
       this.showSection('result-section');
       
+      // Scroll en haut de la page pour une UX optimale
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
       // S'assurer que le contenu est visible
       const resultsContainer = document.getElementById('results-container');
       if (resultsContainer && resultsContainer.innerHTML.trim() === '') {
