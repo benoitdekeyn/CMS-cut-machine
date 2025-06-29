@@ -71,13 +71,10 @@ export const UIController = {
     
     // Initialiser les autres services
     this.dataManager = DataManager;
-    this.algorithmService = AlgorithmService;
+    this.algorithmService = AlgorithmService; // Plus besoin d'init car import direct
     this.importManager = ImportManager;
     this.pgmGenerator = PgmGenerator;
     this.pgmManager = PgmManager;
-    
-    // AJOUT: Initialiser algorithm-service avec dataManager
-    this.algorithmService.init(this.dataManager);
     
     console.log('📋 Services principaux initialisés');
   },
@@ -566,7 +563,7 @@ export const UIController = {
   },
 
   /**
-   * Lance l'optimisation avec étapes dynamiques et progression par modèle
+   * Lance l'optimisation avec étapes RÉELLES synchronisées
    */
   runOptimization: async function() {
     try {
@@ -582,37 +579,33 @@ export const UIController = {
       }
 
       UIUtils.showLoadingOverlay();
-      // Cache la barre de progression mais garde les étapes visibles
       const progress = document.querySelector('#loading-overlay .loading-progress');
       if (progress) progress.style.display = 'none';
-      const steps = document.querySelector('#loading-overlay .loading-steps');
-      if (steps) steps.style.display = '';
 
-      // === 1. ÉTAPE DE TRANSFORMATION ===
-      UIUtils.setLoadingStepText('Transformation des données en modèles...');
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // === 1. CRÉATION DES MODÈLES ===
+      // Création des modèles AVANT génération des étapes
+      const models = this.algorithmService.createModelsFromDataManager();
+      console.log(`📋 ${models.length} modèles créés`);
+
+      // === 2. GÉNÉRATION DES ÉTAPES ===
+      this.generateExecutionSteps(models);
       
-      const modelData = this.algorithmService.transformDataToModels(data);
-      const modelKeys = this.algorithmService.getModelExecutionOrder(modelData);
-      
-      console.log(`📋 ${modelKeys.length} modèles détectés dans l'ordre d'exécution`);
+      // === 3. ÉTAPE TRANSFORM ===
+      await this.activateStep('step-transform', 'Préparation des modèles...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulation du temps de préparation
+      await this.completeStep('step-transform', 'Modèles prêts');
 
-      // === 2. GÉNÉRATION DES ÉTAPES DÉTAILLÉES ===
-      this.generateExecutionSteps(modelKeys);
+      // === 4. EXÉCUTION RÉELLE ÉTAPE PAR ÉTAPE ===
+      const allResults = await this.runRealAlgorithmSteps(models);
 
-      // Marquer l'étape de transformation comme complétée
-      await this.completeStep('step-transform', 'Transformation terminée');
+      // === 5. COMPARAISON FINALE ===
+      const finalResults = await this.runFinalComparison(allResults);
+      this.currentResults = finalResults;
 
-      // === 3. EXÉCUTION RÉELLE AVEC SYNCHRONISATION DÉTAILLÉE ===
-      const results = await this.runAlgorithmsWithRealSteps(data, modelKeys);
-      
-      if (!results) throw new Error('Aucun résultat retourné par l\'algorithme');
-      this.currentResults = results;
-
-      // === 4. GÉNÉRATION DES PGM ===
+      // === 6. GÉNÉRATION DES PGM ===
       await this.runPgmGenerationStep();
 
-      // === 5. AFFICHAGE DES RÉSULTATS ===
+      // === 7. AFFICHAGE DES RÉSULTATS ===
       await new Promise(resolve => setTimeout(resolve, 400));
       this.showResultsTabs();
 
@@ -628,34 +621,23 @@ export const UIController = {
   },
 
   /**
-   * Crée un élément div pour une étape
+   * Génère les étapes d'exécution basées sur les modèles réels
    */
-  createStepDiv: function(id, icon, label) {
-    const div = document.createElement('div');
-    div.className = 'loading-step';
-    div.id = id;
-    div.innerHTML = `<div class="step-icon">${icon}</div><span>${label}</span>`;
-    return div;
-  },
-
-  /**
-   * Génère les étapes d'exécution détaillées par algorithme et par modèle
-   */
-  generateExecutionSteps: function(modelKeys) {
+  generateExecutionSteps: function(models) {
     const stepsContainer = document.querySelector('#loading-overlay .loading-steps');
     if (!stepsContainer) return;
     
     stepsContainer.innerHTML = '';
     let stepNum = 1;
 
-    // Étape 1 : Transformation
+    // Étape 1 : Création des modèles
     stepsContainer.appendChild(
-      this.createStepDiv('step-transform', stepNum++, 'Transformation des données')
+      this.createStepDiv('step-transform', stepNum++, 'Création des modèles')
     );
 
-    // Étapes détaillées pour chaque modèle et chaque algorithme
-    modelKeys.forEach((modelKey, modelIndex) => {
-      const modelLabel = this.formatModelNameForSteps(modelKey);
+    // Étapes pour chaque modèle × chaque algorithme
+    models.forEach((model, modelIndex) => {
+      const modelLabel = model.label;
       
       // FFD pour ce modèle
       stepsContainer.appendChild(
@@ -684,107 +666,106 @@ export const UIController = {
       this.createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM')
     );
     
-    console.log(`🎯 ${stepNum - 1} étapes générées pour ${modelKeys.length} modèles`);
+    console.log(`🎯 ${stepNum - 1} étapes générées pour ${models.length} modèles`);
   },
 
   /**
-   * Formate le nom d'un modèle pour les étapes
+   * NOUVEAU: Exécute réellement chaque algorithme sur chaque modèle
+   * Une étape visuelle = Un appel d'algorithme réel
+   * ORDRE CORRIGÉ: FFD puis ILP pour chaque modèle successivement
    */
-  formatModelNameForSteps: function(modelKey) {
-    const parts = modelKey.split('_');
-    const profile = parts[0];
-    const orientation = parts[1];
+  runRealAlgorithmSteps: async function(models) {
+    console.log('🚀 Exécution réelle étape par étape');
     
-    let orientationText = '';
-    switch(orientation) {
-      case 'a-plat':
-        orientationText = 'À plat';
-        break;
-      case 'debout':
-        orientationText = 'Debout';
-        break;
-      default:
-        orientationText = orientation;
+    const allResults = {};
+    
+    // Initialiser la structure des résultats
+    models.forEach(model => {
+      allResults[model.key] = {
+        model: model,
+        ffdResult: null,
+        ilpResult: null
+      };
+    });
+
+    // EXÉCUTION DANS L'ORDRE DES ÉTAPES AFFICHÉES
+    // Pour chaque modèle: FFD puis ILP immédiatement après
+    for (let i = 0; i < models.length; i++) {
+      const model = models[i];
+      
+      // === ÉTAPE FFD pour ce modèle ===
+      const stepFFDId = `step-ffd-${i}`;
+      console.log(`🔄 FFD RÉEL pour ${model.key} (${i + 1}/${models.length})`);
+      
+      // ACTIVER l'étape avant l'exécution
+      await this.activateStep(stepFFDId, `Exécution FFD pour ${model.label}...`);
+      
+      try {
+        // EXÉCUTION RÉELLE de l'algorithme FFD
+        const ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
+        allResults[model.key].ffdResult = ffdResult;
+        
+        // COMPLÉTER l'étape après succès
+        await this.completeStep(stepFFDId, `FFD terminé pour ${model.label}`);
+        
+      } catch (error) {
+        console.error(`❌ Erreur FFD pour ${model.key}:`, error);
+        allResults[model.key].ffdResult = null;
+        await this.completeStep(stepFFDId, `FFD échoué pour ${model.label}`);
+      }
+
+      // === ÉTAPE ILP pour ce modèle (immédiatement après FFD) ===
+      const stepILPId = `step-ilp-${i}`;
+      console.log(`🔄 ILP RÉEL pour ${model.key} (${i + 1}/${models.length})`);
+      
+      // ACTIVER l'étape avant l'exécution
+      await this.activateStep(stepILPId, `Exécution ILP pour ${model.label}...`);
+      
+      try {
+        // EXÉCUTION RÉELLE de l'algorithme ILP
+        const ilpResult = this.algorithmService.runAlgorithmOnSingleModel('ilp', model);
+        allResults[model.key].ilpResult = ilpResult;
+        
+        // COMPLÉTER l'étape après succès
+        await this.completeStep(stepILPId, `ILP terminé pour ${model.label}`);
+        
+      } catch (error) {
+        console.error(`❌ Erreur ILP pour ${model.key}:`, error);
+        allResults[model.key].ilpResult = null;
+        await this.completeStep(stepILPId, `ILP échoué pour ${model.label}`);
+      }
     }
     
-    return `${profile} - ${orientationText}`;
+    return allResults;
   },
 
   /**
-   * Exécute les algorithmes avec des étapes détaillées par modèle
+   * NOUVEAU: Active une étape (état "en cours")
    */
-  runAlgorithmsWithRealSteps: async function(data, modelKeys) {
-    console.log('🚀 Début de l\'exécution réelle des algorithmes par modèle');
-    
-    // Exécuter FFD pour chaque modèle individuellement (animation visuelle)
-    for (let i = 0; i < modelKeys.length; i++) {
-      const modelKey = modelKeys[i];
-      const modelLabel = this.formatModelNameForSteps(modelKey);
-      const stepId = `step-ffd-${i}`;
+  activateStep: async function(stepId, message) {
+    const step = document.getElementById(stepId);
+    if (step) {
+      // Marquer comme actif
+      step.classList.add('active');
+      step.classList.remove('completed');
       
-      // Activer l'étape FFD pour ce modèle
-      const stepFFD = document.getElementById(stepId);
-      if (stepFFD) {
-        stepFFD.classList.add('active');
-        UIUtils.setLoadingStepText(`Exécution FFD pour ${modelLabel}...`);
-      }
+      // Mettre à jour le message
+      UIUtils.setLoadingStepText(message);
       
-      console.log(`🔄 FFD pour ${modelKey} (${i + 1}/${modelKeys.length})`);
-      
-      // Simuler le temps d'exécution FFD
-      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
-      
-      await this.completeStep(stepId, `FFD terminé pour ${modelLabel}`);
+      // Petite pause pour l'effet visuel
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
     
-    // Exécuter ILP pour chaque modèle individuellement (animation visuelle)
-    for (let i = 0; i < modelKeys.length; i++) {
-      const modelKey = modelKeys[i];
-      const modelLabel = this.formatModelNameForSteps(modelKey);
-      const stepId = `step-ilp-${i}`;
-      
-      // Activer l'étape ILP pour ce modèle
-      const stepILP = document.getElementById(stepId);
-      if (stepILP) {
-        stepILP.classList.add('active');
-        UIUtils.setLoadingStepText(`Exécution ILP pour ${modelLabel}...`);
-      }
-      
-      console.log(`🔄 ILP pour ${modelKey} (${i + 1}/${modelKeys.length})`);
-      
-      // Simuler le temps d'exécution ILP (plus long)
-      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 300));
-      
-      await this.completeStep(stepId, `ILP terminé pour ${modelLabel}`);
-    }
-    
-    // === EXÉCUTION RÉELLE DES ALGORITHMES ===
-    console.log('🚀 Exécution réelle des algorithmes');
-    
-    // CORRIGÉ: Utiliser la bonne fonction du service
-    const results = this.algorithmService.runAlgorithm('compare', data);
-    
-    // === ÉTAPE COMPARAISON ===
-    const stepCompare = document.getElementById('step-compare');
-    if (stepCompare) {
-      stepCompare.classList.add('active');
-      UIUtils.setLoadingStepText('Comparaison des algorithmes et sélection des meilleurs résultats...');
-    }
-    
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    await this.completeStep('step-compare', 'Comparaison terminée');
-    
-    return results;
+    console.log(`🟡 Étape ${stepId} activée: ${message}`);
   },
 
   /**
-   * Utilitaire pour compléter une étape avec animation
+   * AMÉLIORÉ: Complète une étape avec animation
    */
   completeStep: async function(stepId, message) {
     const step = document.getElementById(stepId);
     if (step) {
-      // Attendre un peu pour l'effet visuel
+      // Attendre un peu pour l'effet visuel de l'exécution
       await new Promise(resolve => setTimeout(resolve, 300));
       
       // Marquer comme complété
@@ -797,26 +778,134 @@ export const UIController = {
       // Petite pause avant l'étape suivante
       await new Promise(resolve => setTimeout(resolve, 200));
     }
+    
+    console.log(`✅ Étape ${stepId} terminée: ${message}`);
   },
 
   /**
-   * Exécute l'étape de génération PGM
+   * NOUVEAU: Effectue la comparaison finale et sélection des meilleurs résultats
    */
-  runPgmGenerationStep: async function() {
-    const stepPgm = document.getElementById('step-pgm');
-    if (stepPgm) {
-      stepPgm.classList.add('active');
-      UIUtils.setLoadingStepText('Génération des fichiers PGM...');
+  runFinalComparison: async function(allResults) {
+    const stepCompareId = 'step-compare';
+    
+    // ACTIVER l'étape de comparaison
+    await this.activateStep(stepCompareId, 'Comparaison des algorithmes et sélection...');
+    
+    console.log('🔄 Comparaison finale des résultats');
+    
+    const modelResults = {};
+    
+    // Comparer et sélectionner pour chaque modèle
+    for (const [modelKey, results] of Object.entries(allResults)) {
+      const { ffdResult, ilpResult } = results;
+      
+      if (ffdResult || ilpResult) {
+        const bestResult = this.algorithmService.selectBestForModel(modelKey, ffdResult, ilpResult);
+        modelResults[modelKey] = bestResult;
+      }
     }
     
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Construire les résultats finaux
+    const finalResults = this.algorithmService.buildFinalResults(modelResults);
     
-    // Génération réelle des PGM
-    this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
-    ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
-    this.resultsHandler.generatePgmPreviews();
+    // COMPLÉTER l'étape de comparaison
+    await this.completeStep(stepCompareId, 'Comparaison terminée');
     
-    await this.completeStep('step-pgm', 'Fichiers PGM générés');
+    return finalResults;
+  },
+
+  /**
+   * AMÉLIORÉ: Exécute l'étape de génération PGM
+   */
+  runPgmGenerationStep: async function() {
+    const stepPgmId = 'step-pgm';
+    
+    // ACTIVER l'étape PGM
+    await this.activateStep(stepPgmId, 'Génération des fichiers PGM...');
+    
+    try {
+      // Génération réelle des PGM
+      this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
+      ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
+      this.resultsHandler.generatePgmPreviews();
+      
+      // COMPLÉTER l'étape PGM
+      await this.completeStep(stepPgmId, 'Fichiers PGM générés');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la génération PGM:', error);
+      await this.completeStep(stepPgmId, 'Erreur génération PGM');
+      this.showNotification('Erreur lors de la génération des aperçus PGM', 'warning');
+    }
+  },
+
+  /**
+   * CORRIGÉ: Lance l'optimisation avec l'étape transform bien gérée
+   */
+  runOptimization: async function() {
+    try {
+      this.saveOriginalDataState();
+      this.clearOptimizationResults();
+
+      const data = this.dataManager.getData();
+      console.log('🔍 Vérification des données avant optimisation...');
+      this.logDataStatistics(data);
+
+      if (!this.validateDataForOptimization(data)) {
+        return;
+      }
+
+      UIUtils.showLoadingOverlay();
+      const progress = document.querySelector('#loading-overlay .loading-progress');
+      if (progress) progress.style.display = 'none';
+
+      // === 1. CRÉATION DES MODÈLES ===
+      // Création des modèles AVANT génération des étapes
+      const models = this.algorithmService.createModelsFromDataManager();
+      console.log(`📋 ${models.length} modèles créés`);
+
+      // === 2. GÉNÉRATION DES ÉTAPES ===
+      this.generateExecutionSteps(models);
+      
+      // === 3. ÉTAPE TRANSFORM ===
+      await this.activateStep('step-transform', 'Préparation des modèles...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulation du temps de préparation
+      await this.completeStep('step-transform', 'Modèles prêts');
+
+      // === 4. EXÉCUTION RÉELLE ÉTAPE PAR ÉTAPE ===
+      const allResults = await this.runRealAlgorithmSteps(models);
+
+      // === 5. COMPARAISON FINALE ===
+      const finalResults = await this.runFinalComparison(allResults);
+      this.currentResults = finalResults;
+
+      // === 6. GÉNÉRATION DES PGM ===
+      await this.runPgmGenerationStep();
+
+      // === 7. AFFICHAGE DES RÉSULTATS ===
+      await new Promise(resolve => setTimeout(resolve, 400));
+      this.showResultsTabs();
+
+    } catch (error) {
+      console.error('Erreur lors de l\'optimisation:', error);
+      this.showNotification(`Erreur: ${error.message}`, 'error');
+      this.restoreOriginalDataState();
+      this.clearOptimizationResults();
+    } finally {
+      UIUtils.hideLoadingOverlay();
+      UIUtils.showLoadingProgressBar();
+    }
+  },
+
+  /**
+   * Crée un élément div pour une étape
+   */
+  createStepDiv: function(id, icon, label) {
+    const div = document.createElement('div');
+    div.className = 'loading-step';
+    div.id = id;
+    div.innerHTML = `<div class="step-icon">${icon}</div><span>${label}</span>`;
+    return div;
   },
 
   /**

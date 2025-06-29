@@ -1,102 +1,340 @@
 import { algorithms } from './index.js';
+import { DataManager } from './data-manager.js'; // Import direct
 
 export const AlgorithmService = {
-  // Référence au DataManager pour accès aux modèles
-  dataManager: null,
 
   /**
-   * Initialise les dépendances
+   * FONCTION PRINCIPALE SIMPLIFIÉE - Point d'entrée unique
+   * Lance l'optimisation complète sans paramètres
    */
-  init: function(dataManager) {
-    this.dataManager = dataManager;
-  },
-
-  /**
-   * Point d'entrée principal pour l'optimisation
-   */
-  runAlgorithm: function(type, data) {
+  runOptimization: function() {
+    console.log('🚀 Début de l\'optimisation complète');
+    
     try {
-      if (type === 'compare') {
-        return this.runComparisonOptimization(data);
-      } else if (type === 'greedy' || type === 'ffd') {
-        return this.runSingleAlgorithmOptimization(data, 'ffd');
-      } else if (type === 'ilp') {
-        return this.runSingleAlgorithmOptimization(data, 'ilp');
-      } else {
-        throw new Error(`Type d'algorithme non reconnu: ${type}`);
+      // 1. Créer les modèles à partir du DataManager
+      const models = this.createModelsFromDataManager();
+      
+      if (models.length === 0) {
+        throw new Error('Aucun modèle trouvé pour l\'optimisation');
       }
+      
+      // 2. Exécuter tous les algorithmes sur tous les modèles
+      const allResults = this.runAllAlgorithmsOnAllModels(models);
+      
+      // 3. Traiter et comparer les résultats
+      const finalResults = this.processAndCompareResults(allResults, models);
+      
+      console.log('✅ Optimisation complète terminée');
+      return finalResults;
+      
     } catch (error) {
-      console.error('Algorithm error:', error);
+      console.error('❌ Erreur lors de l\'optimisation:', error);
       throw error;
     }
   },
 
   /**
-   * Exécute la comparaison FFD vs ILP
+   * ÉTAPE 1: Crée les objets modèles à partir du DataManager
    */
-  runComparisonOptimization: function(data) {
-    console.log('🎯 Optimisation comparative FFD vs ILP');
+  createModelsFromDataManager: function() {
+    console.log('📋 Création des modèles à partir du DataManager');
     
-    const modelData = this.transformDataToModels(data);
-    const modelKeys = this.getModelExecutionOrder(modelData);
+    // Obtenir tous les modèles distincts directement depuis DataManager
+    const modelDefinitions = DataManager.getModels();
+    const models = [];
     
-    const ffdResults = this.runAlgorithmOnAllModels(modelData, 'ffd');
-    
-    let ilpResults = null;
-    try {
-      ilpResults = this.runAlgorithmOnAllModels(modelData, 'ilp');
-    } catch (error) {
-      console.warn('ILP failed, using FFD only:', error.message);
-    }
-    
-    return this.compareAndSelectBest(ffdResults, ilpResults);
-  },
-
-  /**
-   * Exécute un seul algorithme
-   */
-  runSingleAlgorithmOptimization: function(data, algorithmType) {
-    console.log(`🎯 Optimisation ${algorithmType.toUpperCase()}`);
-    
-    const modelData = this.transformDataToModels(data);
-    return this.runAlgorithmOnAllModels(modelData, algorithmType);
-  },
-
-  /**
-   * Exécute un algorithme sur tous les modèles
-   */
-  runAlgorithmOnAllModels: function(modelData, algorithmType) {
-    const results = {};
-    const modelKeys = this.getModelExecutionOrder(modelData);
-    
-    console.log(`🔧 Exécution ${algorithmType.toUpperCase()} sur ${modelKeys.length} modèles`);
-    
-    for (const modelKey of modelKeys) {
-      const modelPieces = modelData.pieces[modelKey] || [];
-      const modelMotherBars = modelData.motherBars[modelKey] || [];
+    for (const modelDef of modelDefinitions) {
+      const { profile, orientation } = modelDef;
       
-      if (modelPieces.length === 0 || modelMotherBars.length === 0) {
-        console.warn(`⚠️ Modèle ${modelKey} ignoré: données insuffisantes`);
-        continue;
+      // Obtenir les barres mères pour ce profil
+      const motherBars = DataManager.getMotherBarsByProfile(profile);
+      
+      // Obtenir les pièces à découper pour ce modèle
+      const pieces = DataManager.getLengthsToCutByModel(profile, orientation);
+      
+      // Vérifier que le modèle a des données valides
+      if (motherBars.length > 0 && pieces.length > 0) {
+        const model = {
+          key: `${profile}_${orientation}`,
+          profile: profile,
+          orientation: orientation,
+          motherBars: motherBars,
+          pieces: pieces,
+          label: this.formatModelLabel(profile, orientation)
+        };
+        
+        models.push(model);
+        
+        // Log des détails du modèle
+        const totalPieces = pieces.reduce((sum, p) => sum + p.quantity, 0);
+        const totalMotherBars = motherBars.reduce((sum, m) => sum + m.quantity, 0);
+        console.log(`  ✓ ${model.label}: ${totalPieces} pièces, ${totalMotherBars} barres mères`);
+      } else {
+        console.warn(`  ⚠️ Modèle ${profile}_${orientation} ignoré: données insuffisantes`);
       }
-      
-      console.log(`🔄 ${algorithmType.toUpperCase()} pour ${modelKey}`);
-      
-      // Appeler l'algorithme pur
-      const algorithmResult = this.callPureAlgorithm(algorithmType, modelMotherBars, modelPieces);
-      
-      // Convertir en format standardisé
-      const modelResult = this.convertToStandardFormat(algorithmResult, modelKey, algorithmType, modelPieces, modelMotherBars);
-      
-      results[modelKey] = modelResult;
-      
-      console.log(`✅ ${modelKey}: ${modelResult.rawData.totalMotherBarsUsed} barres, efficacité ${modelResult.stats.utilizationRate}%`);
     }
+    
+    console.log(`📊 ${models.length} modèles créés pour l'optimisation`);
+    return models;
+  },
+
+  /**
+   * ÉTAPE 2: Exécute tous les algorithmes sur tous les modèles
+   */
+  runAllAlgorithmsOnAllModels: function(models) {
+    console.log('🔧 Exécution de tous les algorithmes sur tous les modèles');
+    
+    const algorithmTypes = ['ffd', 'ilp'];
+    const allResults = {};
+    
+    // Boucle imbriquée: pour chaque modèle, exécuter chaque algorithme
+    for (const model of models) {
+      console.log(`\n🎯 Traitement du modèle: ${model.label}`);
+      
+      allResults[model.key] = {
+        model: model,
+        algorithmResults: {}
+      };
+      
+      for (const algorithmType of algorithmTypes) {
+        console.log(`  🔄 Exécution ${algorithmType.toUpperCase()} pour ${model.label}`);
+        
+        try {
+          // Appeler l'algorithme pur
+          const algorithmResult = this.callPureAlgorithm(algorithmType, model.motherBars, model.pieces);
+          
+          // Convertir en format standardisé
+          const standardResult = this.convertToStandardFormat(
+            algorithmResult, 
+            model.key, 
+            algorithmType, 
+            model.pieces, 
+            model.motherBars
+          );
+          
+          allResults[model.key].algorithmResults[algorithmType] = standardResult;
+          
+          console.log(`    ✅ ${algorithmType.toUpperCase()}: ${standardResult.rawData.totalMotherBarsUsed} barres, ${standardResult.stats.utilizationRate}% efficacité`);
+          
+        } catch (error) {
+          console.error(`    ❌ Erreur ${algorithmType.toUpperCase()}:`, error.message);
+          allResults[model.key].algorithmResults[algorithmType] = null;
+        }
+      }
+    }
+    
+    return allResults;
+  },
+
+  /**
+   * ÉTAPE 3: Traite et compare tous les résultats
+   */
+  processAndCompareResults: function(allResults, models) {
+    console.log('🤖 Traitement et comparaison des résultats');
+    
+    const finalModelResults = {};
+    const globalStats = {
+      totalUsedBars: 0,
+      totalWaste: 0,
+      totalBarLength: 0
+    };
+    
+    // Comparer et sélectionner le meilleur algorithme pour chaque modèle
+    for (const [modelKey, modelData] of Object.entries(allResults)) {
+      const ffdResult = modelData.algorithmResults.ffd;
+      const ilpResult = modelData.algorithmResults.ilp;
+      
+      const bestResult = this.selectBestAlgorithmForModel(modelKey, ffdResult, ilpResult);
+      
+      if (bestResult) {
+        finalModelResults[modelKey] = bestResult;
+        
+        // Ajouter aux statistiques globales
+        globalStats.totalUsedBars += bestResult.rawData.totalMotherBarsUsed || 0;
+        globalStats.totalWaste += bestResult.rawData.wasteLength || 0;
+        
+        // Calculer la longueur totale des barres
+        if (bestResult.layouts) {
+          for (const layout of bestResult.layouts) {
+            const barLength = layout.originalLength || layout.length || 0;
+            const count = layout.count || 1;
+            globalStats.totalBarLength += barLength * count;
+          }
+        }
+        
+        console.log(`  ${modelKey}: ${bestResult.algoUsed.toUpperCase()} sélectionné (${bestResult.comparison.reason})`);
+      }
+    }
+    
+    // Calculer l'efficacité globale
+    const globalEfficiency = globalStats.totalBarLength > 0 
+      ? ((globalStats.totalBarLength - globalStats.totalWaste) / globalStats.totalBarLength * 100).toFixed(2)
+      : "100.00";
+    
+    globalStats.totalEfficiency = parseFloat(globalEfficiency);
+    
+    console.log(`🏆 Résumé global: ${globalStats.totalUsedBars} barres, ${globalEfficiency}% efficacité`);
     
     return {
-      modelResults: results,
-      globalStats: this.calculateGlobalStats({ modelResults: results }),
-      algorithmType: algorithmType
+      modelResults: finalModelResults,
+      globalStats: globalStats,
+      bestAlgorithm: 'per-model',
+      models: models
+    };
+  },
+
+  /**
+   * NOUVEAU: Exécute UN algorithme sur UN modèle spécifique
+   * Appelé directement par UI-Controller pour chaque étape
+   */
+  runAlgorithmOnSingleModel: function(algorithmType, model) {
+    console.log(`🔄 Exécution ${algorithmType.toUpperCase()} pour ${model.label}`);
+    
+    try {
+      // Appeler l'algorithme pur
+      const algorithmResult = this.callPureAlgorithm(algorithmType, model.motherBars, model.pieces);
+      
+      // Convertir en format standardisé
+      const standardResult = this.convertToStandardFormat(
+        algorithmResult, 
+        model.key, 
+        algorithmType, 
+        model.pieces, 
+        model.motherBars
+      );
+      
+      console.log(`    ✅ ${algorithmType.toUpperCase()}: ${standardResult.rawData.totalMotherBarsUsed} barres, ${standardResult.stats.utilizationRate}% efficacité`);
+      
+      return standardResult;
+      
+    } catch (error) {
+      console.error(`    ❌ Erreur ${algorithmType.toUpperCase()}:`, error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * NOUVEAU: Sélectionne le meilleur résultat entre FFD et ILP pour un modèle
+   * Appelé par UI-Controller après l'exécution des deux algorithmes
+   */
+  selectBestForModel: function(modelKey, ffdResult, ilpResult) {
+    console.log(`🤖 Comparaison des algorithmes pour ${modelKey}`);
+    
+    let chosen, usedAlgo, comparison;
+    
+    if (!ilpResult) {
+      chosen = ffdResult;
+      usedAlgo = 'ffd';
+      comparison = {
+        ffd: ffdResult?.stats.utilizationRate || 0,
+        ilp: null,
+        reason: 'ILP non disponible'
+      };
+    } else if (!ffdResult) {
+      chosen = ilpResult;
+      usedAlgo = 'ilp';
+      comparison = {
+        ffd: null,
+        ilp: ilpResult?.stats.utilizationRate || 0,
+        reason: 'FFD non disponible'
+      };
+    } else {
+      // Comparer FFD et ILP
+      const ffdEff = ffdResult.stats.utilizationRate;
+      const ilpEff = ilpResult.stats.utilizationRate;
+      const ffdBars = ffdResult.rawData.totalMotherBarsUsed;
+      const ilpBars = ilpResult.rawData.totalMotherBarsUsed;
+      
+      if (ilpEff > ffdEff) {
+        chosen = ilpResult;
+        usedAlgo = 'ilp';
+        comparison = {
+          ffd: ffdEff,
+          ilp: ilpEff,
+          reason: `ILP plus efficace (${ilpEff}% vs ${ffdEff}%)`
+        };
+      } else if (ffdEff > ilpEff) {
+        chosen = ffdResult;
+        usedAlgo = 'ffd';
+        comparison = {
+          ffd: ffdEff,
+          ilp: ilpEff,
+          reason: `FFD plus efficace (${ffdEff}% vs ${ilpEff}%)`
+        };
+      } else if (ilpBars < ffdBars) {
+        chosen = ilpResult;
+        usedAlgo = 'ilp';
+        comparison = {
+          ffd: ffdEff,
+          ilp: ilpEff,
+          reason: `Même efficacité, ILP utilise moins de barres (${ilpBars} vs ${ffdBars})`
+        };
+      } else {
+        chosen = ffdResult;
+        usedAlgo = 'ffd';
+        comparison = {
+          ffd: ffdEff,
+          ilp: ilpEff,
+          reason: `Performances équivalentes, FFD privilégié`
+        };
+      }
+    }
+    
+    const bestResult = {
+      ...chosen,
+      algoUsed: usedAlgo,
+      comparison: comparison
+    };
+    
+    console.log(`  ${modelKey}: ${usedAlgo.toUpperCase()} sélectionné (${comparison.reason})`);
+    
+    return bestResult;
+  },
+
+  /**
+   * NOUVEAU: Construit les résultats finaux à partir des meilleurs résultats par modèle
+   * Appelé par UI-Controller à la fin
+   */
+  buildFinalResults: function(modelResults) {
+    console.log('🏗️ Construction des résultats finaux');
+    
+    const globalStats = {
+      totalUsedBars: 0,
+      totalWaste: 0,
+      totalBarLength: 0
+    };
+    
+    // Calculer les statistiques globales
+    for (const [modelKey, bestResult] of Object.entries(modelResults)) {
+      if (!bestResult) continue;
+      
+      // Ajouter aux statistiques globales
+      globalStats.totalUsedBars += bestResult.rawData.totalMotherBarsUsed || 0;
+      globalStats.totalWaste += bestResult.rawData.wasteLength || 0;
+      
+      // Calculer la longueur totale des barres
+      if (bestResult.layouts) {
+        for (const layout of bestResult.layouts) {
+          const barLength = layout.originalLength || layout.length || 0;
+          const count = layout.count || 1;
+          globalStats.totalBarLength += barLength * count;
+        }
+      }
+    }
+    
+    // Calculer l'efficacité globale
+    const globalEfficiency = globalStats.totalBarLength > 0 
+      ? ((globalStats.totalBarLength - globalStats.totalWaste) / globalStats.totalBarLength * 100).toFixed(2)
+      : "100.00";
+    
+    globalStats.totalEfficiency = parseFloat(globalEfficiency);
+    
+    console.log(`🏆 Résumé global: ${globalStats.totalUsedBars} barres, ${globalEfficiency}% efficacité`);
+    
+    return {
+      modelResults: modelResults,
+      globalStats: globalStats,
+      bestAlgorithm: 'per-model'
     };
   },
 
@@ -111,6 +349,25 @@ export const AlgorithmService = {
     } else {
       throw new Error(`Algorithme non supporté: ${algorithmType}`);
     }
+  },
+
+  /**
+   * Formate le label d'un modèle pour l'affichage
+   */
+  formatModelLabel: function(profile, orientation) {
+    let orientationText = '';
+    switch(orientation) {
+      case 'a-plat':
+        orientationText = 'À plat';
+        break;
+      case 'debout':
+        orientationText = 'Debout';
+        break;
+      default:
+        orientationText = orientation;
+    }
+    
+    return `${profile} - ${orientationText}`;
   },
 
   /**
@@ -219,318 +476,33 @@ export const AlgorithmService = {
   },
 
   /**
-   * Compare FFD et ILP et sélectionne le meilleur par modèle
+   * FONCTIONS DE COMPATIBILITÉ avec l'ancien code
    */
-  compareAndSelectBest: function(ffdResults, ilpResults) {
-    const modelResults = {};
-    const ffdModels = ffdResults.modelResults || {};
-    const ilpModels = ilpResults?.modelResults || {};
-
-    console.log('🤖 Comparaison et sélection des meilleurs algorithmes par modèle');
-
-    for (const modelKey of Object.keys(ffdModels)) {
-      const ffd = ffdModels[modelKey];
-      const ilp = ilpModels[modelKey];
-
-      let chosen, usedAlgo, comparison;
-
-      if (!ilp) {
-        chosen = ffd;
-        usedAlgo = 'ffd';
-        comparison = {
-          ffd: ffd.stats.utilizationRate,
-          ilp: null,
-          reason: 'ILP non disponible'
-        };
-      } else {
-        const ffdEff = ffd.stats.utilizationRate;
-        const ilpEff = ilp.stats.utilizationRate;
-        const ffdBars = ffd.rawData.totalMotherBarsUsed;
-        const ilpBars = ilp.rawData.totalMotherBarsUsed;
-
-        if (ilpEff > ffdEff) {
-          chosen = ilp;
-          usedAlgo = 'ilp';
-          comparison = {
-            ffd: ffdEff,
-            ilp: ilpEff,
-            reason: `ILP plus efficace (${ilpEff}% vs ${ffdEff}%)`
-          };
-        } else if (ffdEff > ilpEff) {
-          chosen = ffd;
-          usedAlgo = 'ffd';
-          comparison = {
-            ffd: ffdEff,
-            ilp: ilpEff,
-            reason: `FFD plus efficace (${ffdEff}% vs ${ilpEff}%)`
-          };
-        } else if (ilpBars < ffdBars) {
-          chosen = ilp;
-          usedAlgo = 'ilp';
-          comparison = {
-            ffd: ffdEff,
-            ilp: ilpEff,
-            reason: `Même efficacité, ILP utilise moins de barres (${ilpBars} vs ${ffdBars})`
-          };
-        } else {
-          chosen = ffd;
-          usedAlgo = 'ffd';
-          comparison = {
-            ffd: ffdEff,
-            ilp: ilpEff,
-            reason: `Performances équivalentes, FFD privilégié`
-          };
-        }
-      }
-
-      modelResults[modelKey] = {
-        ...chosen,
-        algoUsed: usedAlgo,
-        comparison: comparison
-      };
-
-      console.log(`  ${modelKey}: ${usedAlgo.toUpperCase()} sélectionné (${comparison.reason})`);
-    }
-
-    return {
-      modelResults,
-      globalStats: this.calculateGlobalStats({ modelResults }),
-      bestAlgorithm: 'per-model'
-    };
-  },
-
-  /**
-   * NOUVEAU: Obtient l'ordre d'exécution standardisé des modèles
-   */
-  getModelExecutionOrder: function(modelData) {
-    if (this.dataManager && this.dataManager.getModels) {
-      const models = this.dataManager.getModels();
-      const modelKeys = models.map(model => `${model.profile}_${model.orientation}`);
-      console.log(`📋 Ordre d'exécution des modèles: ${modelKeys.join(' → ')}`);
-      return modelKeys;
-    }
-    
-    // Fallback: utiliser les clés des données transformées
-    const modelKeys = Object.keys(modelData.pieces).sort();
-    console.log(`📋 Ordre d'exécution des modèles (fallback): ${modelKeys.join(' → ')}`);
-    return modelKeys;
-  },
-
-  /**
-   * Transform DataManager data structure to algorithm-expected models format
-   * @param {Object} data - Raw data from DataManager
-   * @returns {Object} Transformed data organized by models (profile_orientation)
-   */
-  transformDataToModels: function(data) {
-    const modelPieces = {};
-    const modelMotherBars = {};
-    
-    console.log('🔄 Transformation des données en modèles...');
-    
-    // Transform pieces grouped by profile+orientation
-    for (const profile in data.pieces) {
-      for (const piece of data.pieces[profile]) {
-        const orientation = piece.orientation || 'undefined';
-        const modelKey = `${profile}_${orientation}`;
-        
-        if (!modelPieces[modelKey]) {
-          modelPieces[modelKey] = [];
-        }
-        modelPieces[modelKey].push(piece);
-      }
-    }
-    
-    // Transform mother bars - they need to be available for each orientation that has pieces
-    for (const profile in data.motherBars) {
-      const availableOrientations = this.getOrientationsForProfile(profile, data.pieces);
-      
-      for (const orientation of availableOrientations) {
-        const modelKey = `${profile}_${orientation}`;
-        
-        if (!modelMotherBars[modelKey]) {
-          modelMotherBars[modelKey] = [...data.motherBars[profile]];
-        }
-      }
-    }
-    
-    // Log transformation summary
-    const modelCount = Object.keys(modelPieces).length;
-    console.log(`📊 ${modelCount} modèles créés:`);
-    for (const modelKey in modelPieces) {
-      const pieceCount = modelPieces[modelKey].length;
-      const motherBarCount = modelMotherBars[modelKey] ? modelMotherBars[modelKey].length : 0;
-      console.log(`  • ${modelKey}: ${pieceCount} pièces, ${motherBarCount} barres mères`);
-    }
-    
-    return { 
-      pieces: modelPieces, 
-      motherBars: modelMotherBars 
-    };
+  
+  // Point d'entrée pour la comparaison (redirige vers la fonction principale)
+  runAlgorithm: function(type, data) {
+    // Ignorer les paramètres et utiliser directement le DataManager
+    return this.runOptimization();
   },
   
-  /**
-   * Get all orientations for a given profile from pieces data
-   * @param {string} profile - Profile to check
-   * @param {Object} piecesData - Pieces data organized by profile
-   * @returns {Array} Array of orientations for this profile
-   */
-  getOrientationsForProfile: function(profile, piecesData) {
-    const orientations = new Set();
-    
-    if (piecesData[profile]) {
-      for (const piece of piecesData[profile]) {
-        orientations.add(piece.orientation || 'undefined');
-      }
-    }
-    
-    // If no orientations found, default to 'undefined'
-    if (orientations.size === 0) {
-      orientations.add('undefined');
-    }
-    
-    return Array.from(orientations);
+  runComparisonOptimization: function(data) {
+    return this.runOptimization();
   },
   
-  /**
-   * Calculate global statistics from results
-   * @param {Object} results - Algorithm results
-   * @returns {Object} Calculated global statistics
-   */
-  calculateGlobalStats: function(results) {
-    const modelResults = results.modelResults || {};
-    
-    let totalUsedBars = 0;
-    let totalWaste = 0;
-    let totalBarLength = 0;
-    
-    // Calculate totals across all models
-    for (const model in modelResults) {
-      const modelResult = modelResults[model];
-      
-      // CORRECTION: Adapter au nouveau format des résultats
-      if (modelResult.rawData) {
-        totalUsedBars += modelResult.rawData.totalMotherBarsUsed || 0;
-        totalWaste += modelResult.rawData.wasteLength || 0;
-      }
-      
-      // CORRECTION: Calculer la longueur totale depuis les layouts
-      if (modelResult.layouts && Array.isArray(modelResult.layouts)) {
-        for (const layout of modelResult.layouts) {
-          const barLength = layout.originalLength || layout.length || 0;
-          const count = layout.count || 1;
-          totalBarLength += barLength * count;
-        }
-      }
-      // Fallback pour l'ancien format FFD
-      else if (modelResult.rawData && modelResult.rawData.usedBars) {
-        for (const bar of modelResult.rawData.usedBars) {
-          totalBarLength += bar.originalLength || bar.length || 0;
-        }
-      }
-    }
-    
-    // Calculate global efficiency
-    const totalEfficiency = totalBarLength > 0 
-      ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(2)
-      : "100.00";
-      
-    return {
-      totalUsedBars,
-      totalWaste, 
-      totalBarLength,
-      totalEfficiency
-    };
-  },
-  
-  /**
-   * Calculate statistics for an individual model
-   * @param {Object} modelResult - Model result data
-   * @returns {Object} Calculated model statistics
-   */
-  calculateModelStats: function(modelResult) {
-    let totalModelBarLength = 0;
-    let totalModelWasteLength = 0;
-    let barCount = 0;
-    
-    // CORRECTION: Adapter au nouveau format des résultats
-    if (modelResult.layouts && Array.isArray(modelResult.layouts)) {
-      // Nouveau format ILP/PGM
-      for (const layout of modelResult.layouts) {
-        const barLength = layout.originalLength || layout.length || 0;
-        const count = layout.count || 1;
-        const waste = layout.waste || 0;
-        
-        totalModelBarLength += barLength * count;
-        totalModelWasteLength += waste * count;
-        barCount += count;
-      }
-    }
-    // Fallback pour l'ancien format FFD
-    else if (modelResult.rawData && modelResult.rawData.usedBars) {
-      const usedBars = modelResult.rawData.usedBars;
-      
-      for (const bar of usedBars) {
-        totalModelBarLength += bar.originalLength || bar.length || 0;
-        totalModelWasteLength += bar.remainingLength || bar.waste || 0;
-      }
-      barCount = usedBars.length;
-    }
-    // Utiliser les données rawData comme fallback
-    else if (modelResult.rawData) {
-      barCount = modelResult.rawData.totalMotherBarsUsed || 0;
-      totalModelWasteLength = modelResult.rawData.wasteLength || 0;
-      // Estimer la longueur totale si pas disponible
-      if (modelResult.rawData.motherBarLength && barCount > 0) {
-        totalModelBarLength = modelResult.rawData.motherBarLength * barCount;
-      }
-    }
-    
-    // Calculate model efficiency
-    const modelEfficiency = totalModelBarLength > 0 
-      ? ((totalModelBarLength - totalModelWasteLength) / totalModelBarLength * 100).toFixed(2)
-      : "100.00";
-      
-    return {
-      barCount: barCount,
-      totalLength: totalModelBarLength,
-      wasteLength: totalModelWasteLength,
-      efficiency: modelEfficiency
-    };
-  },
-  
-  /**
-   * Exécute FFD pour un modèle donné (asynchrone pour l'UI)
-   */
-  runFFDAlgorithmForModel: async function(modelKey, modelData) {
-    
-  },
-
-  /**
-   * Exécute ILP pour un modèle donné (asynchrone pour l'UI)
-   */
-  runILPAlgorithmForModel: async function(modelKey, modelData) {
-  },
-
-  /**
-   * NOUVEAU: Fonctions d'alias pour compatibilité avec l'ancien code
-   */
   runFFDAlgorithm: function(data) {
-    return this.runSingleAlgorithmOptimization(data, 'ffd');
+    return this.runOptimization();
   },
-
+  
   runILPAlgorithm: function(data) {
-    return this.runSingleAlgorithmOptimization(data, 'ilp');
+    return this.runOptimization();
   },
-
-  /**
-   * NOUVEAU: Alias pour la comparaison (compatibilité)
-   */
+  
   compareAlgorithms: function(data) {
-    return this.runComparisonOptimization(data);
+    return this.runOptimization();
   },
 
   /**
-   * NOUVEAU: Fonction pour traiter un pattern individuel (pour ResultsRenderer)
+   * Fonction pour traiter un pattern individuel (pour ResultsRenderer)
    */
   processPattern: function(layout) {
     const cuts = layout.cuts || [];
@@ -552,8 +524,6 @@ export const AlgorithmService = {
     
     // Créer les pièces visuelles pour la barre
     const visualPieces = [];
-    let currentPosition = 0;
-    
     cuts.forEach((cutLength, index) => {
       const percentage = (cutLength / barLength) * 100;
       visualPieces.push({
@@ -561,7 +531,6 @@ export const AlgorithmService = {
         percentage: percentage,
         isLast: index === cuts.length - 1
       });
-      currentPosition += cutLength;
     });
     
     // Calculer le pourcentage de chute
@@ -574,6 +543,93 @@ export const AlgorithmService = {
       waste: waste,
       wastePercentage: wastePercentage,
       count: count
+    };
+  },
+
+  /**
+   * FONCTION MANQUANTE: Calcule les statistiques globales (pour compatibilité avec ResultsRenderer)
+   */
+  calculateGlobalStats: function(results) {
+    console.log('📊 Calcul des statistiques globales');
+    
+    const modelResults = results.modelResults || {};
+    
+    let totalUsedBars = 0;
+    let totalWaste = 0;
+    let totalBarLength = 0;
+    
+    // Parcourir tous les résultats de modèles
+    for (const [modelKey, modelResult] of Object.entries(modelResults)) {
+      if (!modelResult) continue;
+      
+      // Ajouter les données brutes
+      if (modelResult.rawData) {
+        totalUsedBars += modelResult.rawData.totalMotherBarsUsed || 0;
+        totalWaste += modelResult.rawData.wasteLength || 0;
+      }
+      
+      // Calculer à partir des layouts
+      if (modelResult.layouts && Array.isArray(modelResult.layouts)) {
+        for (const layout of modelResult.layouts) {
+          const barLength = layout.originalLength || layout.length || 0;
+          const count = layout.count || 1;
+          totalBarLength += barLength * count;
+        }
+      }
+    }
+    
+    // Calculer l'efficacité globale
+    const totalEfficiency = totalBarLength > 0 
+      ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(2)
+      : "100.00";
+    
+    return {
+      totalUsedBars: totalUsedBars,
+      totalWaste: totalWaste,
+      totalBarLength: totalBarLength,
+      totalEfficiency: parseFloat(totalEfficiency),
+      // Compatibilité avec l'ancien format
+      totalBarsUsed: totalUsedBars,
+      wasteLength: totalWaste
+    };
+  },
+
+  /**
+   * FONCTION MANQUANTE: Calcule les statistiques d'un modèle (pour compatibilité avec ResultsRenderer)
+   */
+  calculateModelStats: function(modelResult) {
+    if (!modelResult || !modelResult.layouts) {
+      return {
+        barCount: 0,
+        totalLength: 0,
+        wasteLength: 0,
+        efficiency: 0
+      };
+    }
+    
+    let barCount = 0;
+    let totalLength = 0;
+    let wasteLength = 0;
+    
+    modelResult.layouts.forEach(layout => {
+      const count = layout.count || 1;
+      const length = layout.originalLength || layout.length || 0;
+      const waste = layout.waste || layout.remainingLength || 0;
+      
+      barCount += count;
+      totalLength += length * count;
+      wasteLength += waste * count;
+    });
+    
+    const efficiency = totalLength > 0 
+      ? ((totalLength - wasteLength) / totalLength * 100).toFixed(1)
+      : "0.0";
+    
+    return {
+      barCount: barCount,
+      totalLength: totalLength,
+      wasteLength: wasteLength,
+      efficiency: parseFloat(efficiency)
     };
   },
 };
