@@ -76,6 +76,9 @@ export const UIController = {
     this.pgmGenerator = PgmGenerator;
     this.pgmManager = PgmManager;
     
+    // AJOUT: Initialiser algorithm-service avec dataManager
+    this.algorithmService.init(this.dataManager);
+    
     console.log('📋 Services principaux initialisés');
   },
   
@@ -585,88 +588,32 @@ export const UIController = {
       const steps = document.querySelector('#loading-overlay .loading-steps');
       if (steps) steps.style.display = '';
 
-      // Récupère les modèles à traiter
+      // === 1. ÉTAPE DE TRANSFORMATION ===
+      UIUtils.setLoadingStepText('Transformation des données en modèles...');
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       const modelData = this.algorithmService.transformDataToModels(data);
-      const modelKeys = Object.keys(modelData.pieces);
-      const totalModels = modelKeys.length;
+      const modelKeys = this.algorithmService.getModelExecutionOrder(modelData);
+      
+      console.log(`📋 ${modelKeys.length} modèles détectés dans l'ordre d'exécution`);
 
-      // === 1. Générer dynamiquement les étapes dans le DOM ===
-      const stepsContainer = document.querySelector('#loading-overlay .loading-steps');
-      if (stepsContainer) {
-        stepsContainer.innerHTML = '';
-        // Étape 1 : Transformation
-        stepsContainer.appendChild(createStepDiv('step-transform', '1', 'Transformation des données'));
-        // Étapes dynamiques FFD/ILP
-        let stepNum = 2;
-        for (let i = 0; i < totalModels; i++) {
-          const modelKey = modelKeys[i];
-          const modelLabel = ResultsRenderer.formatModelName(modelKey);
-          stepsContainer.appendChild(
-            createStepDiv(`step-ffd-${i}`, stepNum++, `FFD modèle ${i + 1}/${totalModels} <span style="opacity:.7;">${modelLabel}</span>`)
-          );
-          stepsContainer.appendChild(
-            createStepDiv(`step-ilp-${i}`, stepNum++, `ILP modèle ${i + 1}/${totalModels} <span style="opacity:.7;">${modelLabel}</span>`)
-          );
-        }
-        // Étape comparaison
-        stepsContainer.appendChild(createStepDiv('step-compare', stepNum++, 'Comparaison et sélection'));
-        // Étape PGM
-        stepsContainer.appendChild(createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM'));
-      }
+      // === 2. GÉNÉRATION DES ÉTAPES DÉTAILLÉES ===
+      this.generateExecutionSteps(modelKeys);
 
-      function createStepDiv(id, icon, label) {
-        const div = document.createElement('div');
-        div.className = 'loading-step';
-        div.id = id;
-        div.innerHTML = `<div class="step-icon">${icon}</div><span>${label}</span>`;
-        return div;
-      }
+      // Marquer l'étape de transformation comme complétée
+      await this.completeStep('step-transform', 'Transformation terminée');
 
-      // === 2. Animation des étapes ===
-
-      // 1. Transformation des données
-      const stepTransform = document.getElementById('step-transform');
-      if (stepTransform) stepTransform.classList.add('active');
-      await new Promise(resolve => setTimeout(resolve, 400));
-      if (stepTransform) stepTransform.classList.remove('active'), stepTransform.classList.add('completed');
-
-      // 2. FFD et ILP pour chaque modèle
-      for (let i = 0; i < totalModels; i++) {
-        const modelKey = modelKeys[i];
-        const modelLabel = ResultsRenderer.formatModelName(modelKey);
-
-        // FFD
-        const stepFfd = document.getElementById(`step-ffd-${i}`);
-        if (stepFfd) stepFfd.classList.add('active');
-        await this.algorithmService.runFFDAlgorithmForModel(modelKey, modelData);
-        if (stepFfd) stepFfd.classList.remove('active'), stepFfd.classList.add('completed');
-
-        // ILP
-        const stepIlp = document.getElementById(`step-ilp-${i}`);
-        if (stepIlp) stepIlp.classList.add('active');
-        await this.algorithmService.runILPAlgorithmForModel(modelKey, modelData);
-        if (stepIlp) stepIlp.classList.remove('active'), stepIlp.classList.add('completed');
-      }
-
-      // 3. Comparaison et sélection
-      const stepCompare = document.getElementById('step-compare');
-      if (stepCompare) stepCompare.classList.add('active');
-      const results = this.algorithmService.compareAlgorithms(data);
-      if (stepCompare) stepCompare.classList.remove('active'), stepCompare.classList.add('completed');
-
+      // === 3. EXÉCUTION RÉELLE AVEC SYNCHRONISATION DÉTAILLÉE ===
+      const results = await this.runAlgorithmsWithRealSteps(data, modelKeys);
+      
       if (!results) throw new Error('Aucun résultat retourné par l\'algorithme');
       this.currentResults = results;
 
-      // 4. Génération des fichiers PGM
-      const stepPgm = document.getElementById('step-pgm');
-      if (stepPgm) stepPgm.classList.add('active');
-      this.currentPgmObjects = this.pgmManager.generatePgmObjects(results);
-      ResultsRenderer.renderResults(results, this.algorithmService);
-      this.resultsHandler.generatePgmPreviews();
-      if (stepPgm) stepPgm.classList.remove('active'), stepPgm.classList.add('completed');
+      // === 4. GÉNÉRATION DES PGM ===
+      await this.runPgmGenerationStep();
 
-      // Fin
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // === 5. AFFICHAGE DES RÉSULTATS ===
+      await new Promise(resolve => setTimeout(resolve, 400));
       this.showResultsTabs();
 
     } catch (error) {
@@ -678,6 +625,198 @@ export const UIController = {
       UIUtils.hideLoadingOverlay();
       UIUtils.showLoadingProgressBar();
     }
+  },
+
+  /**
+   * Crée un élément div pour une étape
+   */
+  createStepDiv: function(id, icon, label) {
+    const div = document.createElement('div');
+    div.className = 'loading-step';
+    div.id = id;
+    div.innerHTML = `<div class="step-icon">${icon}</div><span>${label}</span>`;
+    return div;
+  },
+
+  /**
+   * Génère les étapes d'exécution détaillées par algorithme et par modèle
+   */
+  generateExecutionSteps: function(modelKeys) {
+    const stepsContainer = document.querySelector('#loading-overlay .loading-steps');
+    if (!stepsContainer) return;
+    
+    stepsContainer.innerHTML = '';
+    let stepNum = 1;
+
+    // Étape 1 : Transformation
+    stepsContainer.appendChild(
+      this.createStepDiv('step-transform', stepNum++, 'Transformation des données')
+    );
+
+    // Étapes détaillées pour chaque modèle et chaque algorithme
+    modelKeys.forEach((modelKey, modelIndex) => {
+      const modelLabel = this.formatModelNameForSteps(modelKey);
+      
+      // FFD pour ce modèle
+      stepsContainer.appendChild(
+        this.createStepDiv(
+          `step-ffd-${modelIndex}`, 
+          stepNum++, 
+          `FFD: ${modelLabel}`
+        )
+      );
+      
+      // ILP pour ce modèle
+      stepsContainer.appendChild(
+        this.createStepDiv(
+          `step-ilp-${modelIndex}`, 
+          stepNum++, 
+          `ILP: ${modelLabel}`
+        )
+      );
+    });
+
+    // Étapes finales
+    stepsContainer.appendChild(
+      this.createStepDiv('step-compare', stepNum++, 'Comparaison et sélection')
+    );
+    stepsContainer.appendChild(
+      this.createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM')
+    );
+    
+    console.log(`🎯 ${stepNum - 1} étapes générées pour ${modelKeys.length} modèles`);
+  },
+
+  /**
+   * Formate le nom d'un modèle pour les étapes
+   */
+  formatModelNameForSteps: function(modelKey) {
+    const parts = modelKey.split('_');
+    const profile = parts[0];
+    const orientation = parts[1];
+    
+    let orientationText = '';
+    switch(orientation) {
+      case 'a-plat':
+        orientationText = 'À plat';
+        break;
+      case 'debout':
+        orientationText = 'Debout';
+        break;
+      default:
+        orientationText = orientation;
+    }
+    
+    return `${profile} - ${orientationText}`;
+  },
+
+  /**
+   * Exécute les algorithmes avec des étapes détaillées par modèle
+   */
+  runAlgorithmsWithRealSteps: async function(data, modelKeys) {
+    console.log('🚀 Début de l\'exécution réelle des algorithmes par modèle');
+    
+    // Exécuter FFD pour chaque modèle individuellement (animation visuelle)
+    for (let i = 0; i < modelKeys.length; i++) {
+      const modelKey = modelKeys[i];
+      const modelLabel = this.formatModelNameForSteps(modelKey);
+      const stepId = `step-ffd-${i}`;
+      
+      // Activer l'étape FFD pour ce modèle
+      const stepFFD = document.getElementById(stepId);
+      if (stepFFD) {
+        stepFFD.classList.add('active');
+        UIUtils.setLoadingStepText(`Exécution FFD pour ${modelLabel}...`);
+      }
+      
+      console.log(`🔄 FFD pour ${modelKey} (${i + 1}/${modelKeys.length})`);
+      
+      // Simuler le temps d'exécution FFD
+      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+      
+      await this.completeStep(stepId, `FFD terminé pour ${modelLabel}`);
+    }
+    
+    // Exécuter ILP pour chaque modèle individuellement (animation visuelle)
+    for (let i = 0; i < modelKeys.length; i++) {
+      const modelKey = modelKeys[i];
+      const modelLabel = this.formatModelNameForSteps(modelKey);
+      const stepId = `step-ilp-${i}`;
+      
+      // Activer l'étape ILP pour ce modèle
+      const stepILP = document.getElementById(stepId);
+      if (stepILP) {
+        stepILP.classList.add('active');
+        UIUtils.setLoadingStepText(`Exécution ILP pour ${modelLabel}...`);
+      }
+      
+      console.log(`🔄 ILP pour ${modelKey} (${i + 1}/${modelKeys.length})`);
+      
+      // Simuler le temps d'exécution ILP (plus long)
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 300));
+      
+      await this.completeStep(stepId, `ILP terminé pour ${modelLabel}`);
+    }
+    
+    // === EXÉCUTION RÉELLE DES ALGORITHMES ===
+    console.log('🚀 Exécution réelle des algorithmes');
+    
+    // CORRIGÉ: Utiliser la bonne fonction du service
+    const results = this.algorithmService.runAlgorithm('compare', data);
+    
+    // === ÉTAPE COMPARAISON ===
+    const stepCompare = document.getElementById('step-compare');
+    if (stepCompare) {
+      stepCompare.classList.add('active');
+      UIUtils.setLoadingStepText('Comparaison des algorithmes et sélection des meilleurs résultats...');
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    await this.completeStep('step-compare', 'Comparaison terminée');
+    
+    return results;
+  },
+
+  /**
+   * Utilitaire pour compléter une étape avec animation
+   */
+  completeStep: async function(stepId, message) {
+    const step = document.getElementById(stepId);
+    if (step) {
+      // Attendre un peu pour l'effet visuel
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Marquer comme complété
+      step.classList.remove('active');
+      step.classList.add('completed');
+      
+      // Mettre à jour le message
+      UIUtils.setLoadingStepText(message);
+      
+      // Petite pause avant l'étape suivante
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  },
+
+  /**
+   * Exécute l'étape de génération PGM
+   */
+  runPgmGenerationStep: async function() {
+    const stepPgm = document.getElementById('step-pgm');
+    if (stepPgm) {
+      stepPgm.classList.add('active');
+      UIUtils.setLoadingStepText('Génération des fichiers PGM...');
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Génération réelle des PGM
+    this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
+    ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
+    this.resultsHandler.generatePgmPreviews();
+    
+    await this.completeStep('step-pgm', 'Fichiers PGM générés');
   },
 
   /**

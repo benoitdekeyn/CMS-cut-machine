@@ -1,57 +1,321 @@
 import { algorithms } from './index.js';
 
-/**
- * AlgorithmService - Handles algorithm execution and results processing
- * No UI concerns are handled here
- */
 export const AlgorithmService = {
+  // Référence au DataManager pour accès aux modèles
+  dataManager: null,
+
   /**
-   * Run the selected cutting optimization algorithm
-   * @param {string} type - Algorithm type ('ffd', 'ilp', 'compare')
-   * @param {Object} data - Data to process
-   * @returns {Object} Algorithm results
-   * @throws {Error} If data is invalid or algorithm fails
+   * Initialise les dépendances
+   */
+  init: function(dataManager) {
+    this.dataManager = dataManager;
+  },
+
+  /**
+   * Point d'entrée principal pour l'optimisation
    */
   runAlgorithm: function(type, data) {
     try {
-      let results;
-      
       if (type === 'compare') {
-        // Exécuter FFD et ILP sur tous les modèles
-        const ffdResults = this.runFFDAlgorithm(data);
-        let ilpResults = null;
-        try {
-          ilpResults = this.runILPAlgorithm(data);
-        } catch (error) {
-          console.warn('ILP failed, using FFD only:', error.message);
-        }
-        results = this.compareAndSelectBest(ffdResults, ilpResults);
-      }
-      else if (type === 'greedy' || type === 'ffd') {
-        results = this.runFFDAlgorithm(data);
-      } 
-      else if (type === 'ilp') {
-        results = this.runILPAlgorithm(data);
+        return this.runComparisonOptimization(data);
+      } else if (type === 'greedy' || type === 'ffd') {
+        return this.runSingleAlgorithmOptimization(data, 'ffd');
+      } else if (type === 'ilp') {
+        return this.runSingleAlgorithmOptimization(data, 'ilp');
       } else {
         throw new Error(`Type d'algorithme non reconnu: ${type}`);
       }
-      
-      return results;
     } catch (error) {
       console.error('Algorithm error:', error);
       throw error;
     }
   },
-  
+
   /**
-   * Compare algorithms and automatically select the best one
-   * @param {Object} data - Data to process
-   * @returns {Object} Best algorithm results with comparison data
+   * Exécute la comparaison FFD vs ILP
    */
-  compareAlgorithms: function(data) {
-    return this.runAlgorithm('compare', data);
+  runComparisonOptimization: function(data) {
+    console.log('🎯 Optimisation comparative FFD vs ILP');
+    
+    const modelData = this.transformDataToModels(data);
+    const modelKeys = this.getModelExecutionOrder(modelData);
+    
+    const ffdResults = this.runAlgorithmOnAllModels(modelData, 'ffd');
+    
+    let ilpResults = null;
+    try {
+      ilpResults = this.runAlgorithmOnAllModels(modelData, 'ilp');
+    } catch (error) {
+      console.warn('ILP failed, using FFD only:', error.message);
+    }
+    
+    return this.compareAndSelectBest(ffdResults, ilpResults);
   },
-  
+
+  /**
+   * Exécute un seul algorithme
+   */
+  runSingleAlgorithmOptimization: function(data, algorithmType) {
+    console.log(`🎯 Optimisation ${algorithmType.toUpperCase()}`);
+    
+    const modelData = this.transformDataToModels(data);
+    return this.runAlgorithmOnAllModels(modelData, algorithmType);
+  },
+
+  /**
+   * Exécute un algorithme sur tous les modèles
+   */
+  runAlgorithmOnAllModels: function(modelData, algorithmType) {
+    const results = {};
+    const modelKeys = this.getModelExecutionOrder(modelData);
+    
+    console.log(`🔧 Exécution ${algorithmType.toUpperCase()} sur ${modelKeys.length} modèles`);
+    
+    for (const modelKey of modelKeys) {
+      const modelPieces = modelData.pieces[modelKey] || [];
+      const modelMotherBars = modelData.motherBars[modelKey] || [];
+      
+      if (modelPieces.length === 0 || modelMotherBars.length === 0) {
+        console.warn(`⚠️ Modèle ${modelKey} ignoré: données insuffisantes`);
+        continue;
+      }
+      
+      console.log(`🔄 ${algorithmType.toUpperCase()} pour ${modelKey}`);
+      
+      // Appeler l'algorithme pur
+      const algorithmResult = this.callPureAlgorithm(algorithmType, modelMotherBars, modelPieces);
+      
+      // Convertir en format standardisé
+      const modelResult = this.convertToStandardFormat(algorithmResult, modelKey, algorithmType, modelPieces, modelMotherBars);
+      
+      results[modelKey] = modelResult;
+      
+      console.log(`✅ ${modelKey}: ${modelResult.rawData.totalMotherBarsUsed} barres, efficacité ${modelResult.stats.utilizationRate}%`);
+    }
+    
+    return {
+      modelResults: results,
+      globalStats: this.calculateGlobalStats({ modelResults: results }),
+      algorithmType: algorithmType
+    };
+  },
+
+  /**
+   * Appelle l'algorithme pur (FFD ou ILP)
+   */
+  callPureAlgorithm: function(algorithmType, motherBars, pieces) {
+    if (algorithmType === 'ffd') {
+      return algorithms.solveGreedyFFD(motherBars, pieces);
+    } else if (algorithmType === 'ilp') {
+      return algorithms.solveWithILP(motherBars, pieces);
+    } else {
+      throw new Error(`Algorithme non supporté: ${algorithmType}`);
+    }
+  },
+
+  /**
+   * Convertit le résultat d'algorithme pur en format standardisé
+   */
+  convertToStandardFormat: function(algorithmResult, modelKey, algorithmType, originalPieces, originalMotherBars) {
+    const cuttingPatterns = algorithmResult.cuttingPatterns || [];
+    
+    // Créer les layouts à partir des patterns
+    const layouts = cuttingPatterns.map(pattern => ({
+      originalLength: pattern.motherBarLength,
+      length: pattern.motherBarLength,
+      cuts: [...pattern.cuts],
+      count: pattern.count,
+      waste: pattern.waste,
+      remainingLength: pattern.waste
+    }));
+    
+    // Calculer les statistiques
+    const totalMotherBarsUsed = cuttingPatterns.reduce((sum, pattern) => sum + pattern.count, 0);
+    const totalWasteLength = cuttingPatterns.reduce((sum, pattern) => sum + (pattern.waste * pattern.count), 0);
+    const totalBarLength = cuttingPatterns.reduce((sum, pattern) => sum + (pattern.motherBarLength * pattern.count), 0);
+    const totalUsedLength = totalBarLength - totalWasteLength;
+    
+    const utilizationRate = totalBarLength > 0 
+      ? ((totalUsedLength / totalBarLength) * 100).toFixed(3)
+      : "0.000";
+    
+    // Vérifier les pièces restantes
+    const remainingPieces = this.calculateRemainingPieces(originalPieces, cuttingPatterns);
+    
+    return {
+      layouts: layouts,
+      rawData: {
+        totalMotherBarsUsed: totalMotherBarsUsed,
+        wasteLength: totalWasteLength,
+        remainingPieces: remainingPieces,
+        usedBars: this.convertPatternsToUsedBars(cuttingPatterns)
+      },
+      stats: {
+        utilizationRate: parseFloat(utilizationRate),
+        totalBarLength: totalBarLength,
+        totalUsedLength: totalUsedLength,
+        totalWasteLength: totalWasteLength
+      },
+      algorithmName: algorithmType === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire (ILP)',
+      algorithmType: algorithmType
+    };
+  },
+
+  /**
+   * Calcule les pièces restantes non découpées
+   */
+  calculateRemainingPieces: function(originalPieces, cuttingPatterns) {
+    const demandByLength = new Map();
+    const cutByLength = new Map();
+    
+    // Compter la demande
+    originalPieces.forEach(piece => {
+      const current = demandByLength.get(piece.length) || 0;
+      demandByLength.set(piece.length, current + piece.quantity);
+    });
+    
+    // Compter les pièces découpées
+    cuttingPatterns.forEach(pattern => {
+      pattern.cuts.forEach(cut => {
+        const current = cutByLength.get(cut) || 0;
+        cutByLength.set(cut, current + pattern.count);
+      });
+    });
+    
+    // Calculer les pièces restantes
+    const remaining = [];
+    demandByLength.forEach((demand, length) => {
+      const cut = cutByLength.get(length) || 0;
+      const deficit = demand - cut;
+      if (deficit > 0) {
+        for (let i = 0; i < deficit; i++) {
+          remaining.push(length);
+        }
+      }
+    });
+    
+    return remaining;
+  },
+
+  /**
+   * Convertit les patterns en format usedBars pour compatibilité
+   */
+  convertPatternsToUsedBars: function(cuttingPatterns) {
+    const usedBars = [];
+    
+    cuttingPatterns.forEach((pattern, index) => {
+      for (let i = 0; i < pattern.count; i++) {
+        usedBars.push({
+          barId: `pattern_${index}_${i}`,
+          originalLength: pattern.motherBarLength,
+          length: pattern.motherBarLength,
+          cuts: [...pattern.cuts],
+          remainingLength: pattern.waste
+        });
+      }
+    });
+    
+    return usedBars;
+  },
+
+  /**
+   * Compare FFD et ILP et sélectionne le meilleur par modèle
+   */
+  compareAndSelectBest: function(ffdResults, ilpResults) {
+    const modelResults = {};
+    const ffdModels = ffdResults.modelResults || {};
+    const ilpModels = ilpResults?.modelResults || {};
+
+    console.log('🤖 Comparaison et sélection des meilleurs algorithmes par modèle');
+
+    for (const modelKey of Object.keys(ffdModels)) {
+      const ffd = ffdModels[modelKey];
+      const ilp = ilpModels[modelKey];
+
+      let chosen, usedAlgo, comparison;
+
+      if (!ilp) {
+        chosen = ffd;
+        usedAlgo = 'ffd';
+        comparison = {
+          ffd: ffd.stats.utilizationRate,
+          ilp: null,
+          reason: 'ILP non disponible'
+        };
+      } else {
+        const ffdEff = ffd.stats.utilizationRate;
+        const ilpEff = ilp.stats.utilizationRate;
+        const ffdBars = ffd.rawData.totalMotherBarsUsed;
+        const ilpBars = ilp.rawData.totalMotherBarsUsed;
+
+        if (ilpEff > ffdEff) {
+          chosen = ilp;
+          usedAlgo = 'ilp';
+          comparison = {
+            ffd: ffdEff,
+            ilp: ilpEff,
+            reason: `ILP plus efficace (${ilpEff}% vs ${ffdEff}%)`
+          };
+        } else if (ffdEff > ilpEff) {
+          chosen = ffd;
+          usedAlgo = 'ffd';
+          comparison = {
+            ffd: ffdEff,
+            ilp: ilpEff,
+            reason: `FFD plus efficace (${ffdEff}% vs ${ilpEff}%)`
+          };
+        } else if (ilpBars < ffdBars) {
+          chosen = ilp;
+          usedAlgo = 'ilp';
+          comparison = {
+            ffd: ffdEff,
+            ilp: ilpEff,
+            reason: `Même efficacité, ILP utilise moins de barres (${ilpBars} vs ${ffdBars})`
+          };
+        } else {
+          chosen = ffd;
+          usedAlgo = 'ffd';
+          comparison = {
+            ffd: ffdEff,
+            ilp: ilpEff,
+            reason: `Performances équivalentes, FFD privilégié`
+          };
+        }
+      }
+
+      modelResults[modelKey] = {
+        ...chosen,
+        algoUsed: usedAlgo,
+        comparison: comparison
+      };
+
+      console.log(`  ${modelKey}: ${usedAlgo.toUpperCase()} sélectionné (${comparison.reason})`);
+    }
+
+    return {
+      modelResults,
+      globalStats: this.calculateGlobalStats({ modelResults }),
+      bestAlgorithm: 'per-model'
+    };
+  },
+
+  /**
+   * NOUVEAU: Obtient l'ordre d'exécution standardisé des modèles
+   */
+  getModelExecutionOrder: function(modelData) {
+    if (this.dataManager && this.dataManager.getModels) {
+      const models = this.dataManager.getModels();
+      const modelKeys = models.map(model => `${model.profile}_${model.orientation}`);
+      console.log(`📋 Ordre d'exécution des modèles: ${modelKeys.join(' → ')}`);
+      return modelKeys;
+    }
+    
+    // Fallback: utiliser les clés des données transformées
+    const modelKeys = Object.keys(modelData.pieces).sort();
+    console.log(`📋 Ordre d'exécution des modèles (fallback): ${modelKeys.join(' → ')}`);
+    return modelKeys;
+  },
+
   /**
    * Transform DataManager data structure to algorithm-expected models format
    * @param {Object} data - Raw data from DataManager
@@ -125,335 +389,6 @@ export const AlgorithmService = {
     }
     
     return Array.from(orientations);
-  },
-  
-  /**
-   * Run the First-Fit Decreasing algorithm
-   * @param {Object} data - Data to process
-   * @returns {Object} Algorithm results
-   */
-  runFFDAlgorithm: function(data) {
-    // Transform data to models format
-    const modelData = this.transformDataToModels(data);
-    
-    // NOUVEAU: Afficher les données transformées avant exécution
-    this.displayTransformedDataForAlgorithms(modelData, 'FFD');
-    
-    // Run algorithm with transformed data
-    const results = algorithms.solveGreedyFFD(modelData.motherBars, modelData.pieces);
-    results.algorithmName = 'First-Fit Decreasing';
-    results.algorithmType = 'ffd';
-    return results;
-  },
-  
-  /**
-   * Run the Integer Linear Programming algorithm
-   * @param {Object} data - Data to process
-   * @returns {Object} Algorithm results
-   */
-  runILPAlgorithm: function(data) {
-    // Transform data to models format
-    const modelData = this.transformDataToModels(data);
-    
-    // NOUVEAU: Afficher les données transformées avant exécution
-    this.displayTransformedDataForAlgorithms(modelData, 'ILP');
-    
-    // Run algorithm with transformed data
-    const results = algorithms.solveWithILP(modelData.motherBars, modelData.pieces);
-    results.algorithmName = 'Programmation Linéaire (ILP)';
-    results.algorithmType = 'ilp';
-    return results;
-  },
-
-  /**
-   * NOUVEAU: Affiche les données transformées qui seront envoyées aux algorithmes
-   * @param {Object} modelData - Données transformées par modèle
-   * @param {string} algorithmName - Nom de l'algorithme (FFD ou ILP)
-   */
-  displayTransformedDataForAlgorithms: function(modelData, algorithmName) {
-    console.log(`\n📊 ===== DONNÉES ENVOYÉES À L'ALGORITHME ${algorithmName} =====`);
-    
-    const { pieces, motherBars } = modelData;
-    
-    // Afficher les modèles traités
-    const modelKeys = Object.keys(pieces);
-    console.log(`🔧 Modèles à traiter: ${modelKeys.join(', ')}`);
-    
-    // Pour chaque modèle, afficher les détails
-    for (const modelKey of modelKeys) {
-      console.log(`\n📋 Modèle: ${modelKey}`);
-      console.log('─'.repeat(60));
-      
-      // Afficher les barres filles (pièces à découper)
-      const modelPieces = pieces[modelKey] || [];
-      if (modelPieces.length > 0) {
-        console.log('  🔩 Barres filles (pièces à découper):');
-        
-        // Grouper par longueur pour un affichage plus clair
-        const piecesByLength = new Map();
-        modelPieces.forEach(piece => {
-          const length = piece.length;
-          const quantity = piece.quantity;
-          
-          if (piecesByLength.has(length)) {
-            piecesByLength.set(length, piecesByLength.get(length) + quantity);
-          } else {
-            piecesByLength.set(length, quantity);
-          }
-        });
-        
-        // Trier par longueur décroissante et afficher
-        const sortedPieces = Array.from(piecesByLength.entries())
-          .sort((a, b) => b[0] - a[0]);
-          
-        sortedPieces.forEach(([length, totalQuantity]) => {
-          console.log(`    • ${totalQuantity}× ${length}cm`);
-        });
-        
-        const totalPiecesQuantity = sortedPieces.reduce((sum, [, qty]) => sum + qty, 0);
-        console.log(`    📦 Total: ${totalPiecesQuantity} pièces`);
-      } else {
-        console.log('  🔩 Barres filles: Aucune');
-      }
-      
-      // Afficher les barres mères disponibles
-      const modelMotherBars = motherBars[modelKey] || [];
-      if (modelMotherBars.length > 0) {
-        console.log('  📏 Barres mères disponibles:');
-        
-        // Grouper par longueur
-        const motherBarsByLength = new Map();
-        modelMotherBars.forEach(bar => {
-          const length = bar.length;
-          const quantity = bar.quantity;
-          
-          if (motherBarsByLength.has(length)) {
-            motherBarsByLength.set(length, motherBarsByLength.get(length) + quantity);
-          } else {
-            motherBarsByLength.set(length, quantity);
-          }
-        });
-        
-        // Trier par longueur décroissante et afficher
-        const sortedMotherBars = Array.from(motherBarsByLength.entries())
-          .sort((a, b) => b[0] - a[0]);
-          
-        sortedMotherBars.forEach(([length, totalQuantity]) => {
-          console.log(`    • ${totalQuantity}× ${length}cm`);
-        });
-        
-        const totalMotherBarsQuantity = sortedMotherBars.reduce((sum, [, qty]) => sum + qty, 0);
-        console.log(`    📦 Total: ${totalMotherBarsQuantity} barres mères`);
-      } else {
-        console.log('  📏 Barres mères: Aucune');
-      }
-      
-      // Calcul de faisabilité pour ce modèle
-      const totalDemandLength = modelPieces.reduce((sum, piece) => sum + (piece.length * piece.quantity), 0);
-      const totalSupplyLength = modelMotherBars.reduce((sum, bar) => sum + (bar.length * bar.quantity), 0);
-      
-      console.log(`  📊 Longueur demandée: ${totalDemandLength}cm`);
-      console.log(`  📦 Longueur disponible: ${totalSupplyLength}cm`);
-      
-      if (totalSupplyLength >= totalDemandLength) {
-        const ratio = totalDemandLength > 0 ? ((totalDemandLength / totalSupplyLength) * 100).toFixed(1) : 0;
-        console.log(`  ✅ Faisable (ratio demande/stock: ${ratio}%)`);
-      } else {
-        const deficit = totalDemandLength - totalSupplyLength;
-        console.log(`  ❌ Stock insuffisant (manque ${deficit}cm)`);
-      }
-    }
-    
-    // Statistiques globales
-    let globalTotalPieces = 0;
-    let globalTotalMotherBars = 0;
-    let globalDemandLength = 0;
-    let globalSupplyLength = 0;
-    
-    for (const modelKey of modelKeys) {
-      const modelPieces = pieces[modelKey] || [];
-      const modelMotherBars = motherBars[modelKey] || [];
-      
-      globalTotalPieces += modelPieces.reduce((sum, piece) => sum + piece.quantity, 0);
-      globalTotalMotherBars += modelMotherBars.reduce((sum, bar) => sum + bar.quantity, 0);
-      globalDemandLength += modelPieces.reduce((sum, piece) => sum + (piece.length * piece.quantity), 0);
-      globalSupplyLength += modelMotherBars.reduce((sum, bar) => sum + (bar.length * bar.quantity), 0);
-    }
-    
-    console.log(`\n🌍 RÉSUMÉ GLOBAL:`);
-    console.log(`  • ${modelKeys.length} modèles à traiter`);
-    console.log(`  • ${globalTotalPieces} pièces à découper au total`);
-    console.log(`  • ${globalTotalMotherBars} barres mères disponibles au total`);
-    console.log(`  • ${globalDemandLength}cm de longueur demandée`);
-    console.log(`  • ${globalSupplyLength}cm de longueur disponible`);
-    
-    if (globalSupplyLength >= globalDemandLength) {
-      const globalRatio = globalDemandLength > 0 ? ((globalDemandLength / globalSupplyLength) * 100).toFixed(1) : 0;
-      console.log(`  ✅ Globalement faisable (efficacité théorique max: ${globalRatio}%)`);
-    } else {
-      const globalDeficit = globalDemandLength - globalSupplyLength;
-      console.log(`  ❌ Stock global insuffisant (manque ${globalDeficit}cm)`);
-    }
-    
-    console.log(`📊 ====================================================\n`);
-  },
-
-  /**
-   * Compare results and select the best algorithm
-   * Si ILP échoue, utiliser seulement FFD
-   */
-  compareAndSelectBest: function(ffdResults, ilpResults) {
-    const modelResults = {};
-    const ffdModels = ffdResults.modelResults || {};
-    const ilpModels = ilpResults?.modelResults || {};
-
-    let totalBarsUsed = 0;
-    let totalWaste = 0;
-    let totalBarLength = 0;
-
-    for (const modelKey of Object.keys(ffdModels)) {
-      const ffd = ffdModels[modelKey];
-      const ilp = ilpModels[modelKey];
-
-      let chosen, usedAlgo, otherAlgo, usedEff, otherEff, usedBars, otherBars;
-
-      if (!ilp) {
-        chosen = ffd;
-        usedAlgo = 'ffd';
-        otherAlgo = 'ilp';
-        usedEff = parseFloat(ffd.stats?.utilizationRate || 0);
-        otherEff = null;
-        usedBars = ffd.rawData?.totalMotherBarsUsed || 0;
-        otherBars = null;
-      } else {
-        const ffdEff = parseFloat(ffd.stats?.utilizationRate || 0);
-        const ilpEff = parseFloat(ilp.stats?.utilizationRate || 0);
-        const ffdBars = ffd.rawData?.totalMotherBarsUsed || 0;
-        const ilpBars = ilp.rawData?.totalMotherBarsUsed || 0;
-
-        if (ilpEff > ffdEff) {
-          chosen = ilp;
-          usedAlgo = 'ilp';
-          otherAlgo = 'ffd';
-          usedEff = ilpEff;
-          otherEff = ffdEff;
-          usedBars = ilpBars;
-          otherBars = ffdBars;
-        } else if (ffdEff > ilpEff) {
-          chosen = ffd;
-          usedAlgo = 'ffd';
-          otherAlgo = 'ilp';
-          usedEff = ffdEff;
-          otherEff = ilpEff;
-          usedBars = ffdBars;
-          otherBars = ilpBars;
-        } else {
-          // Egalité d'efficacité, comparer le nombre de barres mères
-          if (ilpBars < ffdBars) {
-            chosen = ilp;
-            usedAlgo = 'ilp';
-            otherAlgo = 'ffd';
-            usedEff = ilpEff;
-            otherEff = ffdEff;
-            usedBars = ilpBars;
-            otherBars = ffdBars;
-          } else if (ffdBars < ilpBars) {
-            chosen = ffd;
-            usedAlgo = 'ffd';
-            otherAlgo = 'ilp';
-            usedEff = ffdEff;
-            otherEff = ilpEff;
-            usedBars = ffdBars;
-            otherBars = ilpBars;
-          } else {
-            // Encore égalité, prendre ILP par défaut
-            chosen = ilp;
-            usedAlgo = 'ilp';
-            otherAlgo = 'ffd';
-            usedEff = ilpEff;
-            otherEff = ffdEff;
-            usedBars = ilpBars;
-            otherBars = ffdBars;
-          }
-        }
-      }
-
-      modelResults[modelKey] = {
-        ...chosen,
-        algoUsed: usedAlgo,
-        algoInfo: {
-          [usedAlgo]: usedEff,
-          [otherAlgo]: otherEff,
-          usedBars,
-          otherBars
-        }
-      };
-
-      totalBarsUsed += modelResults[modelKey].rawData?.totalMotherBarsUsed || 0;
-      totalWaste += modelResults[modelKey].rawData?.wasteLength || 0;
-      if (modelResults[modelKey].layouts) {
-        for (const layout of modelResults[modelKey].layouts) {
-          totalBarLength += (layout.originalLength || layout.length || 0) * (layout.count || 1);
-        }
-      }
-    }
-
-    const totalEfficiency = totalBarLength > 0
-      ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(2)
-      : "100.00";
-
-    return {
-      modelResults,
-      globalStats: {
-        totalBarsUsed,
-        totalWaste,
-        totalBarLength,
-        totalEfficiency
-      },
-      bestAlgorithm: 'per-model'
-    };
-  },
-  
-  /**
-   * Process cutting patterns for visualization
-   * @param {Object} layout - Layout pattern to process
-   * @returns {Object} Processed pattern with visualization data
-   */
-  processPattern: function(layout) {
-    const pattern = layout.pattern || layout;
-    const count = layout.count || 1;
-    const cuts = pattern.cuts || pattern.pieces || [];
-    const waste = pattern.remainingLength || pattern.waste || 0;
-    const barLength = pattern.originalLength || pattern.totalLength + waste;
-    
-    // Group cuts by length
-    const cutCounts = {};
-    cuts.forEach(cut => {
-      cutCounts[cut] = (cutCounts[cut] || 0) + 1;
-    });
-    
-    // Sort cuts by length (descending)
-    const sortedCuts = Object.entries(cutCounts)
-      .sort((a, b) => b[0] - a[0])
-      .map(([length, count]) => ({ length: parseInt(length), count }));
-    
-    // Calculate visual representations
-    const visualPieces = cuts.map((cut, index) => {
-      return {
-        length: cut,
-        percentage: (cut / barLength) * 100,
-        isLast: (index === cuts.length - 1 && waste === 0)
-      };
-    });
-    
-    return {
-      count,
-      barLength,
-      waste,
-      cuts: sortedCuts,
-      visualPieces,
-      wastePercentage: (waste / barLength) * 100
-    };
   },
   
   /**
@@ -567,16 +502,78 @@ export const AlgorithmService = {
    * Exécute FFD pour un modèle donné (asynchrone pour l'UI)
    */
   runFFDAlgorithmForModel: async function(modelKey, modelData) {
-    // Simule un calcul asynchrone pour l'affichage (remplace par le vrai algo si besoin)
-    await new Promise(resolve => setTimeout(resolve, 300));
-    // Ici, tu peux appeler le vrai algo sur modelData.pieces[modelKey] et modelData.motherBars[modelKey]
+    
   },
 
   /**
    * Exécute ILP pour un modèle donné (asynchrone pour l'UI)
    */
   runILPAlgorithmForModel: async function(modelKey, modelData) {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    // Ici, tu peux appeler le vrai algo sur modelData.pieces[modelKey] et modelData.motherBars[modelKey]
+  },
+
+  /**
+   * NOUVEAU: Fonctions d'alias pour compatibilité avec l'ancien code
+   */
+  runFFDAlgorithm: function(data) {
+    return this.runSingleAlgorithmOptimization(data, 'ffd');
+  },
+
+  runILPAlgorithm: function(data) {
+    return this.runSingleAlgorithmOptimization(data, 'ilp');
+  },
+
+  /**
+   * NOUVEAU: Alias pour la comparaison (compatibilité)
+   */
+  compareAlgorithms: function(data) {
+    return this.runComparisonOptimization(data);
+  },
+
+  /**
+   * NOUVEAU: Fonction pour traiter un pattern individuel (pour ResultsRenderer)
+   */
+  processPattern: function(layout) {
+    const cuts = layout.cuts || [];
+    const barLength = layout.originalLength || layout.length || 0;
+    const waste = layout.waste || layout.remainingLength || 0;
+    const count = layout.count || 1;
+    
+    // Grouper les coupes par longueur
+    const cutCounts = {};
+    cuts.forEach(cut => {
+      cutCounts[cut] = (cutCounts[cut] || 0) + 1;
+    });
+    
+    // Convertir en format pour l'affichage
+    const processedCuts = Object.entries(cutCounts).map(([length, count]) => ({
+      length: parseInt(length),
+      count: count
+    })).sort((a, b) => b.length - a.length); // Trier par longueur décroissante
+    
+    // Créer les pièces visuelles pour la barre
+    const visualPieces = [];
+    let currentPosition = 0;
+    
+    cuts.forEach((cutLength, index) => {
+      const percentage = (cutLength / barLength) * 100;
+      visualPieces.push({
+        length: cutLength,
+        percentage: percentage,
+        isLast: index === cuts.length - 1
+      });
+      currentPosition += cutLength;
+    });
+    
+    // Calculer le pourcentage de chute
+    const wastePercentage = barLength > 0 ? (waste / barLength) * 100 : 0;
+    
+    return {
+      cuts: processedCuts,
+      visualPieces: visualPieces,
+      barLength: barLength,
+      waste: waste,
+      wastePercentage: wastePercentage,
+      count: count
+    };
   },
 };

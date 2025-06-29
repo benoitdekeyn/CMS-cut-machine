@@ -1,10 +1,48 @@
 import solver from 'javascript-lp-solver';
 
 /**
+ * Algorithme ILP pur - Interface simplifiée mais logique complète
+ * Prend des barres mères et des pièces, retourne les schémas de coupe optimaux
+ */
+export function solveWithILP(motherBars, pieces) {
+    console.log('🔧 Exécution ILP pur');
+    
+    // Convertir au format attendu par l'algorithme original
+    const modelData = {
+        pieces: { 'model': pieces },
+        motherBars: { 'model': motherBars }
+    };
+    
+    // Appeler l'algorithme original avec une fonction de progression vide
+    const results = solveWithILPOriginal(modelData.motherBars, modelData.pieces, () => {});
+    
+    // Extraire les résultats du modèle unique
+    const modelResult = results.modelResults['model'];
+    if (!modelResult || !modelResult.layouts) {
+        throw new Error("Aucun résultat ILP généré");
+    }
+    
+    // Convertir au format de sortie attendu
+    const cuttingPatterns = modelResult.layouts.map(layout => ({
+        motherBarLength: layout.originalLength,
+        cuts: [...layout.cuts],
+        waste: layout.waste,
+        count: layout.count
+    }));
+    
+    console.log(`✅ ILP terminé: ${cuttingPatterns.length} patterns utilisés`);
+    
+    return {
+        cuttingPatterns: cuttingPatterns
+    };
+}
+
+/**
+ * Algorithme ILP original complet (conservé tel quel)
  * Résout le problème de découpe de barres en utilisant l'ILP (Integer Linear Programming)
  * Basé sur le Column Generation approach du Cutting Stock Problem
  */
-export function solveWithILP(motherBars, pieces, progressCallback = () => {}) {
+function solveWithILPOriginal(motherBars, pieces, progressCallback = () => {}) {
     console.log("🔧 Début de l'optimisation ILP avancée");
     
     const results = {};
@@ -109,7 +147,7 @@ function solveModelWithAdvancedILP(stockBars, demandPieces, model, progressCallb
 }
 
 /**
- * NOUVEAU: Convertit la solution ILP en format attendu
+ * Convertit la solution ILP en format attendu
  */
 function convertILPSolutionToResult(ilpSolution, model) {
     console.log(`    🔄 Conversion de la solution ILP pour ${model}:`);
@@ -171,7 +209,7 @@ function convertILPSolutionToResult(ilpSolution, model) {
 }
 
 /**
- * Génère les patterns de découpe
+ * Génère les patterns de découpe avancés (algorithme original conservé)
  */
 function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
     console.log(`    🔄 Génération exhaustive des patterns...`);
@@ -255,7 +293,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
 }
 
 /**
- * Génère récursivement toutes les façons de découper une barre
+ * Génère récursivement toutes les façons de découper une barre (algorithme original)
  */
 function generateAllWaysToCut(barSize, cuts, bladeSize, state = [], maxDepth = 25, currentDepth = 0) {
     if (currentDepth > maxDepth) {
@@ -285,7 +323,7 @@ function generateAllWaysToCut(barSize, cuts, bladeSize, state = [], maxDepth = 2
 }
 
 /**
- * Supprime les doublons des patterns
+ * Supprime les doublons des patterns (algorithme original)
  */
 function removeDuplicatesAndSubsets(ways) {
     const results = [];
@@ -306,7 +344,7 @@ function removeDuplicatesAndSubsets(ways) {
 }
 
 /**
- * Résout le modèle ILP avec timeout
+ * Résout le modèle ILP avec timeout (algorithme original)
  */
 function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     console.log(`    🧮 Construction du modèle ILP:`);
@@ -396,7 +434,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
 }
 
 /**
- * Calcule les statistiques globales
+ * Calcule les statistiques globales (algorithme original)
  */
 function calculateGlobalStatistics(results) {
     let totalBarsUsed = 0;

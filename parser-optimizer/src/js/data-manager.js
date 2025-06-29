@@ -528,6 +528,78 @@ export const DataManager = {
     // Filtrer les pièces par orientation
     return this.data.pieces[profile].filter(piece => piece.orientation === orientation);
   },
+
+  /**
+   * Récupère toutes les longueurs et quantités des barres mères d'un profil donné
+   * @param {string} profile - Le profil recherché
+   */
+  getMotherBarsByProfile: function(profile) {
+    if (!profile || !this.data.motherBars[profile]) return [];
+    
+    return this.data.motherBars[profile].map(bar => ({
+      length: bar.length,
+      quantity: bar.quantity
+    }));
+  },
+
+  /**
+   * Récupère toutes les longueurs et quantités des barres filles d'un modèle donné
+   * @param {string} profile - Le profil recherché
+   * @param {string} orientation - L'orientation recherchée ('a-plat' ou 'debout')
+   * @returns {Array} Liste des longueurs et quantités des barres filles sous la forme {length, quantity}
+   */
+  getLengthsToCutByModel: function(profile, orientation) {
+    const filteredPieces = this.getPiecesByModel(profile, orientation);
+    // Regrouper toutes les longeurs identique pour jouer sur la quantité
+    const lengthMap = new Map();
+    for (const piece of filteredPieces) {
+      const existing = lengthMap.get(piece.length);
+      if (existing) {
+        existing.quantity += piece.quantity;
+      } else {
+        lengthMap.set(piece.length, { length: piece.length, quantity: piece.quantity });
+      }
+    }
+    return Array.from(lengthMap.values());
+  },
+
+  /**
+   * Récupère tous les modèles distincts de barres à découper
+   * Un modèle est défini par un profil et une orientation
+   * @returns {Array} Liste des modèles sous forme d'objets {profile, orientation}
+   */
+  getModels: function() {
+    const models = new Set();
+    
+    // Parcourir toutes les pièces pour extraire les modèles uniques
+    for (const profile in this.data.pieces) {
+      for (const piece of this.data.pieces[profile]) {
+        const orientation = piece.orientation || 'a-plat';
+        const modelKey = `${profile}_${orientation}`;
+        models.add(modelKey);
+      }
+    }
+    
+    // Convertir en tableau d'objets avec tri
+    const modelArray = Array.from(models).map(modelKey => {
+      const [profile, orientation] = modelKey.split('_');
+      return { profile, orientation };
+    });
+    
+    // Trier par profil puis par orientation
+    return modelArray.sort((a, b) => {
+      // 1. Trier par profil
+      if (a.profile !== b.profile) {
+        return a.profile.localeCompare(b.profile);
+      }
+      
+      // 2. Trier par orientation
+      const orientationOrder = { 'a-plat': 0, 'debout': 1 };
+      const orderA = orientationOrder[a.orientation] !== undefined ? orientationOrder[a.orientation] : 2;
+      const orderB = orientationOrder[b.orientation] !== undefined ? orientationOrder[b.orientation] : 2;
+      return orderA - orderB;
+    });
+  },
   
   /**
    * Efface toutes les données

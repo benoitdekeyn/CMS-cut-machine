@@ -139,4 +139,13 @@ export const UIUtils = {
     if (progress) progress.style.display = '';
     if (steps) steps.style.display = '';
   },
+
+  /**
+   * Transforme "debout" en "Debout" et "a-plat" en "À plat"
+   */
+  formatOrientation: function(orientation) {
+    if (!orientation) return '';
+    const formatted = orientation.replace('a-plat', 'À plat').replace('debout', 'Debout');
+    return formatted;
+  }
 };
