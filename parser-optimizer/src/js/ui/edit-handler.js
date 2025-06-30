@@ -413,7 +413,7 @@ export const EditHandler = {
       const lengthDisabled = this.lockOptions.lockPieceLengths ? 'disabled' : '';
       const angleDisabled = this.lockOptions.lockPieceAngles ? 'disabled' : '';
       
-      // Générer le formulaire d'édition
+      // Générer le formulaire d'édition avec le nouveau système de profil
       form.innerHTML = `
         <div class="form-group">
           <label for="piece-nom">Nom :</label>
@@ -421,12 +421,12 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-profile">Profil :</label>
-          <div class="profile-input-group">
-            <select id="piece-profile-select">
+          <div class="profile-input-container">
+            <select id="piece-profile-select" class="profile-select">
               <option value="custom">Saisie personnalisée</option>
               ${this.getProfileOptions(item.profile)}
             </select>
-            <input type="text" id="piece-profile" value="${item.profile}">
+            <input type="text" id="piece-profile" class="profile-input" value="${item.profile}" placeholder="ex: HEA100">
           </div>
         </div>
         <div class="form-group">
@@ -456,33 +456,10 @@ export const EditHandler = {
         </div>
       `;
       
-      // Initialiser les contrôles spécifiques
-      const profileSelect = document.getElementById('piece-profile-select');
-      const profileInput = document.getElementById('piece-profile');
+      // Initialiser le système de profil
+      this.initializeProfileSystem(item.profile);
       
-      profileSelect.addEventListener('change', () => {
-        if (profileSelect.value === 'custom') {
-          profileInput.removeAttribute('readonly');
-          profileInput.focus();
-        } else {
-          profileInput.value = profileSelect.value;
-          profileInput.setAttribute('readonly', 'readonly');
-        }
-      });
-      
-      // Si le profil actuel n'est pas dans la liste, sélectionner "custom"
-      const matchingOption = Array.from(profileSelect.options)
-        .find(option => option.value === item.profile);
-        
-      if (!matchingOption) {
-        profileSelect.value = 'custom';
-        profileInput.removeAttribute('readonly');
-      } else {
-        profileSelect.value = item.profile;
-        profileInput.setAttribute('readonly', 'readonly');
-      }
     } else {
-      // Mode création
       title.textContent = 'Nouvelle barre à découper';
       
       form.innerHTML = `
@@ -492,12 +469,12 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-profile">Profil :</label>
-          <div class="profile-input-group">
-            <select id="piece-profile-select">
+          <div class="profile-input-container">
+            <select id="piece-profile-select" class="profile-select">
               <option value="custom">Saisie personnalisée</option>
               ${this.getProfileOptions()}
             </select>
-            <input type="text" id="piece-profile" placeholder="ex: HEA100">
+            <input type="text" id="piece-profile" class="profile-input" placeholder="ex: HEA100">
           </div>
         </div>
         <div class="form-group">
@@ -524,15 +501,122 @@ export const EditHandler = {
           </select>
         </div>
       `;
+      
+      // Initialiser le système de profil sans valeur prédéfinie
+      this.initializeProfileSystem();
     }
     
     // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture
+    // Utiliser la méthode d'ouverture
     this.openPanel('piece-panel');
   },
-  
+
+  /**
+   * NOUVEAU: Initialise le système de profil avec dropdown et champ éditable
+   */
+  initializeProfileSystem: function(currentValue = '') {
+    const profileSelect = document.getElementById('piece-profile-select');
+    const profileInput = document.getElementById('piece-profile');
+    
+    if (!profileSelect || !profileInput) return;
+    
+    // Déterminer l'état initial
+    let isCustomMode = false;
+    
+    if (currentValue && currentValue.trim() !== '') {
+      // Vérifier si la valeur actuelle existe dans les options
+      const matchingOption = Array.from(profileSelect.options)
+        .find(option => option.value === currentValue && option.value !== 'custom');
+      
+      if (matchingOption) {
+        // Profil existant : sélectionner dans le dropdown
+        profileSelect.value = currentValue;
+        profileInput.value = currentValue;
+        profileInput.readOnly = true;
+        isCustomMode = false;
+      } else {
+        // Profil personnalisé : mode saisie
+        profileSelect.value = 'custom';
+        profileInput.value = currentValue;
+        profileInput.readOnly = false;
+        isCustomMode = true;
+      }
+    } else {
+      // Nouveau : mode saisie par défaut
+      profileSelect.value = 'custom';
+      profileInput.value = '';
+      profileInput.readOnly = false;
+      isCustomMode = true;
+    }
+    
+    // Gestionnaire pour le changement de dropdown
+    profileSelect.addEventListener('change', () => {
+      if (profileSelect.value === 'custom') {
+        // Mode saisie personnalisée
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      } else {
+        // Mode profil existant
+        profileInput.value = profileSelect.value;
+        profileInput.readOnly = true;
+      }
+    });
+    
+    // Gestionnaire pour le clic sur le champ de saisie
+    profileInput.addEventListener('click', () => {
+      if (profileInput.readOnly) {
+        // Passer en mode saisie personnalisée
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      }
+    });
+    
+    // Gestionnaire pour la saisie dans le champ
+    profileInput.addEventListener('input', () => {
+      if (!profileInput.readOnly) {
+        // En mode saisie, s'assurer que le dropdown est sur "custom"
+        if (profileSelect.value !== 'custom') {
+          profileSelect.value = 'custom';
+        }
+      }
+    });
+    
+    // Gestionnaire pour le focus sur le champ
+    profileInput.addEventListener('focus', () => {
+      if (profileInput.readOnly) {
+        // Si on focus sur un champ en lecture seule, passer en mode saisie
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        // Maintenir le focus et sélectionner le texte
+        setTimeout(() => {
+          profileInput.focus();
+          profileInput.select();
+        }, 0);
+      }
+    });
+    
+    // Appliquer les styles visuels initiaux
+    this.updateProfileInputStyles(profileInput, isCustomMode);
+  },
+
+  /**
+   * NOUVEAU: Met à jour les styles visuels du champ de profil
+   */
+  updateProfileInputStyles: function(profileInput, isCustomMode) {
+    if (isCustomMode) {
+      profileInput.classList.add('custom-mode');
+      profileInput.classList.remove('readonly-mode');
+    } else {
+      profileInput.classList.add('readonly-mode');
+      profileInput.classList.remove('custom-mode');
+    }
+  },
+
   /**
    * Ouvre le panneau des barres mères - adapté sans ID
    */
@@ -615,7 +699,7 @@ export const EditHandler = {
     // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture pour les barres mères
+    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture
     this.openPanel('stock-panel');
   },
 
