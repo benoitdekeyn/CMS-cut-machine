@@ -168,28 +168,31 @@ export const ResultsRenderer = {
     // Format the model name for display
     const displayName = this.formatModelName(modelName);
 
-  let algoLine = '';
-  if (modelResult.algoUsed && modelResult.algoInfo) {
-    const used = modelResult.algoUsed === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
-    const otherKey = modelResult.algoUsed === 'ffd' ? 'ilp' : 'ffd';
-    const otherName = otherKey === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
-    const usedEff = modelResult.algoInfo[modelResult.algoUsed];
-    const otherEff = modelResult.algoInfo[otherKey];
-    const usedBars = modelResult.algoInfo.usedBars;
-    const otherBars = modelResult.algoInfo.otherBars;
+    // NOUVEAU: Vérifier s'il y a une erreur
+    if (modelResult.error) {
+      return this.renderErrorModelCard(displayName, modelResult.error);
+    }
 
-    algoLine = `
-      <div class="algo-model-info" style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 0.5rem; opacity: 0.85;">
-        </br>
-        <div>
-          <span><strong>${used}</strong> : ${usedEff !== null && usedEff !== undefined ? usedEff + '%' : 'N/A'}, ${usedBars !== null && usedBars !== undefined ? usedBars + ' barres mères' : ''}</span>
+    let algoLine = '';
+    if (modelResult.algoUsed && modelResult.comparison) {
+      const used = modelResult.algoUsed === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
+      const otherKey = modelResult.algoUsed === 'ffd' ? 'ilp' : 'ffd';
+      const otherName = otherKey === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire';
+      const usedEff = modelResult.comparison[modelResult.algoUsed];
+      const otherEff = modelResult.comparison[otherKey];
+
+      algoLine = `
+        <div class="algo-model-info" style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 0.5rem; opacity: 0.85;">
+          </br>
+          <div>
+            <span><strong>${used}</strong> : ${usedEff !== null && usedEff !== undefined ? usedEff + '%' : 'N/A'}</span>
+          </div>
+          <div>
+            <span>${otherName} : ${otherEff !== null && otherEff !== undefined ? otherEff + '%' : 'N/A'}</span>
+          </div>
         </div>
-        <div>
-          <span>${otherName} : ${otherEff !== null && otherEff !== undefined ? otherEff + '%' : 'N/A'}${otherBars !== null && otherBars !== undefined ? ', ' + otherBars + ' barres mères' : ''}</span>
-        </div>
-      </div>
-    `;
-  }
+      `;
+    }
 
     let html = `
       <div class="model-card">
@@ -221,10 +224,14 @@ export const ResultsRenderer = {
     `;
     
     // Add each cutting pattern
-    modelResult.layouts.forEach((layout, index) => {
-      const processedPattern = algorithmService.processPattern(layout);
-      html += this.renderCutScheme(processedPattern, index);
-    });
+    if (modelResult.layouts && modelResult.layouts.length > 0) {
+      modelResult.layouts.forEach((layout, index) => {
+        const processedPattern = algorithmService.processPattern(layout);
+        html += this.renderCutScheme(processedPattern, index);
+      });
+    } else {
+      html += '<p class="info-text">Aucun schéma de coupe disponible.</p>';
+    }
     
     html += `
           </div>
@@ -234,7 +241,29 @@ export const ResultsRenderer = {
     
     return html;
   },
-  
+
+  /**
+   * NOUVEAU: Render une carte d'erreur pour un modèle
+   */
+  renderErrorModelCard: function(modelName, errorMessage) {
+    return `
+      <div class="model-card error-card">
+        <div class="model-header">
+          <h3>${modelName}</h3>
+        </div>
+        <div class="model-content">
+          <div class="error-content">
+            <div class="error-icon">⚠️</div>
+            <div class="error-message">
+              <h4>Optimisation impossible</h4>
+              <p>${errorMessage}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
   /**
    * Render a single cut scheme
    */

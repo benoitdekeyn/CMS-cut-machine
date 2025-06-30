@@ -634,3 +634,42 @@
 #model-details-container {
   padding-top: 30px;
 }
+
+/* Cartes d'erreur pour les modèles */
+.model-card.error-card {
+  border-left: 4px solid var(--danger);
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.05), rgba(220, 53, 69, 0.02));
+}
+
+.error-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.error-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.error-message h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--danger);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.error-message p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* Style pour les cartes d'erreur dans la grille */
+.model-results .model-card.error-card {
+  grid-column: 1 / -1; /* Prendre toute la largeur de la grille */
+}

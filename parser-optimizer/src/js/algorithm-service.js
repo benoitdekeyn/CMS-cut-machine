@@ -220,6 +220,19 @@ export const AlgorithmService = {
   selectBestForModel: function(modelKey, ffdResult, ilpResult) {
     console.log(`🤖 Comparaison des algorithmes pour ${modelKey}`);
     
+    // Log des résultats disponibles
+    if (ffdResult) {
+      console.log(`  📊 FFD: ${ffdResult.rawData.totalMotherBarsUsed} barres, ${ffdResult.stats.utilizationRate}% efficacité`);
+    } else {
+      console.log(`  ❌ FFD: Non disponible`);
+    }
+    
+    if (ilpResult) {
+      console.log(`  📊 ILP: ${ilpResult.rawData.totalMotherBarsUsed} barres, ${ilpResult.stats.utilizationRate}% efficacité`);
+    } else {
+      console.log(`  ❌ ILP: Non disponible`);
+    }
+    
     let chosen, usedAlgo, comparison;
     
     if (!ilpResult) {
@@ -286,17 +299,17 @@ export const AlgorithmService = {
       comparison: comparison
     };
     
-    console.log(`  ${modelKey}: ${usedAlgo.toUpperCase()} sélectionné (${comparison.reason})`);
+    console.log(`  🏆 ${modelKey}: ${usedAlgo.toUpperCase()} sélectionné (${comparison.reason})`);
     
     return bestResult;
   },
 
   /**
-   * NOUVEAU: Construit les résultats finaux à partir des meilleurs résultats par modèle
+   * NOUVEAU: Construit les résultats finaux avec vérifications complètes
    * Appelé par UI-Controller à la fin
    */
   buildFinalResults: function(modelResults) {
-    console.log('🏗️ Construction des résultats finaux');
+    console.log('🏗️ Construction des résultats finaux avec vérifications');
     
     const globalStats = {
       totalUsedBars: 0,
@@ -304,20 +317,69 @@ export const AlgorithmService = {
       totalBarLength: 0
     };
     
-    // Calculer les statistiques globales
+    const validatedResults = {};
+    const stockUsageByProfile = {}; // Suivi de l'utilisation du stock par profil
+    
+    // 1. PREMIÈRE PASSE: Vérifier chaque modèle individuellement
     for (const [modelKey, bestResult] of Object.entries(modelResults)) {
       if (!bestResult) continue;
+      
+      console.log(`🔍 Vérification du modèle ${modelKey}`);
+      
+      // Récupérer le modèle original pour les vérifications
+      const originalModel = this.getOriginalModelData(modelKey);
+      if (!originalModel) {
+        console.error(`❌ Modèle original ${modelKey} non trouvé`);
+        validatedResults[modelKey] = this.createErrorResult(
+          bestResult, 
+          'Données du modèle non trouvées'
+        );
+        continue;
+      }
+      
+      // Vérification 1: Compter les pièces produites vs demandées
+      const pieceValidation = this.validatePieceCount(bestResult, originalModel.pieces);
+      if (!pieceValidation.valid) {
+        console.error(`❌ ${modelKey}: ${pieceValidation.error}`);
+        validatedResults[modelKey] = this.createErrorResult(bestResult, pieceValidation.error);
+        continue;
+      }
+      
+      // Vérification 2: Comptabiliser l'utilisation du stock
+      const stockUsage = this.calculateStockUsage(bestResult, originalModel.profile);
+      this.addToStockUsage(stockUsageByProfile, originalModel.profile, stockUsage);
+      
+      // Si tout est bon, ajouter aux résultats validés
+      validatedResults[modelKey] = bestResult;
       
       // Ajouter aux statistiques globales
       globalStats.totalUsedBars += bestResult.rawData.totalMotherBarsUsed || 0;
       globalStats.totalWaste += bestResult.rawData.wasteLength || 0;
       
-      // Calculer la longueur totale des barres
       if (bestResult.layouts) {
         for (const layout of bestResult.layouts) {
           const barLength = layout.originalLength || layout.length || 0;
           const count = layout.count || 1;
           globalStats.totalBarLength += barLength * count;
+        }
+      }
+      
+      console.log(`✅ ${modelKey}: Validation réussie`);
+    }
+    
+    // 2. DEUXIÈME PASSE: Vérifier la disponibilité globale du stock
+    console.log('🏭 Vérification de la disponibilité globale du stock');
+    const stockValidation = this.validateGlobalStock(stockUsageByProfile, validatedResults);
+    
+    if (!stockValidation.valid) {
+      console.error('❌ Stock insuffisant détecté');
+      // Marquer les modèles problématiques
+      for (const modelKey of stockValidation.affectedModels) {
+        if (validatedResults[modelKey] && !validatedResults[modelKey].error) {
+          validatedResults[modelKey] = this.createErrorResult(
+            validatedResults[modelKey], 
+            stockValidation.error
+          );
         }
       }
     }
@@ -332,9 +394,185 @@ export const AlgorithmService = {
     console.log(`🏆 Résumé global: ${globalStats.totalUsedBars} barres, ${globalEfficiency}% efficacité`);
     
     return {
-      modelResults: modelResults,
+      modelResults: validatedResults,
       globalStats: globalStats,
-      bestAlgorithm: 'per-model'
+      bestAlgorithm: 'per-model',
+      stockValidation: stockValidation
+    };
+  },
+
+  /**
+   * NOUVEAU: Récupère les données du modèle original à partir de la clé
+   */
+  getOriginalModelData: function(modelKey) {
+    const [profile, orientation] = modelKey.split('_');
+    
+    // Récupérer les pièces demandées pour ce modèle
+    const pieces = DataManager.getLengthsToCutByModel(profile, orientation);
+    
+    return {
+      profile: profile,
+      orientation: orientation,
+      pieces: pieces
+    };
+  },
+
+  /**
+   * NOUVEAU: Valide que le nombre de pièces produites correspond à la demande
+   */
+  validatePieceCount: function(result, demandedPieces) {
+    console.log('  📊 Vérification du nombre de pièces');
+    
+    // Compter les pièces demandées par longueur
+    const demanded = new Map();
+    demandedPieces.forEach(piece => {
+      demanded.set(piece.length, piece.quantity);
+    });
+    
+    // Compter les pièces produites par longueur
+    const produced = new Map();
+    if (result.layouts) {
+      result.layouts.forEach(layout => {
+        const count = layout.count || 1;
+        layout.cuts.forEach(cutLength => {
+          const current = produced.get(cutLength) || 0;
+          produced.set(cutLength, current + count);
+        });
+      });
+    }
+    
+    // Vérifier chaque longueur demandée
+    for (const [length, demandedQty] of demanded.entries()) {
+      const producedQty = produced.get(length) || 0;
+      
+      if (producedQty < demandedQty) {
+        return {
+          valid: false,
+          error: `Pièces manquantes: ${demandedQty - producedQty} pièce(s) de ${length}cm non produites`
+        };
+      }
+      
+      if (producedQty > demandedQty) {
+        return {
+          valid: false,
+          error: `Pièces en excès: ${producedQty - demandedQty} pièce(s) de ${length}cm en trop`
+        };
+      }
+    }
+    
+    // Vérifier qu'il n'y a pas de pièces produites non demandées
+    for (const [length, producedQty] of produced.entries()) {
+      if (!demanded.has(length)) {
+        return {
+          valid: false,
+          error: `Pièces non demandées: ${producedQty} pièce(s) de ${length}cm produites sans demande`
+        };
+      }
+    }
+    
+    console.log('    ✅ Nombre de pièces correct');
+    return { valid: true };
+  },
+
+  /**
+   * NOUVEAU: Calcule l'utilisation du stock pour un résultat
+   */
+  calculateStockUsage: function(result, profile) {
+    const usage = new Map(); // Map<longueur, quantité>
+    
+    if (result.layouts) {
+      result.layouts.forEach(layout => {
+        const barLength = layout.originalLength || layout.length;
+        const count = layout.count || 1;
+        
+        const current = usage.get(barLength) || 0;
+        usage.set(barLength, current + count);
+      });
+    }
+    
+    return usage;
+  },
+
+  /**
+   * NOUVEAU: Ajoute l'utilisation à l'accumulation globale
+   */
+  addToStockUsage: function(stockUsageByProfile, profile, usage) {
+    if (!stockUsageByProfile[profile]) {
+      stockUsageByProfile[profile] = new Map();
+    }
+    
+    for (const [length, qty] of usage.entries()) {
+      const current = stockUsageByProfile[profile].get(length) || 0;
+      stockUsageByProfile[profile].set(length, current + qty);
+    }
+  },
+
+  /**
+   * NOUVEAU: Valide que le stock global est suffisant
+   */
+  validateGlobalStock: function(stockUsageByProfile, validatedResults) {
+    console.log('  🏭 Vérification du stock global');
+    
+    const errors = [];
+    const affectedModels = [];
+    
+    for (const [profile, usage] of Object.entries(stockUsageByProfile)) {
+      // Récupérer le stock disponible pour ce profil
+      const availableStock = DataManager.getMotherBarsByProfile(profile);
+      const stockMap = new Map();
+      
+      availableStock.forEach(stock => {
+        stockMap.set(stock.length, stock.quantity);
+      });
+      
+      // Vérifier chaque longueur utilisée
+      for (const [length, usedQty] of usage.entries()) {
+        const availableQty = stockMap.get(length) || 0;
+        
+        if (usedQty > availableQty) {
+          const deficit = usedQty - availableQty;
+          const error = `Stock insuffisant pour ${profile}: ${deficit} barre(s) de ${length}cm manquante(s) (demandé: ${usedQty}, disponible: ${availableQty})`;
+          errors.push(error);
+          
+          // Identifier les modèles affectés
+          Object.keys(validatedResults).forEach(modelKey => {
+            if (modelKey.startsWith(profile + '_')) {
+              affectedModels.push(modelKey);
+            }
+          });
+        }
+      }
+    }
+    
+    if (errors.length > 0) {
+      return {
+        valid: false,
+        error: errors.join('; '),
+        affectedModels: [...new Set(affectedModels)] // Supprimer les doublons
+      };
+    }
+    
+    console.log('    ✅ Stock global suffisant');
+    return { valid: true };
+  },
+
+  /**
+   * NOUVEAU: Crée un résultat d'erreur pour un modèle
+   */
+  createErrorResult: function(originalResult, errorMessage) {
+    return {
+      ...originalResult,
+      error: errorMessage,
+      layouts: [], // Vider les schémas de coupe
+      rawData: {
+        ...originalResult.rawData,
+        totalMotherBarsUsed: 0,
+        wasteLength: 0
+      },
+      stats: {
+        ...originalResult.stats,
+        utilizationRate: 0
+      }
     };
   },
 
