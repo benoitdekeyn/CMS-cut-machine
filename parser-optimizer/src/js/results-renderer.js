@@ -246,6 +246,16 @@ export const ResultsRenderer = {
    * NOUVEAU: Render une carte d'erreur pour un modèle
    */
   renderErrorModelCard: function(modelName, errorMessage) {
+    // Diviser le message d'erreur si il contient <br><br>
+    const messageParts = errorMessage.split('\n');
+    const mainMessage = messageParts[0];
+    const suggestion = messageParts[1] || '';
+    
+    let suggestionHtml = '';
+    if (suggestion) {
+      suggestionHtml = `<div class="error-suggestion">${suggestion}</div>`;
+    }
+    
     return `
       <div class="model-card error-card">
         <div class="model-header">
@@ -256,7 +266,8 @@ export const ResultsRenderer = {
             <div class="error-icon">⚠️</div>
             <div class="error-message">
               <h4>Optimisation impossible</h4>
-              <p>${errorMessage}</p>
+              <p class="error-main">${mainMessage}</p>
+              ${suggestionHtml}
             </div>
           </div>
         </div>
