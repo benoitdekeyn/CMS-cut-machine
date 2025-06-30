@@ -413,7 +413,7 @@ export const EditHandler = {
       const lengthDisabled = this.lockOptions.lockPieceLengths ? 'disabled' : '';
       const angleDisabled = this.lockOptions.lockPieceAngles ? 'disabled' : '';
       
-      // Générer le formulaire d'édition avec le nouveau système de profil
+      // MODIFICATION: Réorganisation des champs - orientation et quantité après profil
       form.innerHTML = `
         <div class="form-group">
           <label for="piece-nom">Nom :</label>
@@ -430,13 +430,20 @@ export const EditHandler = {
           </div>
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur (cm) ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
-          <input type="number" id="piece-length" min="1" max="100000" value="${item.length}" ${lengthDisabled}>
-          ${this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : ''}
+          <label for="piece-orientation">Orientation :</label>
+          <select id="piece-orientation">
+            <option value="a-plat" ${item.orientation === 'a-plat' ? 'selected' : ''}>À plat</option>
+            <option value="debout" ${item.orientation === 'debout' ? 'selected' : ''}>Debout</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
           <input type="number" id="piece-quantity" min="1" max="10000" value="${item.quantity}">
+        </div>
+        <div class="form-group">
+          <label for="piece-length">Longueur (cm) ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
+          <input type="number" id="piece-length" min="1" max="100000" value="${item.length}" ${lengthDisabled}>
+          ${this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : ''}
         </div>
         <div class="form-group">
           <label for="piece-angle-1">Angle 1 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
@@ -447,13 +454,6 @@ export const EditHandler = {
           <label for="piece-angle-2">Angle 2 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
           <input type="number" id="piece-angle-2" min="-360" max="360" step="0.01" value="${parseFloat(item.angles?.[2] || 90).toFixed(2)}" ${angleDisabled}>
         </div>
-        <div class="form-group">
-          <label for="piece-orientation">Orientation :</label>
-          <select id="piece-orientation">
-            <option value="a-plat" ${item.orientation === 'a-plat' ? 'selected' : ''}>À plat</option>
-            <option value="debout" ${item.orientation === 'debout' ? 'selected' : ''}>Debout</option>
-          </select>
-        </div>
       `;
       
       // Initialiser le système de profil
@@ -462,6 +462,7 @@ export const EditHandler = {
     } else {
       title.textContent = 'Nouvelle barre à découper';
       
+      // MODIFICATION: Même réorganisation pour le mode création
       form.innerHTML = `
         <div class="form-group">
           <label for="piece-nom">Nom :</label>
@@ -478,12 +479,19 @@ export const EditHandler = {
           </div>
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur (cm) :</label>
-          <input type="number" id="piece-length" min="1" max="100000" placeholder="ex: 300">
+          <label for="piece-orientation">Orientation :</label>
+          <select id="piece-orientation">
+            <option value="a-plat">À plat</option>
+            <option value="debout">Debout</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
           <input type="number" id="piece-quantity" min="1" max="10000" value="1">
+        </div>
+        <div class="form-group">
+          <label for="piece-length">Longueur (cm) :</label>
+          <input type="number" id="piece-length" min="1" max="100000" placeholder="ex: 300">
         </div>
         <div class="form-group">
           <label for="piece-angle-1">Angle 1 (°) :</label>
@@ -492,13 +500,6 @@ export const EditHandler = {
         <div class="form-group">
           <label for="piece-angle-2">Angle 2 (°) :</label>
           <input type="number" id="piece-angle-2" min="-360" max="360" step="0.01" value="90.00">
-        </div>
-        <div class="form-group">
-          <label for="piece-orientation">Orientation :</label>
-          <select id="piece-orientation">
-            <option value="a-plat">À plat</option>
-            <option value="debout">Debout</option>
-          </select>
         </div>
       `;
       
@@ -699,8 +700,20 @@ export const EditHandler = {
     // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture
+    // Utiliser la nouvelle méthode d'ouverture
     this.openPanel('stock-panel');
+    
+    // AJOUT: Focus automatique sur le champ longueur pour les nouvelles barres mères
+    if (mode === 'create') {
+      setTimeout(() => {
+        const lengthField = document.getElementById('stock-length');
+        if (lengthField) {
+          lengthField.focus();
+          lengthField.select(); // Sélectionner tout le texte s'il y en a
+          console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
+        }
+      }, 400); // Délai légèrement plus long pour s'assurer que le panneau est bien affiché
+    }
   },
 
   /**
@@ -1025,7 +1038,7 @@ export const EditHandler = {
   },
 
   /**
-   * MODIFIÉ: Ouvre le panneau des barres mères avec validation
+   * MODIFICATION: Focus automatique sur le champ longueur pour les nouvelles barres mères
    */
   openStockPanel: function(mode, key = null) {
     // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
@@ -1106,8 +1119,20 @@ export const EditHandler = {
     // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture
+    // Utiliser la nouvelle méthode d'ouverture
     this.openPanel('stock-panel');
+    
+    // AJOUT: Focus automatique sur le champ longueur pour les nouvelles barres mères
+    if (mode === 'create') {
+      setTimeout(() => {
+        const lengthField = document.getElementById('stock-length');
+        if (lengthField) {
+          lengthField.focus();
+          lengthField.select(); // Sélectionner tout le texte s'il y en a
+          console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
+        }
+      }, 400); // Délai légèrement plus long pour s'assurer que le panneau est bien affiché
+    }
   },
 
   /**
@@ -1514,13 +1539,16 @@ export const EditHandler = {
     overlay.classList.add('visible');
     console.log('👁️ Panneau et overlay affichés');
     
-    // Focus sur le premier champ du formulaire après un délai
-    setTimeout(() => {
-      const firstInput = panel.querySelector('input, select, textarea');
-      if (firstInput && !firstInput.disabled) {
-        firstInput.focus();
-        console.log('🎯 Focus sur le premier champ');
-      }
-    }, 300);
+    // MODIFICATION: Focus par défaut seulement si pas de focus spécifique prévu
+    // Le focus spécifique sera géré dans openStockPanel pour le mode 'create'
+    if (panelId !== 'stock-panel' || this.editingMode === 'edit') {
+      setTimeout(() => {
+        const firstInput = panel.querySelector('input, select, textarea');
+        if (firstInput && !firstInput.disabled) {
+          firstInput.focus();
+          console.log('🎯 Focus sur le premier champ');
+        }
+      }, 300);
+    }
   }
 };
