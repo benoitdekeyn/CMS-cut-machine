@@ -209,20 +209,19 @@ function convertILPSolutionToResult(ilpSolution, model) {
 }
 
 /**
- * Génère les patterns de découpe avancés OPTIMISÉS
+ * Génère les patterns de découpe avancés OPTIMISÉS POUR MAXIMISER L'EFFICACITÉ
  */
 function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
-    console.log(`    🔄 Génération optimisée des patterns...`);
+    console.log(`    🔄 Génération optimisée des patterns (objectif: maximiser l'efficacité)...`);
     
     const waysOfCuttingStocks = stockSizes.map(({ size, cost, quantity }) => {
         console.log(`      📏 Analyse barre ${size}cm:`);
         
-        // OPTIMISATION: Génération limitée et intelligente
-        const waysOfCutting = generateOptimizedPatterns(size, cutSizes, bladeSize, 100); // Max 100 patterns
+        const waysOfCutting = generateOptimizedPatterns(size, cutSizes, bladeSize, 100);
         
         console.log(`        ✓ ${waysOfCutting.length} patterns optimisés générés`);
         
-        // Afficher les meilleurs patterns
+        // Afficher les meilleurs patterns (inchangé)
         const sortedWays = waysOfCutting
             .map(way => ({
                 cuts: way,
@@ -243,7 +242,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
             console.log(`          ${index + 1}. ${cutStr} (${pattern.efficiency}% efficacité, ${pattern.waste}cm chute)`);
         });
         
-        // Transformer en format ILP
+        // CHANGEMENT MAJEUR: Format ILP pour maximiser l'efficacité
         const versions = waysOfCutting.map(way => {
             const stockCut = {};
             for (const cut of cutSizes) {
@@ -252,6 +251,26 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
             for (const cut of way) {
                 stockCut[`cut${cut}`] = stockCut[`cut${cut}`] + 1;
             }
+            
+            // NOUVEAU: Calculer les métriques d'efficacité pour ce pattern
+            const usedLength = way.reduce((sum, cut) => sum + cut, 0);
+            const wasteLength = size - usedLength;
+            const efficiency = usedLength / size;
+            
+            // Objectif: On veut maximiser l'efficacité globale
+            // Donc on va minimiser le "coût d'inefficacité" de chaque pattern
+            // Plus le pattern est efficace, moins il "coûte" en termes d'optimisation
+            
+            // Coût = longueur_barre_mère * (1 - efficacité) = longueur_gaspillée
+            // Cela favorise les patterns avec moins de gaspillage proportionnel
+            stockCut.wasteLength = wasteLength;  // Chute absolue de ce pattern
+            stockCut.motherBarLength = size;     // Longueur de la barre mère
+            stockCut.efficiency = efficiency;    // Efficacité de ce pattern
+            
+            // Le coût à minimiser = chute de ce pattern
+            // L'ILP va naturellement minimiser la somme des chutes
+            stockCut.cost = wasteLength;
+            
             return stockCut;
         });
 
@@ -268,7 +287,8 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
         versions.forEach((cut, index) => {
             const varName = `stock${size}version${index}`;
             
-            variables[varName] = { ...cut, cost: cost };
+            // NOUVEAU: Chaque variable a maintenant le coût = chute de ce pattern
+            variables[varName] = { ...cut }; // cut.cost = chute déjà calculée
             ints[varName] = 1;
             
             allPatterns.push({
@@ -276,7 +296,10 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
                 stockSize: size,
                 version: index,
                 cuts: cut,
-                cost: cost,
+                wasteLength: cut.wasteLength,     // Chute de ce pattern
+                motherBarLength: cut.motherBarLength, // Longueur barre mère
+                efficiency: cut.efficiency,       // Efficacité de ce pattern
+                cost: cut.cost,                  // Coût = chute
                 maxQuantity: quantity
             });
             
@@ -391,10 +414,10 @@ function generateOptimizedPatterns(barSize, cuts, bladeSize, maxPatterns = 100) 
 }
 
 /**
- * OPTIMISATION: Résolution ILP par étapes progressives
+ * OPTIMISATION: Résolution ILP par étapes progressives POUR MAXIMISER L'EFFICACITÉ
  */
 function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
-    console.log(`    🧮 Construction du modèle ILP optimisé:`);
+    console.log(`    🧮 Construction du modèle ILP optimisé (objectif: minimiser les chutes):`);
     
     const constraints = {};
     requiredCuts.forEach(({ size, count }) => {
@@ -404,9 +427,9 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
 
     console.log(`    📊 Modèle: ${Object.keys(cuttingPatterns.variables).length} variables, ${Object.keys(constraints).length} contraintes`);
 
-    // OPTIMISATION: Résolution par étapes
+    // OPTIMISATION: Résolution par étapes (logique inchangée mais objectif différent)
     const startTime = Date.now();
-    console.log(`    ⏳ Résolution progressive en cours...`);
+    console.log(`    ⏳ Résolution progressive en cours (minimisation des chutes)...`);
     
     let solution = null;
     let attempt = 1;
@@ -414,7 +437,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     // Étape 1: Essai avec les patterns les plus efficaces seulement
     try {
         console.log(`    🎯 Tentative ${attempt}: patterns haute efficacité`);
-        const quickModel = buildOptimizedModel(cuttingPatterns, constraints, 0.7); // 70% efficacité min
+        const quickModel = buildOptimizedModel(cuttingPatterns, constraints, 0.7);
         solution = solver.Solve(quickModel);
         
         if (solution && solution.feasible) {
@@ -428,7 +451,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         // Étape 2: Essai avec efficacité moyenne
         try {
             console.log(`    🎯 Tentative ${attempt}: patterns efficacité moyenne`);
-            const mediumModel = buildOptimizedModel(cuttingPatterns, constraints, 0.5); // 50% efficacité min
+            const mediumModel = buildOptimizedModel(cuttingPatterns, constraints, 0.5);
             solution = solver.Solve(mediumModel);
             
             if (solution && solution.feasible) {
@@ -442,8 +465,8 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
             // Étape 3: Dernier recours avec tous les patterns
             console.log(`    🎯 Tentative ${attempt}: tous les patterns`);
             const fullModel = {
-                optimize: "cost",
-                opType: "min",
+                optimize: "cost",    // On minimise toujours "cost"
+                opType: "min",       // Mais maintenant cost = chute !
                 variables: cuttingPatterns.variables,
                 ints: cuttingPatterns.ints,
                 constraints: constraints
@@ -461,9 +484,36 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         throw new Error("Aucune solution ILP trouvée");
     }
     
-    console.log(`    ✅ Solution optimale trouvée: coût total ${solution.result}`);
+    // NOUVEAU: Afficher les métriques d'efficacité optimisées
+    console.log(`    ✅ Solution optimale trouvée: chute totale minimisée = ${solution.result}cm`);
     
-    // Vérification des contraintes (code existant conservé)
+    // Calculer les métriques globales d'efficacité
+    let totalWasteOptimized = 0;
+    let totalMotherBarLengthUsed = 0;
+    let totalUsefulLength = 0;
+    
+    for (const [varName, quantity] of Object.entries(solution)) {
+        if (varName.startsWith('stock') && quantity > 0) {
+            const pattern = cuttingPatterns.patterns.find(p => p.varName === varName);
+            if (pattern) {
+                const wasteThisPattern = pattern.wasteLength * quantity;
+                const motherBarLengthThisPattern = pattern.motherBarLength * quantity;
+                const usefulLengthThisPattern = (pattern.motherBarLength - pattern.wasteLength) * quantity;
+                
+                totalWasteOptimized += wasteThisPattern;
+                totalMotherBarLengthUsed += motherBarLengthThisPattern;
+                totalUsefulLength += usefulLengthThisPattern;
+            }
+        }
+    }
+    
+    const globalEfficiency = totalMotherBarLengthUsed > 0 ? 
+        (totalUsefulLength / totalMotherBarLengthUsed * 100).toFixed(3) : 0;
+    
+    console.log(`    📊 Efficacité globale optimisée: ${globalEfficiency}% (${totalUsefulLength}cm utile / ${totalMotherBarLengthUsed}cm total)`);
+    console.log(`    🗑️ Chute totale optimisée: ${totalWasteOptimized}cm`);
+    
+    // Vérification des contraintes (inchangé)
     console.log(`    🔍 Vérification des contraintes:`);
     for (const { size, count } of requiredCuts) {
         let totalProduced = 0;
@@ -482,7 +532,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         }
     }
     
-    // Affichage des patterns sélectionnés (code existant conservé)
+    // Affichage des patterns sélectionnés (enrichi avec métriques d'efficacité)
     console.log(`    📋 Patterns sélectionnés:`);
     let totalBars = 0;
     for (const [varName, quantity] of Object.entries(solution)) {
@@ -507,7 +557,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
             }
         }
     }
-    console.log(`    📦 Total: ${totalBars} barres utilisées`);
+    console.log(`    📦 Total: ${totalBars} barres utilisées pour une efficacité globale de ${globalEfficiency}%`);
     
     return { 
         solution: solution,
