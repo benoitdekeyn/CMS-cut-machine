@@ -1121,3 +1121,30 @@
     font-size: 0.8rem;
   }
 }
+
+/* VÉRIFICATION: S'assurer qu'il n'y a pas de règles conflictuelles */
+@media (max-width: 768px) {
+  /* SUPPRIMER si présent : */
+  /*
+  .panels-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  */
+  
+  /* GARDER SEULEMENT: Les règles spécifiques aux composants */
+  .side-panel {
+    width: 100vw;
+    max-width: none;
+  }
+  
+  .modal-content {
+    margin: var(--space-md);
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .loading-content {
+    padding: var(--space-xl);
+    margin: var(--space-md);
+  }
+}

@@ -873,50 +873,15 @@ body.panel-open {
 }
 
 @media (max-width: 768px) {
-  .panels-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .side-panel {
+    width: 100vw;
+    max-width: none;
   }
   
-  .edit-form-sidebar {
-    width: 90%;
-  }
-  
-  .edit-form-sidebar.piece {
-    left: 5%;
-  }
-  
-  .edit-form-sidebar.stock {
-    right: 5%;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .model-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* MODIFIÉ: Grille 1 colonne sur mobile */
-  .model-results {
-    grid-template-columns: 1fr;
-  }
-  
-  #notification-container {
-    width: calc(100% - 40px);
-    left: 20px;
-    right: 20px;
-  }
-  
-  /* NOUVEAU: Ajustements des panneaux sur mobile */
-  .profile-input-group {
-    flex-direction: column;
-    gap: 0;
-  }
-  
-  .profile-input-group .form-group {
-    margin-bottom: var(--space-lg);
+  .panel-header,
+  .panel-form,
+  .panel-actions {
+    padding: 1.5rem;
   }
 }
 

@@ -126,7 +126,7 @@
   flex-wrap: wrap;
 }
 
-/* Conteneur de panneau */
+/* Conteneur de panneau - CORRECTION COMPLÈTE */
 .panels-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -134,16 +134,24 @@
   margin-bottom: var(--space-2xl);
 }
 
-@media (min-width: 768px) {
+/* CORRECTION: Grille côte à côte seulement au-dessus de 1300px */
+@media (min-width: 1301px) {
   .panels-container {
     grid-template-columns: 2fr 1fr;
     gap: var(--space-2xl);
   }
 }
 
-@media (min-width: 1024px) {
+/* CORRECTION: En dessous de 1300px, colonne unique avec barres mères en premier */
+@media (max-width: 1300px) {
   .panels-container {
-    gap: var(--space-2xl);
+    grid-template-columns: 1fr !important;
+    gap: var(--space-xl);
+  }
+  
+  /* Réorganiser l'ordre des panneaux : barres mères en premier */
+  .panels-container .panel:nth-child(2) {
+    order: -1;
   }
 }
 
