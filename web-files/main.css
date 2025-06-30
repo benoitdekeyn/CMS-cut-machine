@@ -688,9 +688,10 @@ p {
 }
 
 .loading-subtitle {
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  font-size: 0.95em;
+  margin: 0 0 2rem 0;
+  text-align: center;
 }
 
 .spinner {
@@ -1948,6 +1949,76 @@ p {
 
 #model-details-container {
   padding-top: 30px;
+}
+
+/* Cartes d'erreur pour les modèles - SIMPLIFIÉ sans contour rouge */
+.model-card.error-card {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.08), rgba(220, 53, 69, 0.03));
+  /* SUPPRIMÉ: border: 2px solid var(--danger); */
+  /* SUPPRIMÉ: box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15); */
+  position: relative;
+}
+
+.error-content {
+  display: flex;
+  align-items: center; /* Centrer verticalement */
+  justify-content: center; /* Centrer horizontalement */
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  flex: 1;
+  flex-direction: column;
+}
+
+.error-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-bottom: 0.5rem; /* Espacement vers le bas */
+}
+
+.error-message h4 {
+  margin: 0 0 0.75rem 0;
+  color: var(--danger);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.error-message p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* Assurer que les cartes normales et d'erreur ont la même taille */
+.model-card,
+.model-card.error-card {
+  min-height: 300px; /* Hauteur minimum cohérente */
+  display: flex;
+  flex-direction: column;
+}
+
+.model-content,
+.error-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pour les cartes d'erreur, centrer le contenu verticalement */
+.error-content {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.error-content .error-icon {
+  margin-top: 0;
+}
+
+.error-content .error-message {
+  text-align: center;
 }
 /*!***********************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js!./src/css/spinner.css ***!
