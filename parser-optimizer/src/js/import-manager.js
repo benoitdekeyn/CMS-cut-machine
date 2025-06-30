@@ -1,6 +1,5 @@
 /**
- * Gestionnaire d'import pour fichiers NC2 et ZIP
- * Se concentre uniquement sur le parsing des fichiers, sans manipulation des données
+ * Gestionnaire d'import pour fichiers NC2 et ZIP (SANS ID)
  */
 import JSZip from 'jszip';
 import { Parser } from './index.js';
@@ -126,7 +125,7 @@ export const ImportManager = {
   },
   
   /**
-   * Convertit les données parsées en objet barre
+   * Convertit les données parsées en objet barre (SANS ID)
    * @param {Object} parsedData - Données parsées du fichier NC2
    * @param {string} filename - Nom du fichier source
    * @returns {Object|null} - Objet barre ou null si invalide
@@ -139,7 +138,7 @@ export const ImportManager = {
     
     const shortName = filename.split('/').pop();
     
-    // Format adapté à la nouvelle structure du parser
+    // Format adapté à la nouvelle structure du parser (SANS ID)
     return {
       nom: parsedData.nom || shortName.replace(/\.[^/.]+$/, ""),
       profile: parsedData.profil || 'INCONNU',
@@ -162,7 +161,7 @@ export const ImportManager = {
         S055: parsedData.S055 || '',
         S058: parsedData.S058 || '' 
       },
-      id: `${shortName.replace(/\W/g, '_')}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      // SUPPRIMÉ: Plus d'ID ni originalFile
       originalFile: shortName
     };
   }

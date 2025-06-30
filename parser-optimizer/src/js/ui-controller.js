@@ -13,8 +13,7 @@ import { NotificationService } from './ui/notification-service.js';
 import { UIUtils } from './ui/utils.js';
 
 /**
- * Contrôleur d'interface utilisateur principal
- * Coordonne les différentes sections et services
+ * Contrôleur d'interface utilisateur principal (ADAPTÉ SANS ID)
  */
 export const UIController = {
   // Services et gestionnaires
@@ -281,17 +280,16 @@ export const UIController = {
   },
 
   /**
-   * Sauvegarde l'état original des données avant optimisation
+   * Sauvegarde l'état original des données avant optimisation (CORRIGÉ)
    */
   saveOriginalDataState: function() {
     try {
       const currentData = this.dataManager.getData();
       
-      // Faire une copie profonde des données pour éviter les références partagées
+      // CORRIGÉ: Plus de barsList, seulement pieces et motherBars
       this.originalDataState = {
         pieces: JSON.parse(JSON.stringify(currentData.pieces)),
-        motherBars: JSON.parse(JSON.stringify(currentData.motherBars)),
-        barsList: JSON.parse(JSON.stringify(currentData.barsList))
+        motherBars: JSON.parse(JSON.stringify(currentData.motherBars))
       };
       
       console.log('💾 État original des données sauvegardé');
@@ -319,7 +317,7 @@ export const UIController = {
   },
 
   /**
-   * Restaure l'état original des données
+   * Restaure l'état original des données (CORRIGÉ)
    */
   restoreOriginalDataState: function() {
     try {
@@ -328,10 +326,9 @@ export const UIController = {
         return;
       }
       
-      // Restaurer les données depuis la sauvegarde
+      // CORRIGÉ: Restaurer seulement pieces et motherBars
       this.dataManager.data.pieces = JSON.parse(JSON.stringify(this.originalDataState.pieces));
       this.dataManager.data.motherBars = JSON.parse(JSON.stringify(this.originalDataState.motherBars));
-      this.dataManager.data.barsList = JSON.parse(JSON.stringify(this.originalDataState.barsList));
       
       console.log('🔄 État original des données restauré');
       
@@ -356,36 +353,6 @@ export const UIController = {
       console.error('❌ Erreur lors de la restauration de l\'état original:', error);
       // En cas d'erreur, essayer de réinitialiser
       this.dataManager.initData();
-    }
-  },
-
-  /**
-   * Nettoie uniquement les résultats d'optimisation, pas les données de base
-   */
-  clearOptimizationResults: function() {
-    try {
-      // Vider les résultats d'optimisation
-      this.currentResults = null;
-      this.currentPgmObjects = null;
-      
-      // Nettoyer le contenu des sections résultats
-      const resultsContainer = document.getElementById('results-container');
-      if (resultsContainer) {
-        resultsContainer.innerHTML = '';
-      }
-      
-      const pgmContainer = document.getElementById('pgm-files-list');
-      if (pgmContainer) {
-        pgmContainer.innerHTML = '';
-      }
-      
-      // Réinitialiser les étapes de chargement si nécessaire
-      UIUtils.resetLoadingSteps();
-      
-      console.log('✅ Résultats d\'optimisation nettoyés avec succès');
-      
-    } catch (error) {
-      console.error('❌ Erreur lors du nettoyage des résultats:', error);
     }
   },
 
@@ -462,7 +429,7 @@ export const UIController = {
   },
 
   /**
-   * Affiche les statistiques détaillées des données pour le débogage
+   * Affiche les statistiques détaillées des données pour le débogage (CORRIGÉ)
    */
   logDataStatistics: function(data) {
     console.log('📊 === STATISTIQUES DES DONNÉES ===');
@@ -470,33 +437,105 @@ export const UIController = {
     // Compter les pièces
     let totalPieces = 0;
     let pieceProfiles = 0;
+    let totalPieceTypes = 0;
     for (const profile in data.pieces) {
       pieceProfiles++;
       const profilePieces = data.pieces[profile];
       const profileTotal = profilePieces.reduce((sum, piece) => sum + piece.quantity, 0);
       totalPieces += profileTotal;
+      totalPieceTypes += profilePieces.length;
       console.log(`  🔧 ${profile}: ${profilePieces.length} types, ${profileTotal} pièces`);
     }
     
     // Compter les barres mères
     let totalMotherBars = 0;
     let motherProfiles = 0;
+    let totalMotherTypes = 0;
     for (const profile in data.motherBars) {
       motherProfiles++;
       const profileBars = data.motherBars[profile];
       const profileTotal = profileBars.reduce((sum, bar) => sum + bar.quantity, 0);
       totalMotherBars += profileTotal;
+      totalMotherTypes += profileBars.length;
       console.log(`  📏 ${profile}: ${profileBars.length} longueurs, ${profileTotal} barres`);
     }
     
-    console.log(`📋 Total: ${totalPieces} pièces, ${totalMotherBars} barres mères`);
+    console.log(`📋 Total: ${totalPieces} pièces (${totalPieceTypes} types), ${totalMotherBars} barres mères (${totalMotherTypes} types)`);
     console.log(`📁 Profils: ${pieceProfiles} pour pièces, ${motherProfiles} pour barres`);
-    console.log(`📄 Liste globale: ${data.barsList.length} éléments`);
+    // SUPPRIMÉ: Plus de référence à barsList
     console.log('📊 =====================================');
   },
 
   /**
-   * Vérifie l'intégrité des données et rafraîchit l'affichage
+   * Vérifie l'intégrité des données (SIMPLIFIÉ - Plus de barsList)
+   */
+  checkDataIntegrity: function() {
+    const data = this.dataManager.getData();
+    
+    // CORRIGÉ: Vérifier seulement que les structures de base existent
+    if (!data.pieces || !data.motherBars) {
+      console.warn('⚠️ Structure de données corrompue, réinitialisation...');
+      this.dataManager.initData();
+      return false;
+    }
+    
+    // NOUVEAU: Vérifications de cohérence interne
+    for (const profile in data.pieces) {
+      if (!Array.isArray(data.pieces[profile])) {
+        console.warn(`⚠️ Structure pieces[${profile}] corrompue`);
+        return false;
+      }
+      
+      // Vérifier chaque pièce
+      for (const piece of data.pieces[profile]) {
+        if (!piece.profile || !piece.length || !piece.quantity) {
+          console.warn(`⚠️ Pièce invalide dans ${profile}:`, piece);
+          return false;
+        }
+      }
+    }
+    
+    for (const profile in data.motherBars) {
+      if (!Array.isArray(data.motherBars[profile])) {
+        console.warn(`⚠️ Structure motherBars[${profile}] corrompue`);
+        return false;
+      }
+      
+      // Vérifier chaque barre mère
+      for (const bar of data.motherBars[profile]) {
+        if (!bar.profile || !bar.length || !bar.quantity) {
+          console.warn(`⚠️ Barre mère invalide dans ${profile}:`, bar);
+          return false;
+        }
+      }
+    }
+    
+    console.log('✅ Intégrité des données vérifiée');
+    return true;
+  },
+
+  /**
+   * NOUVEAU: Compte le nombre total d'éléments dans les données
+   */
+  getTotalDataElements: function() {
+    const data = this.dataManager.getData();
+    let totalElements = 0;
+    
+    // Compter les types de pièces
+    for (const profile in data.pieces) {
+      totalElements += data.pieces[profile].length;
+    }
+    
+    // Compter les types de barres mères  
+    for (const profile in data.motherBars) {
+      totalElements += data.motherBars[profile].length;
+    }
+    
+    return totalElements;
+  },
+
+  /**
+   * Vérifie l'intégrité des données et rafraîchit l'affichage (AMÉLIORÉ)
    */
   verifyAndRefreshDataDisplay: function() {
     try {
@@ -511,6 +550,8 @@ export const UIController = {
       // Vérifier l'intégrité
       if (!this.checkDataIntegrity()) {
         console.log('🔧 Données corrigées automatiquement');
+      } else {
+        console.log(`✅ ${this.getTotalDataElements()} éléments de données validés`);
       }
       
       // Rafraîchir l'affichage
@@ -523,43 +564,6 @@ export const UIController = {
       // En cas d'erreur critique, ne pas réinitialiser les données
       this.showNotification('Erreur lors de la vérification des données', 'warning');
     }
-  },
-
-  /**
-   * Vérifie l'intégrité des données
-   */
-  checkDataIntegrity: function() {
-    const data = this.dataManager.getData();
-    
-    // Vérifier que les structures de base existent
-    if (!data.pieces || !data.motherBars || !data.barsList) {
-      console.warn('⚠️ Structure de données corrompue, réinitialisation...');
-      this.dataManager.initData();
-      return false;
-    }
-    
-    // Vérifier la cohérence entre barsList et les structures groupées
-    let totalPiecesInGroups = 0;
-    let totalMothersInGroups = 0;
-    
-    for (const profile in data.pieces) {
-      totalPiecesInGroups += data.pieces[profile].length;
-    }
-    
-    for (const profile in data.motherBars) {
-      totalMothersInGroups += data.motherBars[profile].length;
-    }
-    
-    const piecesInList = data.barsList.filter(b => b.type === 'fille').length;
-    const mothersInList = data.barsList.filter(b => b.type === 'mother' || b.type === 'mere').length;
-    
-    if (totalPiecesInGroups !== piecesInList || totalMothersInGroups !== mothersInList) {
-      console.warn('⚠️ Incohérence détectée dans les données, correction automatique...');
-      // Ici on pourrait ajouter une logique de correction automatique
-      return false;
-    }
-    
-    return true;
   },
 
   /**
@@ -983,26 +987,86 @@ export const UIController = {
   },
 
   /**
-   * Affiche les onglets de résultats
+   * MÉTHODE MANQUANTE: Efface les résultats d'optimisation précédents
+   */
+  clearOptimizationResults: function() {
+    try {
+      console.log('🧹 Nettoyage des résultats d\'optimisation précédents');
+      
+      // Réinitialiser les résultats actuels
+      this.currentResults = null;
+      this.currentPgmObjects = null;
+      
+      // Nettoyer l'interface des résultats
+      const globalSummaryContainer = document.getElementById('global-summary-container');
+      if (globalSummaryContainer) {
+        globalSummaryContainer.innerHTML = '';
+      }
+      
+      const modelDetailsContainer = document.getElementById('model-details-container');
+      if (modelDetailsContainer) {
+        modelDetailsContainer.innerHTML = '';
+      }
+      
+      const pgmFilesContainer = document.getElementById('pgm-files-list');
+      if (pgmFilesContainer) {
+        pgmFilesContainer.innerHTML = '';
+      }
+      
+      // Masquer la section résultats et afficher la section données
+      const resultSection = document.getElementById('result-section');
+      const dataSection = document.getElementById('data-section');
+      
+      if (resultSection) {
+        resultSection.classList.remove('active');
+      }
+      
+      if (dataSection) {
+        dataSection.classList.add('active');
+      }
+      
+      // Masquer la navigation résultats
+      const resultsNav = document.getElementById('results-nav');
+      if (resultsNav) {
+        resultsNav.style.display = 'none';
+      }
+      
+      console.log('✅ Résultats d\'optimisation nettoyés');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du nettoyage des résultats:', error);
+    }
+  },
+
+  /**
+   * MÉTHODE MANQUANTE: Affiche les onglets de résultats
    */
   showResultsTabs: function() {
     try {
+      console.log('📊 Affichage des onglets de résultats');
+      
+      // Vérifier que nous avons des résultats à afficher
+      if (!this.currentResults) {
+        console.warn('⚠️ Aucun résultat à afficher');
+        return;
+      }
+      
       // Basculer vers la section résultats
       this.showSection('result-section');
       
-      // Scroll en haut de la page pour une UX optimale
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // S'assurer que le contenu est visible
-      const resultsContainer = document.getElementById('results-container');
-      if (resultsContainer && resultsContainer.innerHTML.trim() === '') {
-        console.warn('⚠️ Le conteneur de résultats est vide');
+      // Afficher la navigation résultats
+      const resultsNav = document.getElementById('results-nav');
+      if (resultsNav) {
+        resultsNav.style.display = 'flex';
       }
       
-      console.log('📊 Onglets de résultats affichés');
+      console.log('✅ Onglets de résultats affichés');
       
     } catch (error) {
-      console.error('❌ Erreur lors de l\'affichage des onglets:', error);
+      console.error('❌ Erreur lors de l\'affichage des résultats:', error);
+      this.showNotification('Erreur lors de l\'affichage des résultats', 'error');
     }
   },
+
+  // ... [autres méthodes existantes] ...
 };

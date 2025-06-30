@@ -1,5 +1,5 @@
 /**
- * Gestionnaire de la section d'édition
+ * Gestionnaire de la section d'édition (SANS ID)
  */
 export const EditHandler = {
   // Dépendances
@@ -7,8 +7,8 @@ export const EditHandler = {
   showNotification: null,
   refreshDataDisplay: null,
   
-  // État interne
-  editingId: null,
+  // État interne (utilise des clés au lieu d'IDs)
+  editingKey: null,
   editingType: null,
   editingMode: null, // 'edit' ou 'create'
   
@@ -192,7 +192,7 @@ export const EditHandler = {
   },
 
   /**
-   * Rend le tableau des barres filles avec tri automatique
+   * Rend le tableau des barres filles avec tri automatique (adapté sans ID)
    */
   renderPiecesTable: function() {
     const tableContainer = document.querySelector('#pieces-table');
@@ -227,8 +227,9 @@ export const EditHandler = {
     
     // Générer les lignes du tableau
     for (const piece of sortedPieces) {
+      const pieceKey = this.dataManager.generatePieceKey(piece);
       html += `
-        <tr data-id="${piece.id}">
+        <tr data-key="${pieceKey}">
           <td>${piece.nom || '-'}</td>
           <td>${piece.profile}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
@@ -238,9 +239,9 @@ export const EditHandler = {
           <td>${piece.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-piece-btn" 
-                    data-id="${piece.id}">✎</button>
+                    data-key="${pieceKey}">✎</button>
             <button class="btn btn-sm btn-danger delete-piece-btn" 
-                    data-id="${piece.id}">×</button>
+                    data-key="${pieceKey}">×</button>
           </td>
         </tr>
       `;
@@ -276,15 +277,15 @@ export const EditHandler = {
     
     document.querySelectorAll('.edit-piece-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        this.openPiecePanel('edit', id);
+        const key = btn.getAttribute('data-key');
+        this.openPiecePanel('edit', key);
       });
     });
     
     document.querySelectorAll('.delete-piece-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        if (this.dataManager.deletePiece(id)) {
+        const key = btn.getAttribute('data-key');
+        if (this.dataManager.deletePiece(key)) {
           this.renderPiecesTable(); // Re-render avec tri automatique
           this.updateAllProfileSelects();
         } else {
@@ -295,7 +296,7 @@ export const EditHandler = {
   },
   
   /**
-   * Rend le tableau des barres mères avec tri automatique et longueurs en mètres
+   * Rend le tableau des barres mères avec tri automatique et longueurs en mètres (adapté sans ID)
    */
   renderStockBarsTable: function() {
     const tableContainer = document.querySelector('#stock-bars-table');
@@ -326,17 +327,18 @@ export const EditHandler = {
     
     // Générer les lignes du tableau avec longueurs en mètres
     for (const bar of sortedBars) {
+      const barKey = this.dataManager.generateMotherBarKey(bar);
       const lengthInMeters = this.formatLengthForDisplay(bar.length);
       html += `
-        <tr data-id="${bar.id}">
+        <tr data-key="${barKey}">
           <td>${bar.profile}</td>
           <td>${lengthInMeters} m</td>
           <td>${bar.quantity}</td>
           <td>
             <button class="btn btn-sm btn-primary edit-stock-btn" 
-                    data-id="${bar.id}">✎</button>
+                    data-key="${barKey}">✎</button>
             <button class="btn btn-sm btn-danger delete-stock-btn" 
-                    data-id="${bar.id}">×</button>
+                    data-key="${barKey}">×</button>
           </td>
         </tr>
       `;
@@ -362,15 +364,15 @@ export const EditHandler = {
     
     document.querySelectorAll('.edit-stock-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        this.openStockPanel('edit', id);
+        const key = btn.getAttribute('data-key');
+        this.openStockPanel('edit', key);
       });
     });
     
     document.querySelectorAll('.delete-stock-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        if (this.dataManager.deleteMotherBar(id)) {
+        const key = btn.getAttribute('data-key');
+        if (this.dataManager.deleteMotherBar(key)) {
           this.renderStockBarsTable(); // Re-render avec tri automatique
           this.updateAllProfileSelects();
         } else {
@@ -381,11 +383,9 @@ export const EditHandler = {
   },
   
   /**
-   * Ouvre le panneau des barres filles (édition ou création)
-   * @param {string} mode - Mode du panneau ('edit' ou 'create')
-   * @param {string} id - ID de la pièce à éditer (seulement en mode 'edit')
+   * Ouvre le panneau des barres filles (édition ou création) - adapté sans ID
    */
-  openPiecePanel: function(mode, id = null) {
+  openPiecePanel: function(mode, key = null) {
     // Vérifier si la création est verrouillée
     if (mode === 'create' && this.lockOptions.lockPieceCreation) {
       this.showNotification('La création de nouvelles barres filles est désactivée', 'warning');
@@ -393,7 +393,7 @@ export const EditHandler = {
     }
     
     this.editingMode = mode;
-    this.editingId = id;
+    this.editingKey = key;
     this.editingType = 'piece';
     
     const panel = document.getElementById('piece-panel');
@@ -405,7 +405,7 @@ export const EditHandler = {
     form.innerHTML = '';
     
     if (mode === 'edit') {
-      const item = this.dataManager.getPieceById(id);
+      const item = this.dataManager.getPieceByKey(key);
       if (!item) return;
       
       title.textContent = `Éditer la barre ${item.nom || item.profile}`;
@@ -550,18 +550,16 @@ export const EditHandler = {
   },
   
   /**
-   * Ouvre le panneau des barres mères (édition ou création) avec longueurs en mètres
-   * @param {string} mode - Mode du panneau ('edit' ou 'create')
-   * @param {string} id - ID de la barre à éditer (seulement en mode 'edit')
+   * Ouvre le panneau des barres mères - adapté sans ID
    */
-  openStockPanel: function(mode, id = null) {
+  openStockPanel: function(mode, key = null) {
     // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
     if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
       return;
     }
     
     this.editingMode = mode;
-    this.editingId = id;
+    this.editingKey = key;
     this.editingType = 'stock';
     
     const panel = document.getElementById('stock-panel');
@@ -573,7 +571,7 @@ export const EditHandler = {
     form.innerHTML = '';
     
     if (mode === 'edit') {
-      const item = this.dataManager.getMotherBarById(id);
+      const item = this.dataManager.getMotherBarByKey(key);
       if (!item) return;
       
       title.textContent = `Éditer la barre mère ${item.profile}`;
@@ -640,7 +638,6 @@ export const EditHandler = {
     
     // NOUVEAU: Mettre le focus sur le champ de longueur en mode création
     if (mode === 'create') {
-      // Utiliser un petit délai pour s'assurer que le panneau est visible
       setTimeout(() => {
         const lengthInput = document.getElementById('stock-length');
         if (lengthInput) {
@@ -665,17 +662,17 @@ export const EditHandler = {
     // CORRECTION: Nettoyer les gestionnaires d'événements globaux
     this.removeGlobalKeyHandlers();
     
-    this.editingId = null;
+    this.editingKey = null;
     this.editingType = null;
     this.editingMode = null;
   },
   
   /**
-   * Enregistre les modifications ou crée un nouvel élément avec re-tri automatique
+   * Enregistre les modifications ou crée un nouvel élément - adapté sans ID
    */
   saveItem: function() {
     const type = this.editingType;
-    const id = this.editingId;
+    const key = this.editingKey;
     const mode = this.editingMode;
     
     if (!type) return;
@@ -697,19 +694,19 @@ export const EditHandler = {
         const lengthInput = document.getElementById('piece-length').value;
         length = parseInt(lengthInput, 10);
       } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceById(id);
+        const item = this.dataManager.getPieceByKey(key);
         length = item ? item.length : null;
       }
       
       if (!this.lockOptions.lockPieceAngles) {
-        angle1 = parseFloat(document.getElementById('piece-angle-1').value);
-        angle2 = parseFloat(document.getElementById('piece-angle-2').value);
+        const angle1Input = document.getElementById('piece-angle-1').value;
+        const angle2Input = document.getElementById('piece-angle-2').value;
+        angle1 = parseFloat(angle1Input);
+        angle2 = parseFloat(angle2Input);
       } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceById(id);
-        if (item && item.angles) {
-          angle1 = item.angles[1] || 90;
-          angle2 = item.angles[2] || 90;
-        }
+        const item = this.dataManager.getPieceByKey(key);
+        angle1 = item ? (item.angles?.[1] || 90) : 90;
+        angle2 = item ? (item.angles?.[2] || 90) : 90;
       }
       
       // Préparer les données à valider
@@ -731,7 +728,7 @@ export const EditHandler = {
       
       if (profileValue && length && quantity) {
         if (mode === 'edit') {
-          const piece = this.dataManager.getPieceById(id);
+          const piece = this.dataManager.getPieceByKey(key);
           
           if (piece && piece.profile !== profileValue) {
             updatedProfile = true;
@@ -746,7 +743,8 @@ export const EditHandler = {
             angles: { 1: angle1, 2: angle2 }
           };
           
-          success = this.dataManager.updatePiece(id, updatedPiece);
+          const newKey = this.dataManager.updatePiece(key, updatedPiece);
+          success = newKey !== null;
         } else {
           const pieceData = {
             nom,
@@ -758,7 +756,8 @@ export const EditHandler = {
             type: 'fille'
           };
           
-          if (this.dataManager.addBars([pieceData]).length > 0) {
+          const addedKeys = this.dataManager.addBars([pieceData]);
+          if (addedKeys.length > 0) {
             success = true;
             updatedProfile = true;
           }
@@ -778,8 +777,9 @@ export const EditHandler = {
           }
           
           // Notification de succès seulement
-          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
-          this.showNotification(`Barre ${action}`, 'success');
+          if (mode === 'edit') {
+            this.showNotification(`Barre modifiée`, 'success');
+          }
         }
       }
     } else if (type === 'stock') {
@@ -800,13 +800,13 @@ export const EditHandler = {
       // Valider les données
       const errors = this.validateMotherBarData(motherBarData);
       if (errors.length > 0) {
-        this.showNotification(`Erreur de validation :\n• ${errors.join('\n• ')}`, 'error');
+        this.showNotification(errors[0], 'error');
         return;
       }
       
       if (profileValue && lengthInCm && quantity) {
         if (mode === 'edit') {
-          const bar = this.dataManager.getMotherBarById(id);
+          const bar = this.dataManager.getMotherBarByKey(key);
           
           if (bar && bar.profile !== profileValue) {
             updatedProfile = true;
@@ -818,7 +818,8 @@ export const EditHandler = {
             quantity
           };
           
-          success = this.dataManager.updateMotherBar(id, updatedMotherBar);
+          const newKey = this.dataManager.updateMotherBar(key, updatedMotherBar);
+          success = newKey !== null;
         } else {
           const barData = {
             profile: profileValue,
@@ -827,7 +828,8 @@ export const EditHandler = {
             type: 'mother'
           };
           
-          if (this.dataManager.addBars([barData]).length > 0) {
+          const addedKeys = this.dataManager.addBars([barData]);
+          if (addedKeys.length > 0) {
             success = true;
             updatedProfile = true;
           }
@@ -847,8 +849,9 @@ export const EditHandler = {
           }
           
           // Notification de succès seulement
-          const action = mode === 'edit' ? 'modifiée' : 'ajoutée';
-          this.showNotification(`Barre mère ${action}`, 'success');
+          if (mode === 'edit') {
+            this.showNotification(`Barre mère modifiée`, 'success');
+          }
         }
       }
     }
@@ -859,185 +862,9 @@ export const EditHandler = {
       this.showNotification('Erreur lors de l\'enregistrement', 'error');
     }
   },
-  
+
   /**
-   * MODIFIÉ: Enregistre sans AUCUNE notification de succès
-   */
-  saveItem: function() {
-    const type = this.editingType;
-    const id = this.editingId;
-    const mode = this.editingMode;
-    
-    if (!type) return;
-    
-    let success = false;
-    let updatedProfile = false;
-    
-    if (type === 'piece') {
-      const nom = document.getElementById('piece-nom').value.trim();
-      const profileValue = document.getElementById('piece-profile').value.trim();
-      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      const orientation = document.getElementById('piece-orientation').value;
-      
-      let length = null;
-      let angle1 = 90, angle2 = 90;
-      
-      if (!this.lockOptions.lockPieceLengths) {
-        const lengthInput = document.getElementById('piece-length').value;
-        length = parseInt(lengthInput, 10);
-      } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceById(id);
-        length = item ? item.length : null;
-      }
-      
-      if (!this.lockOptions.lockPieceAngles) {
-        angle1 = parseFloat(document.getElementById('piece-angle-1').value);
-        angle2 = parseFloat(document.getElementById('piece-angle-2').value);
-      } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceById(id);
-        if (item && item.angles) {
-          angle1 = item.angles[1] || 90;
-          angle2 = item.angles[2] || 90;
-        }
-      }
-      
-      const pieceData = {
-        nom,
-        profile: profileValue,
-        length,
-        quantity,
-        orientation,
-        angles: { 1: angle1, 2: angle2 }
-      };
-      
-      const errors = this.validatePieceData(pieceData);
-      if (errors.length > 0) {
-        this.showNotification(errors[0], 'error');
-        return;
-      }
-      
-      if (profileValue && length && quantity) {
-        if (mode === 'edit') {
-          const piece = this.dataManager.getPieceById(id);
-          
-          if (piece && piece.profile !== profileValue) {
-            updatedProfile = true;
-          }
-          
-          const updatedPiece = {
-            nom,
-            profile: profileValue,
-            length,
-            quantity,
-            orientation,
-            angles: { 1: angle1, 2: angle2 }
-          };
-          
-          success = this.dataManager.updatePiece(id, updatedPiece);
-        } else {
-          const pieceData = {
-            nom,
-            profile: profileValue,
-            length,
-            quantity,
-            orientation,
-            angles: { 1: angle1, 2: angle2 },
-            type: 'fille'
-          };
-          
-          if (this.dataManager.addBars([pieceData]).length > 0) {
-            success = true;
-            updatedProfile = true;
-          }
-        }
-        
-        if (success) {
-          this.renderPiecesTable();
-          
-          if (updatedProfile) {
-            this.updateAllProfileSelects();
-          }
-          
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-          
-          // SUPPRIMÉ: Notification de succès
-        }
-      }
-    } else if (type === 'stock') {
-      const profileValue = document.getElementById('stock-profile').value.trim();
-      const lengthInput = document.getElementById('stock-length').value.trim();
-      const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
-      
-      const lengthInCm = this.parseLengthFromDisplay(lengthInput);
-      
-      const motherBarData = {
-        profile: profileValue,
-        length: lengthInCm,
-        quantity
-      };
-      
-      const errors = this.validateMotherBarData(motherBarData);
-      if (errors.length > 0) {
-        this.showNotification(errors[0], 'error');
-        return;
-      }
-      
-      if (profileValue && lengthInCm && quantity) {
-        if (mode === 'edit') {
-          const bar = this.dataManager.getMotherBarById(id);
-          
-          if (bar && bar.profile !== profileValue) {
-            updatedProfile = true;
-          }
-          
-          const updatedMotherBar = {
-            profile: profileValue,
-            length: lengthInCm,
-            quantity
-          };
-          
-          success = this.dataManager.updateMotherBar(id, updatedMotherBar);
-        } else {
-          const barData = {
-            profile: profileValue,
-            length: lengthInCm,
-            quantity,
-            type: 'mother'
-          };
-          
-          if (this.dataManager.addBars([barData]).length > 0) {
-            success = true;
-            updatedProfile = true;
-          }
-        }
-        
-        if (success) {
-          this.renderStockBarsTable();
-          
-          if (updatedProfile) {
-            this.updateAllProfileSelects();
-          }
-          
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-          
-          // SUPPRIMÉ: Notification de succès
-        }
-      }
-    }
-    
-    if (success) {
-      this.closePanel();
-    } else {
-      this.showNotification('Erreur lors de l\'enregistrement', 'error');
-    }
-  },
-  
-  /**
-   * NOUVEAU: Valide les données d'une barre fille
+   * MODIFIÉ: Valide les données d'une barre fille
    */
   validatePieceData: function(data) {
     const errors = [];
@@ -1140,14 +967,14 @@ export const EditHandler = {
   /**
    * MODIFIÉ: Ouvre le panneau des barres mères avec validation
    */
-  openStockPanel: function(mode, id = null) {
+  openStockPanel: function(mode, key = null) {
     // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
     if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
       return;
     }
     
     this.editingMode = mode;
-    this.editingId = id;
+    this.editingKey = key;
     this.editingType = 'stock';
     
     const panel = document.getElementById('stock-panel');
@@ -1159,7 +986,7 @@ export const EditHandler = {
     form.innerHTML = '';
     
     if (mode === 'edit') {
-      const item = this.dataManager.getMotherBarById(id);
+      const item = this.dataManager.getMotherBarByKey(key);
       if (!item) return;
       
       title.textContent = `Éditer la barre mère ${item.profile}`;
@@ -1226,7 +1053,6 @@ export const EditHandler = {
     
     // NOUVEAU: Mettre le focus sur le champ de longueur en mode création
     if (mode === 'create') {
-      // Utiliser un petit délai pour s'assurer que le panneau est visible
       setTimeout(() => {
         const lengthInput = document.getElementById('stock-length');
         if (lengthInput) {
@@ -1237,11 +1063,31 @@ export const EditHandler = {
   },
 
   /**
-   * MODIFIÉ: Enregistre les modifications avec notification seulement en cas d'erreur ou de succès explicite
+   * Ferme le panneau d'édition actif et nettoie les gestionnaires
+   */
+  closePanel: function() {
+    const piecePanel = document.getElementById('piece-panel');
+    const stockPanel = document.getElementById('stock-panel');
+    const overlay = document.getElementById('panel-overlay');
+    
+    piecePanel.classList.remove('visible');
+    stockPanel.classList.remove('visible');
+    overlay.classList.remove('visible');
+    
+    // CORRECTION: Nettoyer les gestionnaires d'événements globaux
+    this.removeGlobalKeyHandlers();
+    
+    this.editingKey = null;
+    this.editingType = null;
+    this.editingMode = null;
+  },
+  
+  /**
+   * Enregistre les modifications ou crée un nouvel élément - adapté sans ID
    */
   saveItem: function() {
     const type = this.editingType;
-    const id = this.editingId;
+    const key = this.editingKey;
     const mode = this.editingMode;
     
     if (!type) return;
@@ -1263,19 +1109,19 @@ export const EditHandler = {
         const lengthInput = document.getElementById('piece-length').value;
         length = parseInt(lengthInput, 10);
       } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceById(id);
+        const item = this.dataManager.getPieceByKey(key);
         length = item ? item.length : null;
       }
       
       if (!this.lockOptions.lockPieceAngles) {
-        angle1 = parseFloat(document.getElementById('piece-angle-1').value);
-        angle2 = parseFloat(document.getElementById('piece-angle-2').value);
+        const angle1Input = document.getElementById('piece-angle-1').value;
+        const angle2Input = document.getElementById('piece-angle-2').value;
+        angle1 = parseFloat(angle1Input);
+        angle2 = parseFloat(angle2Input);
       } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceById(id);
-        if (item && item.angles) {
-          angle1 = item.angles[1] || 90;
-          angle2 = item.angles[2] || 90;
-        }
+        const item = this.dataManager.getPieceByKey(key);
+        angle1 = item ? (item.angles?.[1] || 90) : 90;
+        angle2 = item ? (item.angles?.[2] || 90) : 90;
       }
       
       // Préparer les données à valider
@@ -1297,7 +1143,7 @@ export const EditHandler = {
       
       if (profileValue && length && quantity) {
         if (mode === 'edit') {
-          const piece = this.dataManager.getPieceById(id);
+          const piece = this.dataManager.getPieceByKey(key);
           
           if (piece && piece.profile !== profileValue) {
             updatedProfile = true;
@@ -1312,7 +1158,8 @@ export const EditHandler = {
             angles: { 1: angle1, 2: angle2 }
           };
           
-          success = this.dataManager.updatePiece(id, updatedPiece);
+          const newKey = this.dataManager.updatePiece(key, updatedPiece);
+          success = newKey !== null;
         } else {
           const pieceData = {
             nom,
@@ -1324,7 +1171,8 @@ export const EditHandler = {
             type: 'fille'
           };
           
-          if (this.dataManager.addBars([pieceData]).length > 0) {
+          const addedKeys = this.dataManager.addBars([pieceData]);
+          if (addedKeys.length > 0) {
             success = true;
             updatedProfile = true;
           }
@@ -1367,13 +1215,13 @@ export const EditHandler = {
       // Valider les données
       const errors = this.validateMotherBarData(motherBarData);
       if (errors.length > 0) {
-        this.showNotification(`Erreur de validation :\n• ${errors.join('\n• ')}`, 'error');
+        this.showNotification(errors[0], 'error');
         return;
       }
       
       if (profileValue && lengthInCm && quantity) {
         if (mode === 'edit') {
-          const bar = this.dataManager.getMotherBarById(id);
+          const bar = this.dataManager.getMotherBarByKey(key);
           
           if (bar && bar.profile !== profileValue) {
             updatedProfile = true;
@@ -1385,7 +1233,8 @@ export const EditHandler = {
             quantity
           };
           
-          success = this.dataManager.updateMotherBar(id, updatedMotherBar);
+          const newKey = this.dataManager.updateMotherBar(key, updatedMotherBar);
+          success = newKey !== null;
         } else {
           const barData = {
             profile: profileValue,
@@ -1394,7 +1243,8 @@ export const EditHandler = {
             type: 'mother'
           };
           
-          if (this.dataManager.addBars([barData]).length > 0) {
+          const addedKeys = this.dataManager.addBars([barData]);
+          if (addedKeys.length > 0) {
             success = true;
             updatedProfile = true;
           }
@@ -1412,7 +1262,7 @@ export const EditHandler = {
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
-
+          
           // Notification de succès seulement
           if (mode === 'edit') {
             this.showNotification(`Barre mère modifiée`, 'success');
