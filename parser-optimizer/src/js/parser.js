@@ -79,7 +79,7 @@ export const Parser = {
       
       // Nom de la barre
       if (indexLigne == 2) {
-        barreActuelle.nom = ligne.replace('**', '').split('.nc')[0];
+        barreActuelle.nom = ligne.replace('**', '').split('.nc')[0].trim();
       }
       
       // Quantité
