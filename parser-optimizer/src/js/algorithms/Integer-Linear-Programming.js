@@ -127,7 +127,7 @@ function solveModelWithAdvancedILP(stockBars, demandPieces, model, progressCallb
 
     progressCallback({ step: `Génération des patterns pour ${model}`, percentage: 30 });
 
-    // 2. Générer les patterns de découpe
+    // 2. Générer les patterns de découte
     const cuttingPatterns = generateAdvancedCuttingPatterns(stockSizes, cutSizes, 0);
     console.log(`    🔧 ${cuttingPatterns.totalPatterns} patterns générés au total`);
 
@@ -209,21 +209,21 @@ function convertILPSolutionToResult(ilpSolution, model) {
 }
 
 /**
- * Génère les patterns de découpe avancés (algorithme original conservé)
+ * Génère les patterns de découpe avancés OPTIMISÉS
  */
 function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
-    console.log(`    🔄 Génération exhaustive des patterns...`);
+    console.log(`    🔄 Génération optimisée des patterns...`);
     
     const waysOfCuttingStocks = stockSizes.map(({ size, cost, quantity }) => {
         console.log(`      📏 Analyse barre ${size}cm:`);
         
-        const waysOfCutting = generateAllWaysToCut(size, cutSizes, bladeSize);
-        const uniquePatterns = removeDuplicatesAndSubsets(waysOfCutting);
+        // OPTIMISATION: Génération limitée et intelligente
+        const waysOfCutting = generateOptimizedPatterns(size, cutSizes, bladeSize, 100); // Max 100 patterns
         
-        console.log(`        ✓ ${uniquePatterns.length} patterns générés`);
+        console.log(`        ✓ ${waysOfCutting.length} patterns optimisés générés`);
         
         // Afficher les meilleurs patterns
-        const sortedWays = uniquePatterns
+        const sortedWays = waysOfCutting
             .map(way => ({
                 cuts: way,
                 efficiency: way.length > 0 ? (way.reduce((sum, cut) => sum + cut, 0) / size * 100).toFixed(1) : 0,
@@ -244,7 +244,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
         });
         
         // Transformer en format ILP
-        const versions = uniquePatterns.map(way => {
+        const versions = waysOfCutting.map(way => {
             const stockCut = {};
             for (const cut of cutSizes) {
                 stockCut[`cut${cut}`] = 0;
@@ -293,61 +293,67 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
 }
 
 /**
- * Génère récursivement toutes les façons de découper une barre (algorithme original)
+ * NOUVELLE FONCTION: Génération optimisée des patterns avec élagage intelligent
  */
-function generateAllWaysToCut(barSize, cuts, bladeSize, state = [], maxDepth = 25, currentDepth = 0) {
-    if (currentDepth > maxDepth) {
-        return [state];
-    }
+function generateOptimizedPatterns(barSize, cuts, bladeSize, maxPatterns = 100) {
+    console.log(`        🎯 Génération optimisée pour barre ${barSize}cm (max ${maxPatterns} patterns)`);
     
-    const waysToCut = [];
-    waysToCut.push([...state]);
-    
-    for (const cut of cuts) {
-        const remainderAfterCut = barSize - cut;
-        
-        if (remainderAfterCut >= 0) {
-            const subWays = generateAllWaysToCut(
-                remainderAfterCut,
-                cuts,
-                bladeSize,
-                [...state, cut],
-                maxDepth,
-                currentDepth + 1
-            );
-            waysToCut.push(...subWays);
-        }
-    }
-    
-    return waysToCut;
-}
-
-/**
- * Supprime les doublons des patterns (algorithme original)
- */
-function removeDuplicatesAndSubsets(ways) {
-    const results = [];
+    const patterns = [];
     const seen = new Set();
+    const startTime = Date.now();
     
-    for (const way of ways) {
-        const sortedWay = [...way].sort((a, b) => a - b);
-        const key = sortedWay.join(',');
+    // Trier les coupes par efficacité décroissante
+    const sortedCuts = [...cuts].sort((a, b) => b - a);
+    
+    // Génération avec élagage par efficacité et profondeur limitée
+    function generateWithPruning(remaining, current, depth = 0) {
+        // Limites de performance
+        if (depth > 12 || patterns.length >= maxPatterns) return;
         
-        if (!seen.has(key)) {
-            seen.add(key);
-            results.push(way);
+        // Élagage par efficacité minimum (30%)
+        const currentEfficiency = current.length > 0 ? 
+            current.reduce((sum, cut) => sum + cut, 0) / barSize : 0;
+        if (currentEfficiency > 0 && currentEfficiency < 0.3) return;
+        
+        // Éviter les doublons
+        const patternKey = [...current].sort((a, b) => a - b).join(',');
+        if (seen.has(patternKey)) return;
+        
+        seen.add(patternKey);
+        patterns.push([...current]);
+        
+        // Continuer la génération avec priorité aux grandes coupes
+        for (const cut of sortedCuts) {
+            if (remaining >= cut) {
+                generateWithPruning(remaining - cut, [...current, cut], depth + 1);
+            }
         }
     }
     
-    console.log(`        🔍 ${ways.length} patterns bruts → ${results.length} patterns uniques`);
-    return results;
+    // Démarrer la génération
+    generateWithPruning(barSize, []);
+    
+    // Trier par efficacité et garder seulement les meilleurs
+    const rankedPatterns = patterns
+        .map(pattern => ({
+            cuts: pattern,
+            efficiency: pattern.reduce((sum, cut) => sum + cut, 0) / barSize,
+            waste: barSize - pattern.reduce((sum, cut) => sum + cut, 0)
+        }))
+        .sort((a, b) => b.efficiency - a.efficiency)
+        .slice(0, maxPatterns);
+    
+    const elapsedTime = Date.now() - startTime;
+    console.log(`        ⚡ ${rankedPatterns.length} patterns générés en ${elapsedTime}ms`);
+    
+    return rankedPatterns.map(p => p.cuts);
 }
 
 /**
- * Résout le modèle ILP avec timeout (algorithme original)
+ * OPTIMISATION: Résolution ILP par étapes progressives
  */
 function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
-    console.log(`    🧮 Construction du modèle ILP:`);
+    console.log(`    🧮 Construction du modèle ILP optimisé:`);
     
     const constraints = {};
     requiredCuts.forEach(({ size, count }) => {
@@ -355,33 +361,68 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         console.log(`      📐 Contrainte: exactement ${count} pièces de ${size}cm`);
     });
 
-    const model = {
-        optimize: "cost",
-        opType: "min",
-        variables: cuttingPatterns.variables,
-        ints: cuttingPatterns.ints,
-        constraints: constraints
-    };
+    console.log(`    📊 Modèle: ${Object.keys(cuttingPatterns.variables).length} variables, ${Object.keys(constraints).length} contraintes`);
 
-    console.log(`    📊 Modèle final: ${Object.keys(model.variables).length} variables, ${Object.keys(model.constraints).length} contraintes`);
-
+    // OPTIMISATION: Résolution par étapes
     const startTime = Date.now();
-    console.log(`    ⏳ Résolution en cours...`);
+    console.log(`    ⏳ Résolution progressive en cours...`);
     
-    // Timeout simple : pas de retry, pas de patterns d'urgence
-    const solution = solver.Solve(model);
+    let solution = null;
+    let attempt = 1;
+    
+    // Étape 1: Essai avec les patterns les plus efficaces seulement
+    try {
+        console.log(`    🎯 Tentative ${attempt}: patterns haute efficacité`);
+        const quickModel = buildOptimizedModel(cuttingPatterns, constraints, 0.7); // 70% efficacité min
+        solution = solver.Solve(quickModel);
+        
+        if (solution && solution.feasible) {
+            console.log(`    ✅ Solution trouvée à la tentative ${attempt}`);
+        } else {
+            throw new Error("Pas de solution avec patterns haute efficacité");
+        }
+    } catch (error) {
+        attempt++;
+        
+        // Étape 2: Essai avec efficacité moyenne
+        try {
+            console.log(`    🎯 Tentative ${attempt}: patterns efficacité moyenne`);
+            const mediumModel = buildOptimizedModel(cuttingPatterns, constraints, 0.5); // 50% efficacité min
+            solution = solver.Solve(mediumModel);
+            
+            if (solution && solution.feasible) {
+                console.log(`    ✅ Solution trouvée à la tentative ${attempt}`);
+            } else {
+                throw new Error("Pas de solution avec patterns efficacité moyenne");
+            }
+        } catch (error2) {
+            attempt++;
+            
+            // Étape 3: Dernier recours avec tous les patterns
+            console.log(`    🎯 Tentative ${attempt}: tous les patterns`);
+            const fullModel = {
+                optimize: "cost",
+                opType: "min",
+                variables: cuttingPatterns.variables,
+                ints: cuttingPatterns.ints,
+                constraints: constraints
+            };
+            
+            solution = solver.Solve(fullModel);
+        }
+    }
     
     const elapsedTime = Date.now() - startTime;
-    console.log(`    ⏱️ Résolution terminée en ${elapsedTime}ms`);
+    console.log(`    ⏱️ Résolution terminée en ${elapsedTime}ms (${attempt} tentatives)`);
     
     if (!solution || !solution.feasible) {
-        console.log(`    ⚠️ Aucune solution faisable trouvée`);
+        console.log(`    ⚠️ Aucune solution faisable trouvée après ${attempt} tentatives`);
         throw new Error("Aucune solution ILP trouvée");
     }
     
     console.log(`    ✅ Solution optimale trouvée: coût total ${solution.result}`);
     
-    // Vérification des contraintes
+    // Vérification des contraintes (code existant conservé)
     console.log(`    🔍 Vérification des contraintes:`);
     for (const { size, count } of requiredCuts) {
         let totalProduced = 0;
@@ -400,7 +441,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         }
     }
     
-    // Affichage des patterns sélectionnés
+    // Affichage des patterns sélectionnés (code existant conservé)
     console.log(`    📋 Patterns sélectionnés:`);
     let totalBars = 0;
     for (const [varName, quantity] of Object.entries(solution)) {
@@ -430,6 +471,46 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     return { 
         solution: solution,
         patterns: cuttingPatterns 
+    };
+}
+
+/**
+ * NOUVELLE FONCTION: Construit un modèle ILP filtré par efficacité
+ */
+function buildOptimizedModel(cuttingPatterns, constraints, minEfficiency = 0.5) {
+    const filteredVariables = {};
+    const filteredInts = {};
+    
+    // Filtrer les variables par efficacité
+    for (const [varName, varData] of Object.entries(cuttingPatterns.variables)) {
+        const pattern = cuttingPatterns.patterns.find(p => p.varName === varName);
+        if (pattern) {
+            // Calculer l'efficacité du pattern
+            let usedLength = 0;
+            for (const [cutKey, cutCount] of Object.entries(pattern.cuts)) {
+                if (cutKey.startsWith('cut') && cutCount > 0) {
+                    const cutSize = parseInt(cutKey.replace('cut', ''));
+                    usedLength += cutSize * cutCount;
+                }
+            }
+            const efficiency = usedLength / pattern.stockSize;
+            
+            // Inclure seulement si l'efficacité est suffisante
+            if (efficiency >= minEfficiency) {
+                filteredVariables[varName] = varData;
+                filteredInts[varName] = cuttingPatterns.ints[varName];
+            }
+        }
+    }
+    
+    console.log(`      🔍 ${Object.keys(filteredVariables).length}/${Object.keys(cuttingPatterns.variables).length} variables conservées (efficacité ≥ ${(minEfficiency * 100).toFixed(0)}%)`);
+    
+    return {
+        optimize: "cost",
+        opType: "min",
+        variables: filteredVariables,
+        ints: filteredInts,
+        constraints: constraints
     };
 }
 
