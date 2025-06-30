@@ -22,20 +22,7 @@
   background-clip: padding-box;
 }
 
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
 
-.btn:hover::before {
-  left: 100%;
-}
 
 .btn:disabled {
   opacity: 0.6;
@@ -156,7 +143,7 @@
   color: var(--text-primary);
 }
 
-/* Bouton de navigation amélioré */
+/* MODIFIÉ: Bouton de navigation sans soulignement animé */
 .nav-btn {
   background-color: transparent;
   border: none;
@@ -170,17 +157,7 @@
   overflow: hidden;
 }
 
-.nav-btn::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--primary);
-  transition: all var(--transition);
-  transform: translateX(-50%);
-}
+
 
 .nav-btn:hover {
   background-color: var(--bg-hover);
@@ -188,18 +165,12 @@
   transform: translateY(-1px);
 }
 
-.nav-btn:hover::after {
-  width: 80%;
-}
+
 
 .nav-btn.active {
   background: var(--gradient-primary);
   color: white;
   box-shadow: var(--shadow);
-}
-
-.nav-btn.active::after {
-  width: 0;
 }
 
 /* Panneaux avec design moderne */
@@ -213,11 +184,7 @@
   backdrop-filter: blur(10px);
 }
 
-.panel:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
-}
+
 
 .panel-header {
   padding: var(--space-lg);
@@ -280,7 +247,7 @@
   border-bottom: none;
 }
 
-/* Formulaires améliorés */
+/* MODIFIÉ: Formulaires avec focus persistant même avec hover */
 .form-group {
   margin-bottom: var(--space-lg);
   padding: 0 2px;
@@ -311,18 +278,19 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* MODIFIÉ: Focus visible maintenu même avec hover */
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
   transform: translateY(-1px);
 }
 
-.form-group input:hover,
-.form-group select:hover,
-.form-group textarea:hover {
+.form-group input:hover:not(:focus),
+.form-group select:hover:not(:focus),
+.form-group textarea:hover:not(:focus) {
   border-color: var(--border-hover);
 }
 

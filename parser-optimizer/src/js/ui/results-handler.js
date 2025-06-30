@@ -301,8 +301,8 @@ export const ResultsHandler = {
           <div style="margin-bottom: 2rem;">
             <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Paramètres BODY:</h4>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <span style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--text-primary); border: 1px solid var(--border-color);">B021: ${b021}</span>
-              <span style="background: var(--bg-tertiary); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.875rem; color: var(--text-primary); border: 1px solid var(--border-color);">B035: ${b035}</span>
+              <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">B021: ${b021}</span>
+              <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">B035: ${b035}</span>
             </div>
           </div>
           
@@ -336,12 +336,12 @@ export const ResultsHandler = {
                   
                   <!-- Codes F4C -->
                   <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S051: ${s051}</span>
-                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S052: ${s052}</span>
-                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S053: ${s053}</span>
-                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S054: ${s054}</span>
-                    <span style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S055: ${s055}</span>
-                    <span style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-color);">S058: ${s058}</span>
+                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S051: ${s051}</span>
+                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S052: ${s052}</span>
+                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S053: ${s053}</span>
+                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S054: ${s054}</span>
+                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S055: ${s055}</span>
+                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S058: ${s058}</span>
                   </div>
                 </div>
               `;
