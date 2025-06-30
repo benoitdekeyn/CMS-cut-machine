@@ -305,15 +305,19 @@ function generateOptimizedPatterns(barSize, cuts, bladeSize, maxPatterns = 100) 
     // Trier les coupes par efficacité décroissante
     const sortedCuts = [...cuts].sort((a, b) => b - a);
     
+    // Paramètres adaptatifs selon le nombre de patterns générés
+    let minEfficiency = 0.3; // Efficacité minimum initiale (30%)
+    let maxDepth = 12; // Profondeur maximale initiale
+    
     // Génération avec élagage par efficacité et profondeur limitée
     function generateWithPruning(remaining, current, depth = 0) {
-        // Limites de performance
-        if (depth > 12 || patterns.length >= maxPatterns) return;
+        // Limites de performance adaptatifs
+        if (depth > maxDepth || patterns.length >= maxPatterns) return;
         
-        // Élagage par efficacité minimum (30%)
+        // Élagage par efficacité minimum (adaptatif)
         const currentEfficiency = current.length > 0 ? 
             current.reduce((sum, cut) => sum + cut, 0) / barSize : 0;
-        if (currentEfficiency > 0 && currentEfficiency < 0.3) return;
+        if (currentEfficiency > 0 && currentEfficiency < minEfficiency) return;
         
         // Éviter les doublons
         const patternKey = [...current].sort((a, b) => a - b).join(',');
@@ -330,8 +334,45 @@ function generateOptimizedPatterns(barSize, cuts, bladeSize, maxPatterns = 100) 
         }
     }
     
-    // Démarrer la génération
+    // Première passe de génération
     generateWithPruning(barSize, []);
+    
+    // SI on a moins de patterns que souhaité et qu'on est en-dessous de 200 variables
+    // alors on assouplit les contraintes pour générer plus de patterns
+    if (patterns.length < Math.min(maxPatterns, 50)) {
+        console.log(`        🔄 Première passe: ${patterns.length} patterns. Assouplissement des contraintes...`);
+        
+        // Réinitialiser pour une seconde passe plus permissive
+        patterns.length = 0;
+        seen.clear();
+        
+        // Assouplir les contraintes
+        minEfficiency = 0.15; // Réduire l'efficacité minimum à 15%
+        maxDepth = 18; // Augmenter la profondeur maximale
+        
+        // Nouvelle génération avec contraintes assouplies
+        generateWithPruning(barSize, []);
+        
+        console.log(`        📈 Seconde passe: ${patterns.length} patterns générés`);
+    }
+    
+    // SI on a encore trop peu de patterns, dernière passe très permissive
+    if (patterns.length < Math.min(maxPatterns, 20)) {
+        console.log(`        🔄 Encore insuffisant: ${patterns.length} patterns. Dernière passe permissive...`);
+        
+        // Réinitialiser pour une troisième passe très permissive
+        patterns.length = 0;
+        seen.clear();
+        
+        // Contraintes très permissives
+        minEfficiency = 0.05; // Efficacité minimum très faible (5%)
+        maxDepth = 25; // Profondeur très élevée
+        
+        // Génération finale très permissive
+        generateWithPruning(barSize, []);
+        
+        console.log(`        🚀 Troisième passe: ${patterns.length} patterns générés`);
+    }
     
     // Trier par efficacité et garder seulement les meilleurs
     const rankedPatterns = patterns
@@ -344,7 +385,7 @@ function generateOptimizedPatterns(barSize, cuts, bladeSize, maxPatterns = 100) 
         .slice(0, maxPatterns);
     
     const elapsedTime = Date.now() - startTime;
-    console.log(`        ⚡ ${rankedPatterns.length} patterns générés en ${elapsedTime}ms`);
+    console.log(`        ⚡ ${rankedPatterns.length} patterns finaux générés en ${elapsedTime}ms`);
     
     return rankedPatterns.map(p => p.cuts);
 }
