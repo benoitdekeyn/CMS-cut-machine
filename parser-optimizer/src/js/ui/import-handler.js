@@ -1,6 +1,6 @@
 /**
  * Gestionnaire de la section d'import
- * Gère le drag & drop et l'import de fichiers
+ * Gère le drag & drop et l'import de fichiers (SANS ID - VERSION FINALE)
  */
 import { UIUtils } from './utils.js';
 
@@ -73,7 +73,7 @@ export const ImportHandler = {
   },
   
   /**
-   * Traite les fichiers importés
+   * Traite les fichiers importés (CORRIGÉ - plus de référence ID)
    */
   processImportedFiles: async function(files) {
     if (files.length === 0) return;
@@ -87,11 +87,11 @@ export const ImportHandler = {
       
       if (importedBars && importedBars.length > 0) {
         // Ajouter les barres au DataManager
-        const addedIds = this.dataManager.addBars(importedBars);
+        const addedKeys = this.dataManager.addBars(importedBars); // ✅ addedKeys au lieu d'addedIds
         
-        if (addedIds.length > 0) {
+        if (addedKeys.length > 0) {
           // Rester sur la même section et montrer un message de succès
-          this.showNotification(`${addedIds.length} barres importées avec succès.`, 'success');
+          this.showNotification(`${addedKeys.length} barres importées avec succès.`, 'success');
           
           // CORRIGÉ : Rafraîchir l'affichage des données
           if (this.refreshDataDisplay) {
@@ -126,7 +126,7 @@ export const ImportHandler = {
   },
   
   /**
-   * MODIFIÉ: Traite les fichiers sans notifications de succès
+   * MODIFIÉ: Traite les fichiers sans notifications de succès (CORRIGÉ - plus de référence ID)
    */
   processFiles: async function(files) {
     if (!files || files.length === 0) return;
@@ -140,9 +140,9 @@ export const ImportHandler = {
       const results = await this.importManager.processFiles(files);
       
       if (results.success.length > 0) {
-        const addedBars = this.dataManager.addBars(results.bars);
+        const addedKeys = this.dataManager.addBars(results.bars); // ✅ addedKeys au lieu d'addedBars
         
-        if (addedBars.length > 0) {
+        if (addedKeys.length > 0) {
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
