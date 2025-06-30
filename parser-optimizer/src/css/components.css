@@ -597,51 +597,7 @@
   display: block;
 }
 
-.side-panel {
-  position: fixed;
-  top: 0;
-  height: 100vh;
-  width: 420px;
-  max-width: 90vw;
-  background-color: var(--bg-card);
-  box-shadow: var(--shadow-xl);
-  padding: 0;
-  z-index: 960;
-  display: flex;
-  flex-direction: column;
-  transition: transform var(--transition-slow);
-  border: 1px solid var(--border-color);
-}
-
-.piece-panel {
-  right: 0;
-  transform: translateX(100%);
-  border-left: 3px solid var(--primary);
-}
-
-.piece-panel.visible {
-  transform: translateX(0);
-}
-
-.stock-panel {
-  left: 0;
-  transform: translateX(-100%);
-  border-right: 3px solid var(--success);
-}
-
-.stock-panel.visible {
-  transform: translateX(0);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-xl);
-  border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-}
-
+/* Styles pour les titres et boutons de fermeture */
 .panel-title {
   margin: 0;
   font-size: 1.5rem;
@@ -665,21 +621,6 @@
   background: var(--bg-hover);
   color: var(--text-primary);
   transform: scale(1.1);
-}
-
-.panel-form {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-xl);
-}
-
-.panel-actions {
-  border-top: 1px solid var(--border-color);
-  padding: var(--space-xl);
-  background: var(--bg-secondary);
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-md);
 }
 
 /* Responsive amélioré */

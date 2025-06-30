@@ -397,7 +397,6 @@ export const EditHandler = {
     this.editingType = 'piece';
     
     const panel = document.getElementById('piece-panel');
-    const overlay = document.getElementById('panel-overlay');
     const form = panel.querySelector('.panel-form');
     const title = panel.querySelector('.panel-title');
     
@@ -432,12 +431,12 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="piece-length">Longueur (cm) ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
-          <input type="number" id="piece-length" min="1" step="1" value="${Math.round(item.length)}" ${lengthDisabled}>
+          <input type="number" id="piece-length" min="1" max="100000" value="${item.length}" ${lengthDisabled}>
           ${this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : ''}
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
-          <input type="number" id="piece-quantity" min="1" value="${item.quantity}">
+          <input type="number" id="piece-quantity" min="1" max="10000" value="${item.quantity}">
         </div>
         <div class="form-group">
           <label for="piece-angle-1">Angle 1 (°) ${this.lockOptions.lockPieceAngles ? '(verrouillé)' : ''} :</label>
@@ -489,7 +488,7 @@ export const EditHandler = {
       form.innerHTML = `
         <div class="form-group">
           <label for="piece-nom">Nom :</label>
-          <input type="text" id="piece-nom" placeholder="Nom de la barre">
+          <input type="text" id="piece-nom" placeholder="Nom de la barre (optionnel)">
         </div>
         <div class="form-group">
           <label for="piece-profile">Profil :</label>
@@ -498,24 +497,24 @@ export const EditHandler = {
               <option value="custom">Saisie personnalisée</option>
               ${this.getProfileOptions()}
             </select>
-            <input type="text" id="piece-profile" placeholder="Saisir le profil">
+            <input type="text" id="piece-profile" placeholder="ex: HEA100">
           </div>
         </div>
         <div class="form-group">
           <label for="piece-length">Longueur (cm) :</label>
-          <input type="number" id="piece-length" min="1" step="1">
+          <input type="number" id="piece-length" min="1" max="100000" placeholder="ex: 300">
         </div>
         <div class="form-group">
           <label for="piece-quantity">Quantité :</label>
-          <input type="number" id="piece-quantity" min="1" value="1">
+          <input type="number" id="piece-quantity" min="1" max="10000" value="1">
         </div>
         <div class="form-group">
           <label for="piece-angle-1">Angle 1 (°) :</label>
-          <input type="number" id="piece-angle-1" min="0" max="360" step="0.01" value="90.00">
+          <input type="number" id="piece-angle-1" min="-360" max="360" step="0.01" value="90.00">
         </div>
         <div class="form-group">
           <label for="piece-angle-2">Angle 2 (°) :</label>
-          <input type="number" id="piece-angle-2" min="0" max="360" step="0.01" value="90.00">
+          <input type="number" id="piece-angle-2" min="-360" max="360" step="0.01" value="90.00">
         </div>
         <div class="form-group">
           <label for="piece-orientation">Orientation :</label>
@@ -525,28 +524,13 @@ export const EditHandler = {
           </select>
         </div>
       `;
-      
-      // Initialiser les contrôles
-      const profileSelect = document.getElementById('piece-profile-select');
-      const profileInput = document.getElementById('piece-profile');
-      
-      profileSelect.addEventListener('change', () => {
-        if (profileSelect.value === 'custom') {
-          profileInput.removeAttribute('readonly');
-          profileInput.focus();
-        } else {
-          profileInput.value = profileSelect.value;
-          profileInput.setAttribute('readonly', 'readonly');
-        }
-      });
     }
     
-    // CORRECTION: Configurer les gestionnaires APRÈS génération du formulaire
+    // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // Afficher le panneau et l'overlay
-    panel.classList.add('visible');
-    overlay.classList.add('visible');
+    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture
+    this.openPanel('piece-panel');
   },
   
   /**
@@ -563,7 +547,6 @@ export const EditHandler = {
     this.editingType = 'stock';
     
     const panel = document.getElementById('stock-panel');
-    const overlay = document.getElementById('panel-overlay');
     const form = panel.querySelector('.panel-form');
     const title = panel.querySelector('.panel-title');
     
@@ -595,7 +578,7 @@ export const EditHandler = {
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
           <input type="number" id="stock-quantity" min="1" max="1000000" value="${item.quantity}">
-          <small class="form-help">Quantité disponible de cette barre mère</small>
+          <small class="form-help">Quantité disponible (1000000 = illimitée)</small>
         </div>
       `;
     } else {
@@ -623,28 +606,17 @@ export const EditHandler = {
       `;
     }
     
-    // Configurer les gestionnaires spéciaux pour le champ de longueur (SANS Entrée)
+    // Configurer les gestionnaires spéciaux pour le champ de longueur
     const lengthInput = document.getElementById('stock-length');
     if (lengthInput) {
       this.setupLengthInputHandlers(lengthInput);
     }
     
-    // CORRECTION: Configurer les gestionnaires APRÈS génération du formulaire
+    // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // Afficher le panneau et l'overlay
-    panel.classList.add('visible');
-    overlay.classList.add('visible');
-    
-    // NOUVEAU: Mettre le focus sur le champ de longueur en mode création
-    if (mode === 'create') {
-      setTimeout(() => {
-        const lengthInput = document.getElementById('stock-length');
-        if (lengthInput) {
-          lengthInput.focus();
-        }
-      }, 100);
-    }
+    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture pour les barres mères
+    this.openPanel('stock-panel');
   },
 
   /**
@@ -655,11 +627,15 @@ export const EditHandler = {
     const stockPanel = document.getElementById('stock-panel');
     const overlay = document.getElementById('panel-overlay');
     
-    piecePanel.classList.remove('visible');
-    stockPanel.classList.remove('visible');
-    overlay.classList.remove('visible');
+    // Masquer les panneaux
+    if (piecePanel) piecePanel.classList.remove('visible');
+    if (stockPanel) stockPanel.classList.remove('visible');
+    if (overlay) overlay.classList.remove('visible');
     
-    // CORRECTION: Nettoyer les gestionnaires d'événements globaux
+    // AJOUT: Débloquer le défilement de la page
+    document.body.classList.remove('panel-open');
+    
+    // Nettoyer les gestionnaires d'événements globaux
     this.removeGlobalKeyHandlers();
     
     this.editingKey = null;
@@ -862,7 +838,7 @@ export const EditHandler = {
       this.showNotification('Erreur lors de l\'enregistrement', 'error');
     }
   },
-
+  
   /**
    * MODIFIÉ: Valide les données d'une barre fille
    */
@@ -978,7 +954,6 @@ export const EditHandler = {
     this.editingType = 'stock';
     
     const panel = document.getElementById('stock-panel');
-    const overlay = document.getElementById('panel-overlay');
     const form = panel.querySelector('.panel-form');
     const title = panel.querySelector('.panel-title');
     
@@ -1010,7 +985,7 @@ export const EditHandler = {
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
           <input type="number" id="stock-quantity" min="1" max="1000000" value="${item.quantity}">
-          <small class="form-help">Quantité disponible de cette barre mère</small>
+          <small class="form-help">Quantité disponible (1000000 = illimitée)</small>
         </div>
       `;
     } else {
@@ -1038,28 +1013,17 @@ export const EditHandler = {
       `;
     }
     
-    // Configurer les gestionnaires spéciaux pour le champ de longueur (SANS Entrée)
+    // Configurer les gestionnaires spéciaux pour le champ de longueur
     const lengthInput = document.getElementById('stock-length');
     if (lengthInput) {
       this.setupLengthInputHandlers(lengthInput);
     }
     
-    // CORRECTION: Configurer les gestionnaires APRÈS génération du formulaire
+    // Configurer les gestionnaires après génération du formulaire
     this.setupFormKeyHandlers();
     
-    // Afficher le panneau et l'overlay
-    panel.classList.add('visible');
-    overlay.classList.add('visible');
-    
-    // NOUVEAU: Mettre le focus sur le champ de longueur en mode création
-    if (mode === 'create') {
-      setTimeout(() => {
-        const lengthInput = document.getElementById('stock-length');
-        if (lengthInput) {
-          lengthInput.focus();
-        }
-      }, 100);
-    }
+    // MODIFICATION: Utiliser la nouvelle méthode d'ouverture
+    this.openPanel('stock-panel');
   },
 
   /**
@@ -1070,11 +1034,15 @@ export const EditHandler = {
     const stockPanel = document.getElementById('stock-panel');
     const overlay = document.getElementById('panel-overlay');
     
-    piecePanel.classList.remove('visible');
-    stockPanel.classList.remove('visible');
-    overlay.classList.remove('visible');
+    // Masquer les panneaux
+    if (piecePanel) piecePanel.classList.remove('visible');
+    if (stockPanel) stockPanel.classList.remove('visible');
+    if (overlay) overlay.classList.remove('visible');
     
-    // CORRECTION: Nettoyer les gestionnaires d'événements globaux
+    // AJOUT: Débloquer le défilement de la page
+    document.body.classList.remove('panel-open');
+    
+    // Nettoyer les gestionnaires d'événements globaux
     this.removeGlobalKeyHandlers();
     
     this.editingKey = null;
@@ -1332,12 +1300,25 @@ export const EditHandler = {
     // Vérifier si le panneau existe déjà
     if (document.getElementById('piece-panel')) return;
     
-    // S'assurer que l'overlay existe
+    // S'assurer que l'overlay existe avec les bonnes propriétés
     if (!document.getElementById('panel-overlay')) {
       const overlay = document.createElement('div');
       overlay.id = 'panel-overlay';
       overlay.className = 'panel-overlay';
-      overlay.addEventListener('click', () => this.closePanel());
+      
+      // AJOUT: Gestionnaire pour fermer en cliquant sur l'overlay
+      overlay.addEventListener('click', (e) => {
+        // Seulement fermer si on clique directement sur l'overlay
+        if (e.target === overlay) {
+          this.closePanel();
+        }
+      });
+      
+      // AJOUT: Empêcher le défilement avec la molette
+      overlay.addEventListener('wheel', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+      
       document.body.appendChild(overlay);
     }
     
@@ -1380,7 +1361,17 @@ export const EditHandler = {
       const overlay = document.createElement('div');
       overlay.id = 'panel-overlay';
       overlay.className = 'panel-overlay';
-      overlay.addEventListener('click', () => this.closePanel());
+      
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          this.closePanel();
+        }
+      });
+      
+      overlay.addEventListener('wheel', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+      
       document.body.appendChild(overlay);
     }
     
@@ -1409,5 +1400,43 @@ export const EditHandler = {
     panel.querySelector('.panel-close').addEventListener('click', () => this.closePanel());
     panel.querySelector('.cancel-btn').addEventListener('click', () => this.closePanel());
     panel.querySelector('.save-btn').addEventListener('click', () => this.saveItem());
+  },
+  
+  /**
+   * AJOUT: Gère l'ouverture d'un panneau avec blocage du défilement
+   */
+  openPanel: function(panelId) {
+    console.log('🔧 Ouverture du panneau:', panelId);
+    
+    const panel = document.getElementById(panelId);
+    const overlay = document.getElementById('panel-overlay');
+    
+    if (!panel) {
+      console.error('❌ Panneau non trouvé:', panelId);
+      return;
+    }
+    
+    if (!overlay) {
+      console.error('❌ Overlay non trouvé');
+      return;
+    }
+    
+    // Bloquer le défilement de la page
+    document.body.classList.add('panel-open');
+    console.log('🔒 Défilement de la page bloqué');
+    
+    // Afficher le panneau et l'overlay
+    panel.classList.add('visible');
+    overlay.classList.add('visible');
+    console.log('👁️ Panneau et overlay affichés');
+    
+    // Focus sur le premier champ du formulaire après un délai
+    setTimeout(() => {
+      const firstInput = panel.querySelector('input, select, textarea');
+      if (firstInput && !firstInput.disabled) {
+        firstInput.focus();
+        console.log('🎯 Focus sur le premier champ');
+      }
+    }, 300);
   }
 };

@@ -259,3 +259,9 @@ p {
   background-color: rgba(var(--primary-rgb), 0.2);
   color: var(--text-primary);
 }
+
+/* AJOUT: Classe pour bloquer le défilement */
+body.panel-open {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
