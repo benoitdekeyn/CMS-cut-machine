@@ -1166,60 +1166,69 @@
   border-radius: var(--radius);
   cursor: pointer;
   transition: all var(--transition);
-  background-color: transparent;
   position: relative;
   overflow: hidden;
-}
-
-.action-btn:hover {
-  transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
-.action-btn:active {
-  transform: translateY(0);
+.action-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--shadow-md);
 }
 
-/* Bouton d'édition */
+.action-btn:active {
+  transform: translateY(0) scale(1);
+}
+
+/* MODIFIÉ: Bouton d'édition - bleu avec icône blanche */
 .action-btn.edit-btn {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .action-btn.edit-btn:hover {
-  background-color: var(--primary);
-  border-color: var(--primary);
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+}
+
+.action-btn.edit-btn .action-icon {
+  filter: brightness(0) invert(1); /* Icône blanche */
+  opacity: 1;
 }
 
 .action-btn.edit-btn:hover .action-icon {
-  filter: brightness(0) invert(1);
+  opacity: 1;
+  filter: brightness(0) invert(1); /* Reste blanche au hover */
 }
 
-/* Bouton de suppression */
+/* MODIFIÉ: Bouton de suppression - rouge avec icône blanche */
 .action-btn.delete-btn {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: var(--danger);
+  border: 1px solid var(--danger);
 }
 
 .action-btn.delete-btn:hover {
-  background-color: var(--danger);
-  border-color: var(--danger);
+  background-color: var(--danger-hover);
+  border-color: var(--danger-hover);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.delete-btn .action-icon {
+  filter: brightness(0) invert(1); /* Icône blanche */
+  opacity: 1;
 }
 
 .action-btn.delete-btn:hover .action-icon {
-  filter: brightness(0) invert(1);
+  opacity: 1;
+  filter: brightness(0) invert(1); /* Reste blanche au hover */
 }
 
 /* Icône à l'intérieur des boutons */
 .action-icon {
   width: 16px;
   height: 16px;
-  transition: filter var(--transition);
-  opacity: 0.7;
-}
-
-.action-btn:hover .action-icon {
-  opacity: 1;
+  transition: opacity var(--transition);
 }
 
 /* Conteneur d'actions */
@@ -1230,7 +1239,7 @@
   align-items: center;
 }
 
-/* MODIFIÉ: Amélioration du style des lignes de tableau pour mieux intégrer les boutons */
+/* MODIFIÉ: Animation plus subtile au hover de la ligne */
 .data-table tbody tr {
   transition: all var(--transition);
 }
@@ -1240,11 +1249,11 @@
 }
 
 .data-table tbody tr:hover .action-btn {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .data-table tbody tr:hover .action-btn:hover {
-  transform: translateY(-1px) scale(1.05);
+  transform: translateY(-2px) scale(1.1);
 }
 
 /* RESPONSIVE: Ajustements pour petits écrans */
