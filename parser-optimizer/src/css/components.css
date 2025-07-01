@@ -228,7 +228,7 @@
 .data-table th {
   font-weight: 600;
   color: var(--text-secondary);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  background: var(--bg-tertiary);
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -535,7 +535,7 @@
 .loading-step.active {
   color: var(--primary);
   font-weight: 600;
-  background-color: var(--primary-light);
+  /*background-color: var(--primary-light);*/
   padding-left: var(--space-sm);
   padding-right: var(--space-sm);
 }
@@ -872,6 +872,7 @@
 }
 
 .btn-edit-data:hover {
+  color: white;
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
   background: linear-gradient(135deg, var(--warning-hover) 0%, var(--danger) 100%);
@@ -1094,6 +1095,11 @@
 
 .profile-input.readonly-mode:hover::after {
   opacity: 0.6;
+}
+
+.mb-3 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 /* Responsive pour le conteneur de profil */

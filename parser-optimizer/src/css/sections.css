@@ -130,11 +130,11 @@
 .optimization-actions::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-success);
 }
 
 /* ===============================
@@ -154,10 +154,10 @@
 .results-summary::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 4px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   background: var(--gradient-success);
 }
 
@@ -271,16 +271,6 @@
   justify-content: center;
 }
 
-.stat-card-compact::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--primary);
-  opacity: 0.7;
-}
 
 
 
@@ -307,9 +297,6 @@
   border-color: var(--success);
 }
 
-.stat-card-compact.efficiency-card::before {
-  background: rgba(255, 255, 255, 0.3);
-}
 
 .stat-card-compact.efficiency-card .stat-label-compact,
 .stat-card-compact.efficiency-card .stat-value-compact {
@@ -448,10 +435,10 @@
 .model-header::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   background: var(--gradient-primary);
 }
 
@@ -596,7 +583,7 @@
 .cut-bar {
   height: 40px;
   background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-color) 100%);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: flex;
   overflow: hidden;
   margin-top: 1rem;
@@ -606,7 +593,7 @@
 
 .cut-piece {
   height: 100%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  background: var(--primary-hover);
   color: white;
   font-size: 0.8rem;
   font-weight: 600;
@@ -628,13 +615,10 @@
   border-right: none;
 }
 
-.cut-piece.last-piece {
-  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
-}
 
 .waste-piece {
   height: 100%;
-  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+  background: var(--danger);
   color: white;
   font-size: 0.8rem;
   font-weight: 600;
@@ -734,6 +718,16 @@
   backdrop-filter: blur(10px);
 }
 
+.panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-primary);
+}
+
 /* ===============================
    PANNEAUX LATÉRAUX - VERSION FIXÉE
    =============================== */
@@ -803,7 +797,7 @@
 .stock-panel {
   left: 0;
   transform: translateX(-100%);
-  border-right: 3px solid var(--success);
+  border-right: 3px solid var(--primary);
 }
 
 .stock-panel.visible {
