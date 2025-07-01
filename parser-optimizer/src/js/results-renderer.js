@@ -89,7 +89,7 @@ export const ResultsRenderer = {
   renderGlobalSummary: function(results, stats) {
     let html = `
       <div class="results-summary">
-        <h3>Résumé global</h3>
+        <h2>Résultats de l'optimisation</h2>
     `;
     
     // Add discrete algorithm information if available
@@ -97,23 +97,24 @@ export const ResultsRenderer = {
       html += this.renderAlgorithmInfo(results.comparison, results.bestAlgorithm);
     }
     
+    // MODIFIÉ: Grille compacte avec ordre spécifique
     html += `
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Barres mères utilisées</div>
-            <div class="stat-value">${stats.totalUsedBars}</div>
+        <div class="stats-grid-compact">
+          <div class="stat-card-compact efficiency-card">
+            <div class="stat-label-compact">Efficacité</div>
+            <div class="stat-value-compact">${stats.totalEfficiency}%</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Longueur totale barres mères</div>
-            <div class="stat-value">${this.formatLengthInMeters(stats.totalBarLength)}</div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Chutes</div>
+            <div class="stat-value-compact">${Math.round(stats.totalWaste)} cm</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Chutes (total)</div>
-            <div class="stat-value">${Math.round(stats.totalWaste)} cm</div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Barres mères</div>
+            <div class="stat-value-compact">${stats.totalUsedBars}</div>
           </div>
-          <div class="stat-card efficiency-card">
-            <div class="stat-label">Efficacité</div>
-            <div class="stat-value">${stats.totalEfficiency}%</div>
+          <div class="stat-card-compact">
+            <div class="stat-label-compact">Longueur totale</div>
+            <div class="stat-value-compact">${this.formatLengthInMeters(stats.totalBarLength)}</div>
           </div>
         </div>
       </div>
