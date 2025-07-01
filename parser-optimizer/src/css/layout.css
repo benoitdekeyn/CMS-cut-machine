@@ -137,7 +137,7 @@
 /* CORRECTION: Grille côte à côte seulement au-dessus de 1300px */
 @media (min-width: 1301px) {
   .panels-container {
-    grid-template-columns: 5fr 3fr;
+    grid-template-columns: 2fr 1fr;
     gap: var(--space-2xl);
   }
 }
