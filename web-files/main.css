@@ -847,7 +847,7 @@ body.panel-open {
 .data-table th {
   font-weight: 600;
   color: var(--text-secondary);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  background: var(--bg-tertiary);
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -859,7 +859,7 @@ body.panel-open {
 
 .data-table tbody tr:hover {
   background-color: var(--bg-hover);
-  transform: scale(1.01);
+  /*transform: scale(1.01);*/
 }
 
 .data-table tbody tr:last-child td {
@@ -1154,7 +1154,7 @@ body.panel-open {
 .loading-step.active {
   color: var(--primary);
   font-weight: 600;
-  background-color: var(--primary-light);
+  /*background-color: var(--primary-light);*/
   padding-left: var(--space-sm);
   padding-right: var(--space-sm);
 }
@@ -1491,6 +1491,7 @@ body.panel-open {
 }
 
 .btn-edit-data:hover {
+  color: white;
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
   background: linear-gradient(135deg, var(--warning-hover) 0%, var(--danger) 100%);
@@ -1715,6 +1716,11 @@ body.panel-open {
   opacity: 0.6;
 }
 
+.mb-3 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
 /* Responsive pour le conteneur de profil */
 @media (max-width: 768px) {
   .profile-input-container {
@@ -1903,11 +1909,11 @@ body.panel-open {
 .optimization-actions::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-success);
 }
 
 /* ===============================
@@ -1927,10 +1933,10 @@ body.panel-open {
 .results-summary::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 4px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   background: var(--gradient-success);
 }
 
@@ -2020,6 +2026,167 @@ body.panel-open {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* NOUVEAU: Grille de statistiques compacte pour affichage en ligne */
+.stats-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.stat-card-compact {
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+
+
+.stat-label-compact {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.stat-value-compact {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+/* Efficacité avec style spécial */
+.stat-card-compact.efficiency-card {
+  background: var(--gradient-success);
+  border-color: var(--success);
+}
+
+
+.stat-card-compact.efficiency-card .stat-label-compact,
+.stat-card-compact.efficiency-card .stat-value-compact {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* RESPONSIVE: Passage en grille 2x2 pour écrans étroits */
+@media (max-width: 768px) {
+  .stats-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .stat-card-compact {
+    padding: 0.75rem;
+    min-height: 70px;
+  }
+  
+  .stat-label-compact {
+    font-size: 0.7rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .stat-value-compact {
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid-compact {
+    gap: 0.5rem;
+  }
+  
+  .stat-card-compact {
+    padding: 0.625rem;
+    min-height: 60px;
+  }
+  
+  .stat-label-compact {
+    font-size: 0.65rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .stat-value-compact {
+    font-size: 1rem;
+  }
+}
+
+/* ANCIEN: Garder l'ancienne grille pour les détails par modèle */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+  opacity: 0.7;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.efficiency-card {
+  background: var(--gradient-success);
+  border-color: var(--success);
+}
+
+.efficiency-card::before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.efficiency-card .stat-label,
+.efficiency-card .stat-value {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 /* Résultats des modèles avec design premium */
 .model-results {
   display: grid;
@@ -2047,10 +2214,10 @@ body.panel-open {
 .model-header::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   background: var(--gradient-primary);
 }
 
@@ -2067,23 +2234,93 @@ body.panel-open {
 
 .model-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
 .model-stat {
   text-align: center;
-  padding: 1rem;
+  padding: 0.75rem 0.5rem;
   background: var(--bg-tertiary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
-.efficiency-tag {
+
+.model-stat .stat-label {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  margin-bottom: 0.375rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.model-stat .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+/* Efficacité avec style spécial pour les modèles */
+.model-stat .efficiency-tag {
   color: var(--success);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
+}
+
+/* RESPONSIVE: Passage en grille 2x2 pour écrans moyens */
+@media (max-width: 900px) {
+  .model-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+  
+  .model-stat {
+    padding: 0.625rem 0.375rem;
+    min-height: 65px;
+  }
+  
+  .model-stat .stat-label {
+    font-size: 0.65rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .model-stat .stat-value,
+  .model-stat .efficiency-tag {
+    font-size: 0.9rem;
+  }
+}
+
+/* RESPONSIVE: Grille encore plus compacte pour très petits écrans */
+@media (max-width: 480px) {
+  .model-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .model-stat {
+    padding: 0.5rem 0.25rem;
+    min-height: 60px;
+  }
+  
+  .model-stat .stat-label {
+    font-size: 0.6rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .model-stat .stat-value,
+  .model-stat .efficiency-tag {
+    font-size: 0.85rem;
+  }
 }
 
 /* MODIFIÉ: Schémas de coupe avec border radius réduit */
@@ -2125,7 +2362,7 @@ body.panel-open {
 .cut-bar {
   height: 40px;
   background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-color) 100%);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: flex;
   overflow: hidden;
   margin-top: 1rem;
@@ -2135,7 +2372,7 @@ body.panel-open {
 
 .cut-piece {
   height: 100%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  background: var(--primary-hover);
   color: white;
   font-size: 0.8rem;
   font-weight: 600;
@@ -2151,23 +2388,16 @@ body.panel-open {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.cut-piece:hover {
-  transform: scale(1.02);
-  z-index: 1;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+
 
 .cut-piece:last-of-type {
   border-right: none;
 }
 
-.cut-piece.last-piece {
-  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
-}
 
 .waste-piece {
   height: 100%;
-  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+  background: var(--danger);
   color: white;
   font-size: 0.8rem;
   font-weight: 600;
@@ -2267,6 +2497,16 @@ body.panel-open {
   backdrop-filter: blur(10px);
 }
 
+.panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-primary);
+}
+
 /* ===============================
    PANNEAUX LATÉRAUX - VERSION FIXÉE
    =============================== */
@@ -2336,7 +2576,7 @@ body.panel-open {
 .stock-panel {
   left: 0;
   transform: translateX(-100%);
-  border-right: 3px solid var(--success);
+  border-right: 3px solid var(--primary);
 }
 
 .stock-panel.visible {
