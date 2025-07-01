@@ -204,20 +204,20 @@ export const ResultsRenderer = {
         <div class="model-content">
           <div class="model-stats">
             <div class="model-stat">
-              <div class="stat-label">Barres mères</div>
-              <div class="stat-value">${stats.barCount}</div>
-            </div>
-            <div class="model-stat">
-              <div class="stat-label">Longueur totale</div>
-              <div class="stat-value">${this.formatLengthInMeters(stats.totalLength)}</div>
+              <div class="stat-label">Efficacité</div>
+              <div class="stat-value efficiency-tag">${stats.efficiency}%</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Chutes</div>
               <div class="stat-value">${Math.round(stats.wasteLength)} cm</div>
             </div>
             <div class="model-stat">
-              <div class="stat-label">Efficacité</div>
-              <div class="efficiency-tag">${stats.efficiency}%</div>
+              <div class="stat-label">Barres mères</div>
+              <div class="stat-value">${stats.barCount}</div>
+            </div>
+            <div class="model-stat">
+              <div class="stat-label">Longueur totale</div>
+              <div class="stat-value">${this.formatLengthInMeters(stats.totalLength)}</div>
             </div>
           </div>
           <div class="cut-schemes">

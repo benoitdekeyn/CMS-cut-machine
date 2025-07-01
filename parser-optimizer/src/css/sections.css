@@ -282,10 +282,7 @@
   opacity: 0.7;
 }
 
-.stat-card-compact:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+
 
 .stat-label-compact {
   color: var(--text-secondary);
@@ -471,23 +468,93 @@
 
 .model-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
 .model-stat {
   text-align: center;
-  padding: 1rem;
+  padding: 0.75rem 0.5rem;
   background: var(--bg-tertiary);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
-.efficiency-tag {
+
+.model-stat .stat-label {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  margin-bottom: 0.375rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.model-stat .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+/* Efficacité avec style spécial pour les modèles */
+.model-stat .efficiency-tag {
   color: var(--success);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
+}
+
+/* RESPONSIVE: Passage en grille 2x2 pour écrans moyens */
+@media (max-width: 900px) {
+  .model-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+  }
+  
+  .model-stat {
+    padding: 0.625rem 0.375rem;
+    min-height: 65px;
+  }
+  
+  .model-stat .stat-label {
+    font-size: 0.65rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .model-stat .stat-value,
+  .model-stat .efficiency-tag {
+    font-size: 0.9rem;
+  }
+}
+
+/* RESPONSIVE: Grille encore plus compacte pour très petits écrans */
+@media (max-width: 480px) {
+  .model-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .model-stat {
+    padding: 0.5rem 0.25rem;
+    min-height: 60px;
+  }
+  
+  .model-stat .stat-label {
+    font-size: 0.6rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .model-stat .stat-value,
+  .model-stat .efficiency-tag {
+    font-size: 0.85rem;
+  }
 }
 
 /* MODIFIÉ: Schémas de coupe avec border radius réduit */
@@ -555,11 +622,7 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.cut-piece:hover {
-  transform: scale(1.02);
-  z-index: 1;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+
 
 .cut-piece:last-of-type {
   border-right: none;
