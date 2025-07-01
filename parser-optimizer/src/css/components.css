@@ -1154,3 +1154,124 @@
     margin: var(--space-md);
   }
 }
+
+/* NOUVEAU: Boutons d'actions avec icônes SVG */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  background-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+/* Bouton d'édition */
+.action-btn.edit-btn {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.action-btn.edit-btn:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.action-btn.edit-btn:hover .action-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Bouton de suppression */
+.action-btn.delete-btn {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.action-btn.delete-btn:hover {
+  background-color: var(--danger);
+  border-color: var(--danger);
+}
+
+.action-btn.delete-btn:hover .action-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Icône à l'intérieur des boutons */
+.action-icon {
+  width: 16px;
+  height: 16px;
+  transition: filter var(--transition);
+  opacity: 0.7;
+}
+
+.action-btn:hover .action-icon {
+  opacity: 1;
+}
+
+/* Conteneur d'actions */
+.table-actions {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* MODIFIÉ: Amélioration du style des lignes de tableau pour mieux intégrer les boutons */
+.data-table tbody tr {
+  transition: all var(--transition);
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
+.data-table tbody tr:hover .action-btn {
+  transform: scale(1.05);
+}
+
+.data-table tbody tr:hover .action-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+}
+
+/* RESPONSIVE: Ajustements pour petits écrans */
+@media (max-width: 768px) {
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .action-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .table-actions {
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-btn {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .action-icon {
+    width: 12px;
+    height: 12px;
+  }
+}

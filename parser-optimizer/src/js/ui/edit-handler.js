@@ -192,7 +192,7 @@ export const EditHandler = {
   },
 
   /**
-   * Rend le tableau des barres filles avec tri automatique (adapté sans ID)
+   * Rend le tableau des barres filles avec boutons d'actions redesignés
    */
   renderPiecesTable: function() {
     const tableContainer = document.querySelector('#pieces-table');
@@ -225,7 +225,7 @@ export const EditHandler = {
         <tbody>
     `;
     
-    // Générer les lignes du tableau
+    // Générer les lignes du tableau avec nouveaux boutons
     for (const piece of sortedPieces) {
       const pieceKey = this.dataManager.generatePieceKey(piece);
       html += `
@@ -238,10 +238,18 @@ export const EditHandler = {
           <td>${parseFloat(piece.angles?.[2] || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
           <td>
-            <button class="btn btn-sm btn-primary edit-piece-btn" 
-                    data-key="${pieceKey}">✎</button>
-            <button class="btn btn-sm btn-danger delete-piece-btn" 
-                    data-key="${pieceKey}">×</button>
+            <div class="table-actions">
+              <button class="action-btn edit-btn edit-piece-btn" 
+                      data-key="${pieceKey}"
+                      title="Modifier la barre">
+                <img src="assets/edit.svg" alt="Modifier" class="action-icon">
+              </button>
+              <button class="action-btn delete-btn delete-piece-btn" 
+                      data-key="${pieceKey}"
+                      title="Supprimer la barre">
+                <img src="assets/delete.svg" alt="Supprimer" class="action-icon">
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -285,18 +293,13 @@ export const EditHandler = {
     document.querySelectorAll('.delete-piece-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const key = btn.getAttribute('data-key');
-        if (this.dataManager.deletePiece(key)) {
-          this.renderPiecesTable(); // Re-render avec tri automatique
-          this.updateAllProfileSelects();
-        } else {
-          this.showNotification('Erreur lors de la suppression', 'error');
-        }
+        this.deletePieceByKey(key);
       });
     });
   },
   
   /**
-   * Rend le tableau des barres mères avec tri automatique et longueurs en mètres (adapté sans ID)
+   * Rend le tableau des barres mères avec boutons d'actions redesignés
    */
   renderStockBarsTable: function() {
     const tableContainer = document.querySelector('#stock-bars-table');
@@ -308,7 +311,7 @@ export const EditHandler = {
       allMotherBars.push(...data.motherBars[profile]);
     }
     
-    // Trier les barres selon l'ordre défini (profil puis longueur pour les barres mères)
+    // Trier les barres selon l'ordre défini
     const sortedBars = this.sortBars(allMotherBars);
     
     // Générer l'en-tête du tableau
@@ -325,7 +328,7 @@ export const EditHandler = {
         <tbody>
     `;
     
-    // Générer les lignes du tableau avec longueurs en mètres
+    // Générer les lignes du tableau avec nouveaux boutons
     for (const bar of sortedBars) {
       const barKey = this.dataManager.generateMotherBarKey(bar);
       const lengthInMeters = this.formatLengthForDisplay(bar.length);
@@ -335,10 +338,18 @@ export const EditHandler = {
           <td>${lengthInMeters} m</td>
           <td>${bar.quantity}</td>
           <td>
-            <button class="btn btn-sm btn-primary edit-stock-btn" 
-                    data-key="${barKey}">✎</button>
-            <button class="btn btn-sm btn-danger delete-stock-btn" 
-                    data-key="${barKey}">×</button>
+            <div class="table-actions">
+              <button class="action-btn edit-btn edit-stock-btn" 
+                      data-key="${barKey}"
+                      title="Modifier la barre mère">
+                <img src="assets/edit.svg" alt="Modifier" class="action-icon">
+              </button>
+              <button class="action-btn delete-btn delete-stock-btn" 
+                      data-key="${barKey}"
+                      title="Supprimer la barre mère">
+                <img src="assets/delete.svg" alt="Supprimer" class="action-icon">
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -372,15 +383,12 @@ export const EditHandler = {
     document.querySelectorAll('.delete-stock-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const key = btn.getAttribute('data-key');
-        if (this.dataManager.deleteMotherBar(key)) {
-          this.renderStockBarsTable(); // Re-render avec tri automatique
-          this.updateAllProfileSelects();
-        } else {
-          this.showNotification('Erreur lors de la suppression', 'error');
-        }
+        this.deleteMotherBarByKey(key);
       });
     });
   },
+  
+  // ...existing code...
   
   /**
    * Ouvre le panneau des barres filles (édition ou création) - adapté sans ID
