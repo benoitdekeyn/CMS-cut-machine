@@ -238,10 +238,18 @@ export const EditHandler = {
           <td>${parseFloat(piece.angles?.[2] || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
           <td>
-            <button class="btn btn-sm btn-primary edit-piece-btn" 
-                    data-key="${pieceKey}">✎</button>
-            <button class="btn btn-sm btn-danger delete-piece-btn" 
-                    data-key="${pieceKey}">×</button>
+            <div class="action-buttons">
+              <button class="btn-action btn-action-edit edit-piece-btn" 
+                      data-key="${pieceKey}" 
+                      title="Éditer">
+                <img src="assets/edit.svg" alt="Éditer" class="btn-icon">
+              </button>
+              <button class="btn-action btn-action-delete delete-piece-btn" 
+                      data-key="${pieceKey}" 
+                      title="Supprimer">
+                <img src="assets/delete.svg" alt="Supprimer" class="btn-icon">
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -335,10 +343,18 @@ export const EditHandler = {
           <td>${lengthInMeters} m</td>
           <td>${bar.quantity}</td>
           <td>
-            <button class="btn btn-sm btn-primary edit-stock-btn" 
-                    data-key="${barKey}">✎</button>
-            <button class="btn btn-sm btn-danger delete-stock-btn" 
-                    data-key="${barKey}">×</button>
+            <div class="action-buttons">
+              <button class="btn-action btn-action-edit edit-stock-btn" 
+                      data-key="${barKey}" 
+                      title="Éditer">
+                <img src="assets/edit.svg" alt="Éditer" class="btn-icon">
+              </button>
+              <button class="btn-action btn-action-delete delete-stock-btn" 
+                      data-key="${barKey}" 
+                      title="Supprimer">
+                <img src="assets/delete.svg" alt="Supprimer" class="btn-icon">
+              </button>
+            </div>
           </td>
         </tr>
       `;
