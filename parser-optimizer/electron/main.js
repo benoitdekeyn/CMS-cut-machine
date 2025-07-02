@@ -23,7 +23,8 @@ function createWindow() {
     },
     show: false, // Ne pas afficher immédiatement
     titleBarStyle: 'default',
-    autoHideMenuBar: false
+    autoHideMenuBar: false,
+    title: 'CMS PGM Generator' // MODIFIÉ: Nouveau titre
   });
 
   // Charger l'application
@@ -122,12 +123,12 @@ function createMenu() {
       label: 'Aide',
       submenu: [
         {
-          label: 'À propos de CutOptimizer',
+          label: 'À propos de CMS PGM Generator', // MODIFIÉ
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
               title: 'À propos',
-              message: 'CutOptimizer',
+              message: 'CMS PGM Generator', // MODIFIÉ
               detail: 'Optimisation intelligente des découpes de profilés\nVersion 1.0.0',
               buttons: ['OK']
             });

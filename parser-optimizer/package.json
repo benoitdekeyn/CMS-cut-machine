@@ -6,16 +6,18 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "clean": "rm -rf dist",
-    "build": "npm run clean && webpack --mode production && mkdir -p ../web-files && cp -a dist/. ../web-files/",
+    "build-web": "npm run clean && webpack --mode production && mkdir -p ../web-files && cp -a dist/. ../web-files/",
     "electron": "electron .",
-    "electron-dev": "npm run build && electron .",
-    "build-win": "npm run build && electron-builder --win",
-    "build-win-portable": "npm run build && electron-builder --win portable",
-    "dist": "npm run build && electron-builder"
+    "electron-dev": "npm run build-web && electron .",
+    "build-win": "npm run build-web && electron-builder --win && npm run copy-executables",
+    "build-win-portable": "npm run build-web && electron-builder --win portable && npm run copy-executables",
+    "build": "npm run build-web && electron-builder --win && npm run copy-executables",
+    "build-all": "npm run build-web && electron-builder && npm run copy-executables",
+    "copy-executables": "mkdir -p ../windows-executable && cp electron-dist/*.exe ../windows-executable/ 2>/dev/null || true"
   },
   "build": {
-    "appId": "com.cutoptimizer.app",
-    "productName": "CutOptimizer",
+    "appId": "com.cms.pgmgenerator",
+    "productName": "CMS-pgm-generator",
     "directories": {
       "output": "electron-dist"
     },
@@ -37,23 +39,25 @@
       ],
       "icon": "electron/icon.ico",
       "requestedExecutionLevel": "asInvoker",
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "artifactName": "CMS-pgm-generator-setup.exe"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "CutOptimizer"
+      "shortcutName": "CMS PGM Generator",
+      "artifactName": "CMS-pgm-generator-setup.exe"
     },
     "portable": {
-      "artifactName": "CutOptimizer-Portable.exe"
+      "artifactName": "CMS-pgm-generator-portable.exe"
     }
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Parser & Optimizer",
+  "description": "CMS PGM Generator - Optimisation de découpe",
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
