@@ -518,7 +518,7 @@
   margin-top: var(--space-xl);
   text-align: left;
   max-width: 300px;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
   scroll-behavior: smooth;
   /* Cache la barre de défilement */
@@ -1221,107 +1221,111 @@
 .btn-icon {
   width: 16px;
   height: 16px;
-  filter: brightness(0) invert(1); /* Rend l'icône blanche */
-  transition: filter var(--transition);
-  pointer-events: none;
+  flex-shrink: 0;
+  filter: currentColor;
+  transition: all var(--transition);
 }
 
-/* Effet de focus pour l'accessibilité */
-.btn-action:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius);
+/* Taille spécifique pour les boutons plus larges */
+.btn-lg .btn-icon {
+  width: 20px; /* MODIFIÉ: Augmenté de 18px à 20px pour l'icône gears */
+  height: 20px;
 }
 
-/* Responsive pour les boutons d'action */
-@media (max-width: 768px) {
-  .btn-action {
-    width: 28px;
-    height: 28px;
-  }
-  
+.btn-xl .btn-icon {
+  width: 22px; /* MODIFIÉ: Augmenté de 20px à 22px */
+  height: 22px;
+}
+
+/* Petits boutons */
+.btn-sm .btn-icon,
+.btn-xs .btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Effet hover sur les icônes */
+.btn:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+/* Icônes spécifiques pour les boutons d'action */
+.btn-action .btn-icon {
+  width: 14px;
+  height: 14px;
+  /* AJOUTÉ: Forcer les icônes edit et delete en blanc */
+  filter: brightness(0) invert(1) !important;
+}
+
+.btn-action:hover .btn-icon {
+  transform: scale(1.15);
+}
+
+/* Couleurs spécifiques pour les icônes selon le contexte */
+.btn-primary .btn-icon,
+.btn-success .btn-icon,
+.btn-danger .btn-icon,
+.btn-warning .btn-icon,
+.btn-action-edit .btn-icon,  /* AJOUTÉ: Force le blanc pour edit */
+.btn-action-delete .btn-icon { /* AJOUTÉ: Force le blanc pour delete */
+  filter: brightness(0) invert(1) !important; /* Icônes blanches pour boutons colorés */
+}
+
+.btn-secondary .btn-icon,
+.btn-outline .btn-icon,
+.btn-ghost .btn-icon {
+  filter: brightness(0) saturate(100%) invert(45%) sepia(11%) saturate(1210%) hue-rotate(202deg) brightness(94%) contrast(86%);
+}
+
+.btn-outline:hover .btn-icon {
+  filter: brightness(0) saturate(100%) invert(35%) sepia(91%) saturate(2574%) hue-rotate(218deg) brightness(99%) contrast(93%);
+}
+
+/* Icône pour le bouton "Éditer les données" */
+.btn-edit-data .btn-icon {
+  filter: brightness(0) invert(1); /* Blanc */
+  transform: scaleX(-1); /* Inverser horizontalement pour l'icône de retour */
+}
+
+.btn-edit-data:hover .btn-icon {
+  transform: scaleX(-1) scale(1.1);
+}
+
+/* AJOUTÉ: Taille spéciale pour l'icône gears dans le bouton principal */
+.btn-success.btn-lg .btn-icon {
+  width: 22px; /* Plus gros pour l'icône gears */
+  height: 22px;
+}
+
+/* Espacement dans les boutons avec icônes */
+.btn .btn-icon + span,
+.btn span + .btn-icon {
+  margin-left: var(--space-xs);
+}
+
+/* Alignement parfait dans les boutons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+/* Responsive pour les icônes */
+@media (max-width: 480px) {
   .btn-icon {
     width: 14px;
     height: 14px;
   }
   
-  .action-buttons {
-    gap: 0.25rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .btn-action {
-    width: 26px;
-    height: 26px;
+  .btn-lg .btn-icon {
+    width: 18px; /* MODIFIÉ: Augmenté de 16px à 18px pour mobile */
+    height: 18px;
   }
   
-  .btn-icon {
-    width: 12px;
-    height: 12px;
-  }
-}
-
-/* NOUVEAU: Simple overlay de chargement pour l'upload */
-#simple-loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998; /* Inférieur à l'overlay d'optimisation */
-}
-
-#simple-loading-overlay.hidden {
-  display: none;
-}
-
-.simple-loading-content {
-  background: var(--bg-card);
-  padding: 2rem;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  text-align: center;
-  border: 1px solid var(--border-color);
-  min-width: 200px;
-  animation: fadeInUp 0.3s ease-out;
-}
-
-.simple-loading-text {
-  color: var(--text-primary);
-  font-size: 1rem;
-  margin: 1rem 0 0 0;
-  font-weight: 500;
-}
-
-/* Spinner simple */
-.simple-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border-color);
-  border-top: 4px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  /* Maintenir la taille spéciale pour gears même en mobile */
+  .btn-success.btn-lg .btn-icon {
+    width: 20px;
+    height: 20px;
   }
 }

@@ -67,6 +67,7 @@ export const ResultsHandler = {
       let html = `<div class="pgm-preview-header">
         <h3>Fichiers PGM à générer</h3>
         <button id="download-all-pgm-btn" class="btn btn-primary">
+          <img src="assets/download.svg" alt="" class="btn-icon">
           Télécharger tous les PGM (ZIP)
         </button>
       </div>`;
@@ -83,10 +84,12 @@ export const ResultsHandler = {
                 <div class="pgm-file-actions">
                   <button class="btn btn-sm btn-outline info-pgm-btn" 
                           data-pgm-index="${index}">
+                    <img src="assets/info.svg" alt="" class="btn-icon">
                     Détails
                   </button>
                   <button class="btn btn-sm btn-primary download-pgm-btn" 
                           data-pgm-index="${index}">
+                    <img src="assets/download.svg" alt="" class="btn-icon">
                     Télécharger
                   </button>
                 </div>
@@ -364,7 +367,10 @@ export const ResultsHandler = {
         
         <div class="modal-footer">
           <button class="btn btn-secondary close-modal">Fermer</button>
-          <button class="btn btn-primary modal-download">Télécharger</button>
+          <button class="btn btn-primary modal-download">
+            <img src="assets/download.svg" alt="" class="btn-icon">
+            Télécharger
+          </button>
         </div>
       </div>
     `;
