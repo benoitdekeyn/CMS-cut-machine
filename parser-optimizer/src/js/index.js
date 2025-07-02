@@ -29,6 +29,24 @@ export const algorithms = {
 // Export parser for the import manager
 export { Parser };
 
+// NOUVEAU: Initialiser le thème très tôt
+function initializeEarlyTheme() {
+  const storedTheme = localStorage.getItem('theme');
+  const html = document.documentElement;
+  
+  if (storedTheme === 'dark') {
+    html.classList.add('dark-theme');
+    html.classList.remove('light-theme');
+  } else if (storedTheme === 'light') {
+    html.classList.add('light-theme');
+    html.classList.remove('dark-theme');
+  }
+  // Si pas de thème stocké, laisser les préférences système agir via CSS
+}
+
+// Initialiser le thème avant même le DOM
+initializeEarlyTheme();
+
 // Initialiser l'application
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 Chargement de l\'application...');

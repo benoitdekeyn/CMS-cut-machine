@@ -1600,3 +1600,139 @@
     }
   }
 }
+
+/* ===============================
+   TOGGLE THEME DESIGN - CORRIGÉ COMPLÈTEMENT
+   =============================== */
+.theme-toggle-container {
+  display: flex;
+  align-items: center;
+  transition: all var(--transition);
+}
+
+.theme-toggle {
+  position: relative;
+  width: 60px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+  border-radius: 50px;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition);
+  overflow: visible; /* MODIFIÉ: Permettre aux icônes d'être visibles */
+  box-shadow: var(--shadow-sm);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.theme-toggle:hover {
+  border-color: var(--border-hover);
+  transform: scale(1.05);
+  box-shadow: var(--shadow);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-primary);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  z-index: 3;
+  /* SUPPRIMÉ: display: flex car les icônes ne sont plus à l'intérieur */
+}
+
+/* État mode sombre */
+.theme-toggle.dark {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-color: #475569;
+}
+
+.theme-toggle.dark .theme-toggle-slider {
+  transform: translateX(26px);
+  background: #0f172a;
+  border-color: #475569;
+}
+
+/* CORRIGÉ: Icônes positionnées dans le container principal, pas dans le slider */
+.theme-icon {
+  position: absolute;
+  font-size: 12px;
+  transition: all var(--transition);
+  pointer-events: none;
+  z-index: 2; /* Sous le slider mais visible */
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+}
+
+.theme-icon-light {
+  left: 8px; /* Position fixe à gauche du container */
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.theme-icon-dark {
+  right: 8px; /* Position fixe à droite du container */
+  opacity: 0.5;
+  transform: translateY(-50%) scale(0.8);
+}
+
+/* Animation lors du passage en mode sombre */
+.theme-toggle.dark .theme-icon-light {
+  opacity: 0.5;
+  transform: translateY(-50%) scale(0.8);
+}
+
+.theme-toggle.dark .theme-icon-dark {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* Effet de focus pour l'accessibilité */
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Animation subtile au survol */
+.theme-toggle:hover .theme-toggle-slider {
+  box-shadow: var(--shadow);
+}
+
+/* Responsive pour le toggle */
+@media (max-width: 768px) {
+  .theme-toggle {
+    width: 54px;
+    height: 28px;
+  }
+  
+  .theme-toggle-slider {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .theme-toggle.dark .theme-toggle-slider {
+    transform: translateX(22px);
+  }
+  
+  .theme-icon {
+    font-size: 10px;
+  }
+  
+  .theme-icon-light {
+    left: 6px;
+  }
+  
+  .theme-icon-dark {
+    right: 6px;
+  }
+}

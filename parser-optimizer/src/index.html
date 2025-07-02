@@ -15,9 +15,21 @@
                 <h1>CutOptimizer</h1>
                 <p class="tagline">Optimisation intelligente des découpes de profilés</p>
             </div>
-            <!-- Navigation supprimée de la page données -->
-            <nav class="main-nav" id="results-nav" style="display: none;">
-                <button class="nav-btn btn-edit-data" data-section="data-section">
+            
+            <!-- Navigation pour les deux pages -->
+            <nav class="main-nav">
+                <!-- Toggle theme visible uniquement sur la page données -->
+                <div class="theme-toggle-container" id="theme-toggle-container">
+                    <div class="theme-toggle" id="theme-toggle">
+                        <!-- MODIFIÉ: Icônes en dehors du slider -->
+                        <span class="theme-icon theme-icon-light">☀️</span>
+                        <span class="theme-icon theme-icon-dark">🌙</span>
+                        <div class="theme-toggle-slider"></div>
+                    </div>
+                </div>
+                
+                <!-- Bouton éditer données visible uniquement sur la page résultats -->
+                <button class="nav-btn btn-edit-data" data-section="data-section" id="edit-data-btn" style="display: none;">
                     <img src="assets/back.svg" alt="" class="btn-icon">
                     Éditer les Données
                 </button>

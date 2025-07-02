@@ -37,11 +37,196 @@ export const UIController = {
   originalDataState: null,
 
   /**
+   * NOUVEAU: Initialise le thème au chargement
+   */
+  initializeTheme: function() {
+    const storedTheme = localStorage.getItem('theme');
+    
+    if (storedTheme) {
+      this.applyTheme(storedTheme);
+    }
+    
+    console.log('🎨 Thème initialisé');
+  },
+
+  /**
+   * NOUVEAU: Applique un thème spécifique
+   */
+  applyTheme: function(theme) {
+    const html = document.documentElement;
+    console.log(`🎨 Application du thème: ${theme}`);
+    
+    // MODIFIÉ: Utiliser des classes au lieu de color-scheme
+    if (theme === 'dark') {
+      html.classList.add('dark-theme');
+      html.classList.remove('light-theme');
+    } else {
+      html.classList.add('light-theme');
+      html.classList.remove('dark-theme');
+    }
+    
+    console.log(`✅ Thème ${theme} appliqué`);
+  },
+
+  /**
+   * NOUVEAU: Détecte si le mode sombre est actif
+   */
+  isDarkMode: function() {
+    // Vérifier d'abord s'il y a une préférence stockée
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+      console.log(`🎨 Thème stocké: ${storedTheme}`);
+      return storedTheme === 'dark';
+    }
+    
+    // Sinon, utiliser la préférence système
+    if (window.matchMedia) {
+      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      console.log(`🎨 Préférence système: ${systemPreference ? 'dark' : 'light'}`);
+      return systemPreference;
+    }
+    
+    console.log('🎨 Par défaut: light');
+    return false;
+  },
+
+  /**
+   * NOUVEAU: Bascule entre les thèmes
+   */
+  toggleTheme: function() {
+    const currentTheme = this.isDarkMode() ? 'light' : 'dark';
+    console.log(`🎨 Basculement vers: ${currentTheme}`);
+    
+    // Stocker la préférence
+    localStorage.setItem('theme', currentTheme);
+    console.log(`💾 Thème sauvegardé: ${currentTheme}`);
+    
+    // Appliquer le thème
+    this.applyTheme(currentTheme);
+    
+    // Mettre à jour le toggle
+    this.updateThemeToggleState();
+    
+    console.log(`✅ Thème basculé vers: ${currentTheme}`);
+  },
+
+  /**
+   * NOUVEAU: Met à jour l'état visuel du toggle
+   */
+  updateThemeToggleState: function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (!themeToggle) {
+      console.warn('⚠️ Impossible de mettre à jour le toggle (élément non trouvé)');
+      return;
+    }
+    
+    const isDarkMode = this.isDarkMode();
+    console.log(`🎨 Mise à jour du toggle vers: ${isDarkMode ? 'dark' : 'light'}`);
+    
+    if (isDarkMode) {
+      themeToggle.classList.add('dark');
+    } else {
+      themeToggle.classList.remove('dark');
+    }
+  },
+
+  /**
+   * NOUVEAU: Initialise l'état du toggle de thème
+   */
+  initializeThemeToggle: function() {
+    console.log('🎨 Initialisation de l\'état du toggle');
+    this.updateThemeToggleState();
+  },
+
+  /**
+   * NOUVEAU: Configure le toggle de thème
+   */
+  setupThemeToggle: function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      console.log('🎨 Configuration du toggle de thème');
+      
+      // Initialiser l'état du toggle selon le thème actuel
+      this.initializeThemeToggle();
+      
+      // AJOUTÉ: Debug pour vérifier que l'événement est bien attaché
+      themeToggle.addEventListener('click', (event) => {
+        console.log('🎨 Toggle de thème cliqué !');
+        event.preventDefault();
+        event.stopPropagation();
+        this.toggleTheme();
+      });
+      
+      // Écouter les changements de préférence système
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', () => {
+          console.log('🎨 Préférence système changée');
+          this.updateThemeToggleState();
+        });
+      }
+      
+      console.log('✅ Toggle de thème configuré');
+    } else {
+      console.warn('⚠️ Élément theme-toggle non trouvé');
+    }
+  },
+
+  /**
+   * NOUVEAU: Configure le bouton "Éditer les données"
+   */
+  setupEditDataButton: function() {
+    const editDataBtn = document.getElementById('edit-data-btn');
+    if (editDataBtn) {
+      editDataBtn.addEventListener('click', () => {
+        console.log('🔄 Retour à l\'édition des données');
+        this.showSection('data-section');
+      });
+    }
+  },
+
+  /**
+   * Configure tous les gestionnaires d'événements
+   */
+  setupEventListeners: function() {
+    try {
+      console.log('Configuration des gestionnaires d\'événements...');
+      
+      // Configurer le bouton d'optimisation
+      const setupOptimizeButton = () => {
+        const optimizeBtn = document.getElementById('generate-cuts-btn');
+        if (optimizeBtn) {
+          optimizeBtn.addEventListener('click', () => {
+            this.runOptimization();
+          });
+        }
+      };
+      
+      // Configurer les boutons
+      setupOptimizeButton();
+      
+      // Configuration du bouton "Éditer les Données"
+      this.setupEditDataButton();
+      
+      // NOUVEAU: Configuration du toggle de thème
+      this.setupThemeToggle();
+      
+      console.log('Gestionnaires d\'événements configurés');
+      
+    } catch (error) {
+      console.error('Erreur lors de la configuration des événements:', error);
+    }
+  },
+
+  /**
    * Initialise le contrôleur et tous les services
    */
   init: async function() {
     try {
       console.log('🚀 Initialisation de l\'application...');
+      
+      // NOUVEAU: Initialiser le thème en premier
+      this.initializeTheme();
       
       // Initialiser les services principaux
       this.initializeServices();
@@ -195,48 +380,6 @@ export const UIController = {
   },
 
   /**
-   * Configure tous les gestionnaires d'événements
-   */
-  setupEventListeners: function() {
-    try {
-      console.log('Configuration des gestionnaires d\'événements...');
-      
-      // Configurer le bouton d'optimisation
-      const setupOptimizeButton = () => {
-        const optimizeBtn = document.getElementById('generate-cuts-btn');
-        if (optimizeBtn) {
-          optimizeBtn.addEventListener('click', () => {
-            this.runOptimization();
-          });
-        }
-      };
-      
-      // Configurer les boutons
-      setupOptimizeButton();
-      
-      // Configuration du bouton "Éditer les Données"
-      this.setupEditDataButton();
-      
-      console.log('Gestionnaires d\'événements configurés');
-      
-    } catch (error) {
-      console.error('Erreur lors de la configuration des événements:', error);
-    }
-  },
-  
-  /**
-   * Configure le bouton "Éditer les Données"
-   */
-  setupEditDataButton: function() {
-    const editDataBtn = document.querySelector('.btn-edit-data');
-    if (editDataBtn) {
-      editDataBtn.addEventListener('click', () => {
-        this.showSection('data-section');
-      });
-    }
-  },
-  
-  /**
    * Affiche une section spécifique
    */
   showSection: function(sectionName) {
@@ -259,17 +402,25 @@ export const UIController = {
       targetSection.classList.add('active');
     }
     
-    // Gérer l'affichage de la navigation
-    const resultsNav = document.getElementById('results-nav');
+    // MODIFIÉ: Gérer l'affichage de la navigation avec le toggle
+    const editDataBtn = document.getElementById('edit-data-btn');
+    const themeToggleContainer = document.getElementById('theme-toggle-container');
+    
     if (sectionName === 'result-section') {
-      // Afficher le bouton "Éditer les Données" sur la page résultats
-      if (resultsNav) {
-        resultsNav.style.display = 'flex';
+      // Page résultats : afficher le bouton "Éditer les Données", masquer le toggle
+      if (editDataBtn) {
+        editDataBtn.style.display = 'flex';
+      }
+      if (themeToggleContainer) {
+        themeToggleContainer.style.display = 'none';
       }
     } else {
-      // Cacher la navigation sur la page données
-      if (resultsNav) {
-        resultsNav.style.display = 'none';
+      // Page données : masquer le bouton "Éditer les Données", afficher le toggle
+      if (editDataBtn) {
+        editDataBtn.style.display = 'none';
+      }
+      if (themeToggleContainer) {
+        themeToggleContainer.style.display = 'flex';
       }
       
       // MODIFIÉ: Vérifier et rafraîchir l'affichage des données
@@ -462,7 +613,6 @@ export const UIController = {
     
     console.log(`📋 Total: ${totalPieces} pièces (${totalPieceTypes} types), ${totalMotherBars} barres mères (${totalMotherTypes} types)`);
     console.log(`📁 Profils: ${pieceProfiles} pour pièces, ${motherProfiles} pour barres`);
-    // SUPPRIMÉ: Plus de référence à barsList
     console.log('📊 =====================================');
   },
 
@@ -674,9 +824,6 @@ export const UIController = {
       step.classList.add('active');
       step.classList.remove('completed');
       
-      // SUPPRIMÉ: Plus de mise à jour du texte dynamique
-      // UIUtils.setLoadingStepText(message);
-      
       // Petite pause pour l'effet visuel
       await new Promise(resolve => setTimeout(resolve, 200));
     }
@@ -696,9 +843,6 @@ export const UIController = {
       // Marquer comme complété
       step.classList.remove('active');
       step.classList.add('completed');
-      
-      // SUPPRIMÉ: Plus de mise à jour du texte dynamique
-      // UIUtils.setLoadingStepText(message);
       
       // Petite pause avant l'étape suivante
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -741,8 +885,6 @@ export const UIController = {
         const ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
         allResults[model.key].ffdResult = ffdResult;
         
-        // SUPPRIMÉ: Plus de mise à jour du message
-        // UIUtils.setLoadingStepText(`Optimisation de ${model.label} (FFD terminé)...`);
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // EXÉCUTION ILP en arrière-plan
@@ -831,64 +973,6 @@ export const UIController = {
       console.error('❌ Erreur lors de la génération PGM:', error);
       await this.completeStep(stepPgmId, 'Erreur génération PGM');
       this.showNotification('Erreur lors de la génération des aperçus PGM', 'warning');
-    }
-  },
-
-  /**
-   * CORRIGÉ: Lance l'optimisation avec l'étape transform bien gérée
-   */
-  runOptimization: async function() {
-    try {
-      this.saveOriginalDataState();
-      this.clearOptimizationResults();
-
-      const data = this.dataManager.getData();
-      console.log('🔍 Vérification des données avant optimisation...');
-      this.logDataStatistics(data);
-
-      if (!this.validateDataForOptimization(data)) {
-        return;
-      }
-
-      UIUtils.showLoadingOverlay();
-      const progress = document.querySelector('#loading-overlay .loading-progress');
-      if (progress) progress.style.display = 'none';
-
-      // === 1. CRÉATION DES MODÈLES ===
-      // Création des modèles AVANT génération des étapes
-      const models = this.algorithmService.createModelsFromDataManager();
-      console.log(`📋 ${models.length} modèles créés`);
-
-      // === 2. GÉNÉRATION DES ÉTAPES ===
-      this.generateExecutionSteps(models);
-      
-      // === 3. ÉTAPE TRANSFORM ===
-      await this.activateStep('step-transform', 'Préparation des modèles...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulation du temps de préparation
-      await this.completeStep('step-transform', 'Modèles prêts');
-
-      // === 4. EXÉCUTION RÉELLE ÉTAPE PAR ÉTAPE ===
-      const allResults = await this.runRealAlgorithmSteps(models);
-
-      // === 5. COMPARAISON FINALE ===
-      const finalResults = await this.runFinalComparison(allResults);
-      this.currentResults = finalResults;
-
-      // === 6. GÉNÉRATION DES PGM ===
-      await this.runPgmGenerationStep();
-
-      // === 7. AFFICHAGE DES RÉSULTATS ===
-      await new Promise(resolve => setTimeout(resolve, 400));
-      this.showResultsTabs();
-
-    } catch (error) {
-      console.error('Erreur lors de l\'optimisation:', error);
-      this.showNotification(`Erreur: ${error.message}`, 'error');
-      this.restoreOriginalDataState();
-      this.clearOptimizationResults();
-    } finally {
-      UIUtils.hideLoadingOverlay();
-      UIUtils.showLoadingProgressBar();
     }
   },
 
@@ -1077,7 +1161,5 @@ export const UIController = {
       console.error('❌ Erreur lors de l\'affichage des résultats:', error);
       this.showNotification('Erreur lors de l\'affichage des résultats', 'error');
     }
-  },
-
-  // ... [autres méthodes existantes] ...
+  }
 };
