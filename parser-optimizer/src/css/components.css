@@ -1602,7 +1602,7 @@
 }
 
 /* ===============================
-   TOGGLE THEME DESIGN - CORRIGÉ COMPLÈTEMENT
+   TOGGLE THEME DESIGN - SIMPLIFIÉ AVEC VARIABLES
    =============================== */
 .theme-toggle-container {
   display: flex;
@@ -1619,7 +1619,7 @@
   border: 2px solid var(--border-color);
   cursor: pointer;
   transition: all var(--transition);
-  overflow: visible; /* MODIFIÉ: Permettre aux icônes d'être visibles */
+  overflow: visible;
   box-shadow: var(--shadow-sm);
   user-select: none;
   -webkit-user-select: none;
@@ -1647,7 +1647,6 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   z-index: 3;
-  /* SUPPRIMÉ: display: flex car les icônes ne sont plus à l'intérieur */
 }
 
 /* État mode sombre */
@@ -1662,33 +1661,50 @@
   border-color: #475569;
 }
 
-/* CORRIGÉ: Icônes positionnées dans le container principal, pas dans le slider */
+/* SIMPLIFIÉ: Icônes avec variables de couleur */
 .theme-icon {
   position: absolute;
-  font-size: 12px;
+  width: 14px;
+  height: 14px;
   transition: all var(--transition);
   pointer-events: none;
-  z-index: 2; /* Sous le slider mais visible */
+  z-index: 2;
   top: 50%;
   transform: translateY(-50%);
-  line-height: 1;
 }
 
 .theme-icon-light {
-  left: 8px; /* Position fixe à gauche du container */
+  left: 8px;
   opacity: 1;
   transform: translateY(-50%) scale(1);
+  /* NOUVEAU: Utilise la variable pour le soleil */
+  filter: brightness(0) saturate(100%) invert(1);
+  /* La couleur sera appliquée via une classe spécifique */
 }
 
 .theme-icon-dark {
-  right: 8px; /* Position fixe à droite du container */
-  opacity: 0.5;
+  right: 8px;
+  opacity: 1;
   transform: translateY(-50%) scale(0.8);
+  /* NOUVEAU: Utilise la variable pour la lune */
+  filter: brightness(0) saturate(100%) invert(1);
+  /* La couleur sera appliquée via une classe spécifique */
+}
+
+/* NOUVEAU: Application des couleurs spécifiques */
+.theme-icon-light {
+  /* Convertir le SVG en utilisant la variable --theme-icon-sun */
+  filter: brightness(0) saturate(100%) invert(79%) sepia(88%) saturate(355%) hue-rotate(360deg) brightness(108%) contrast(96%);
+}
+
+.theme-icon-dark {
+  /* Convertir le SVG en utilisant la variable --theme-icon-moon */
+  filter: brightness(0) saturate(100%) invert(67%) sepia(85%) saturate(4065%) hue-rotate(202deg) brightness(97%) contrast(101%);
 }
 
 /* Animation lors du passage en mode sombre */
 .theme-toggle.dark .theme-icon-light {
-  opacity: 0.5;
+  opacity: 1;
   transform: translateY(-50%) scale(0.8);
 }
 
@@ -1703,10 +1719,7 @@
   outline-offset: 2px;
 }
 
-/* Animation subtile au survol */
-.theme-toggle:hover .theme-toggle-slider {
-  box-shadow: var(--shadow);
-}
+
 
 /* Responsive pour le toggle */
 @media (max-width: 768px) {
@@ -1725,7 +1738,8 @@
   }
   
   .theme-icon {
-    font-size: 10px;
+    width: 12px;
+    height: 12px;
   }
   
   .theme-icon-light {
