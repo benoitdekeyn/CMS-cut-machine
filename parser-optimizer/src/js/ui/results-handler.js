@@ -278,90 +278,90 @@ export const ResultsHandler = {
     
     // Créer la modal en utilisant les classes existantes
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal pgm-info-modal';
     modal.innerHTML = `
-      <div class="modal-content">
+      <div class="modal-content pgm-modal-content">
         <div class="modal-header">
           <h3>Détails du PGM: ${fileName}</h3>
           <button class="close-modal" title="Fermer">&times;</button>
         </div>
         
-        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div class="modal-body pgm-modal-body">
           <!-- En-tête simplifié -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
-            <div style="text-align: center;">
-              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Profil</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${profile}</div>
+          <div class="pgm-header-grid">
+            <div class="pgm-header-item">
+              <div class="pgm-header-label">Profil</div>
+              <div class="pgm-header-value">${profile}</div>
             </div>
-            <div style="text-align: center;">
-              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Orientation</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${this.formatOrientation(orientation)}</div>
+            <div class="pgm-header-item">
+              <div class="pgm-header-label">Orientation</div>
+              <div class="pgm-header-value">${this.formatOrientation(orientation)}</div>
             </div>
-            <div style="text-align: center;">
-              <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">Longueur</div>
-              <div style="font-weight: 600; color: var(--text-primary);">${this.formatLengthInMeters(length)}</div>
+            <div class="pgm-header-item">
+              <div class="pgm-header-label">Longueur</div>
+              <div class="pgm-header-value">${this.formatLengthInMeters(length)}</div>
             </div>
           </div>
           
-          <!-- Informations de performance discrètes à droite -->
-          <div style="display: flex; justify-content: flex-end; gap: 1.5rem; margin-bottom: 1rem;">
-            <span style="color: var(--text-tertiary); font-size: 0.95em;">
-              Chute&nbsp;: <span style="font-weight: 500;">${waste} cm</span>
+          <!-- Informations de performance -->
+          <div class="pgm-performance-info">
+            <span class="pgm-performance-item">
+              Chute&nbsp;: <span class="pgm-performance-value">${waste} cm</span>
             </span>
-            <span style="color: var(--text-tertiary); font-size: 0.95em;">
-              Efficacité&nbsp;: <span style="font-weight: 500;">${efficiency}%</span>
+            <span class="pgm-performance-item">
+              Efficacité&nbsp;: <span class="pgm-performance-value">${efficiency}%</span>
             </span>
           </div>
           
           <!-- Paramètres BODY -->
-          <div style="margin-bottom: 2rem;">
-            <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Paramètres BODY:</h4>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">B021: ${b021}</span>
-              <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">B035: ${b035}</span>
+          <div class="pgm-section">
+            <h4 class="pgm-section-title">Paramètres BODY:</h4>
+            <div class="pgm-params-grid">
+              <span class="pgm-param-tag">B021: ${b021}</span>
+              <span class="pgm-param-tag">B035: ${b035}</span>
             </div>
           </div>
           
           <!-- Barres à découper -->
-          <div>
-            <h4 style="margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Barres à découper (${pieces.length}):</h4>
+          <div class="pgm-section">
+            <h4 class="pgm-section-title">Barres à découper (${pieces.length}):</h4>
             
-            ${pieces.map((piece, index) => {
-              // Accès direct aux propriétés de la pièce
-              const f4c = piece.f4cData || {};
-              
-              // Calculer les valeurs F4C
-              const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-              const s052 = '1';
-              const s053 = '1';
-              const s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
-              const s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
-              const s058 = f4c.S058 || piece.S058 || '';
-              
-              return `
-                <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius); margin-bottom: 1rem; position: relative;">
-                  <!-- Index aligné à droite -->
-                  <div style="position: absolute; top: 0.5rem; right: 1rem; background: var(--primary); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
-                    #${index + 1}
+            <div class="pgm-pieces-list">
+              ${pieces.map((piece, index) => {
+                // Accès direct aux propriétés de la pièce
+                const f4c = piece.f4cData || {};
+                
+                // Calculer les valeurs F4C
+                const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
+                const s052 = '1';
+                const s053 = '1';
+                const s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
+                const s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
+                const s058 = f4c.S058 || piece.S058 || '';
+                
+                return `
+                  <div class="pgm-piece-item">
+                    <!-- Index aligné à droite -->
+                    <div class="pgm-piece-index">#${index + 1}</div>
+                    
+                    <!-- Nom de la pièce -->
+                    <div class="pgm-piece-name">
+                      ${piece.nom || `Pièce ${index + 1} - ${piece.length}cm`}
+                    </div>
+                    
+                    <!-- Codes F4C -->
+                    <div class="pgm-f4c-grid">
+                      <span class="pgm-f4c-tag">S051: ${s051}</span>
+                      <span class="pgm-f4c-tag">S052: ${s052}</span>
+                      <span class="pgm-f4c-tag">S053: ${s053}</span>
+                      <span class="pgm-f4c-tag">S054: ${s054}</span>
+                      <span class="pgm-f4c-tag">S055: ${s055}</span>
+                      <span class="pgm-f4c-tag">S058: ${s058}</span>
+                    </div>
                   </div>
-                  
-                  <!-- Nom de la pièce -->
-                  <div style="font-weight: 500; color: var(--text-primary); margin-bottom: 0.75rem; padding-right: 3rem;">
-                    ${piece.nom || `Pièce ${index + 1} - ${piece.length}cm`}
-                  </div>
-                  
-                  <!-- Codes F4C -->
-                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S051: ${s051}</span>
-                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S052: ${s052}</span>
-                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S053: ${s053}</span>
-                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S054: ${s054}</span>
-                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S055: ${s055}</span>
-                    <span style="background: var(--bg-primary); padding: 0.375rem 0.625rem; border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-primary); border: 2px solid var(--border-color); font-weight: 600;">S058: ${s058}</span>
-                  </div>
-                </div>
-              `;
-            }).join('')}
+                `;
+              }).join('')}
+            </div>
           </div>
         </div>
         
