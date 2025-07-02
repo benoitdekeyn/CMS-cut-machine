@@ -3,7 +3,7 @@
  */
 export const UIUtils = {
   /**
-   * Affiche l'overlay de chargement avec étapes
+   * Affiche l'overlay de chargement avec étapes (pour l'optimisation)
    */
   showLoadingOverlay: function() {
     const overlay = document.getElementById('loading-overlay');
@@ -14,13 +14,37 @@ export const UIUtils = {
   },
   
   /**
-   * Masque l'overlay de chargement
+   * Masque l'overlay de chargement (pour l'optimisation)
    */
   hideLoadingOverlay: function() {
     const overlay = document.getElementById('loading-overlay');
     if (overlay) {
       overlay.classList.add('hidden');
       this.resetLoadingSteps();
+    }
+  },
+
+  /**
+   * NOUVEAU: Affiche le simple overlay de chargement (pour l'upload)
+   */
+  showSimpleLoadingOverlay: function(message = 'Traitement des fichiers en cours...') {
+    const overlay = document.getElementById('simple-loading-overlay');
+    if (overlay) {
+      const textElement = overlay.querySelector('.simple-loading-text');
+      if (textElement) {
+        textElement.textContent = message;
+      }
+      overlay.classList.remove('hidden');
+    }
+  },
+
+  /**
+   * NOUVEAU: Masque le simple overlay de chargement (pour l'upload)
+   */
+  hideSimpleLoadingOverlay: function() {
+    const overlay = document.getElementById('simple-loading-overlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
     }
   },
   

@@ -11,7 +11,7 @@ export const ImportHandler = {
   
   // Callbacks
   showNotification: null,
-  refreshDataDisplay: null, // CORRIGÉ : utiliser refreshDataDisplay au lieu de navigateToSection
+  refreshDataDisplay: null,
   
   /**
    * Initialise le handler d'import
@@ -20,7 +20,7 @@ export const ImportHandler = {
     this.dataManager = options.dataManager;
     this.importManager = options.importManager;
     this.showNotification = options.showNotification;
-    this.refreshDataDisplay = options.refreshDataDisplay; // CORRIGÉ
+    this.refreshDataDisplay = options.refreshDataDisplay;
     
     this.initDropZone();
   },
@@ -73,12 +73,13 @@ export const ImportHandler = {
   },
   
   /**
-   * Traite les fichiers importés (CORRIGÉ - plus de référence ID)
+   * Traite les fichiers importés (MODIFIÉ - Utilise le simple overlay)
    */
   processImportedFiles: async function(files) {
     if (files.length === 0) return;
     
-    UIUtils.showLoadingOverlay();
+    // MODIFIÉ: Utiliser le simple overlay au lieu de l'overlay complexe
+    UIUtils.showSimpleLoadingOverlay('Traitement des fichiers en cours...');
     this.hideError();
     
     try {
@@ -87,13 +88,13 @@ export const ImportHandler = {
       
       if (importedBars && importedBars.length > 0) {
         // Ajouter les barres au DataManager
-        const addedKeys = this.dataManager.addBars(importedBars); // ✅ addedKeys au lieu d'addedIds
+        const addedKeys = this.dataManager.addBars(importedBars);
         
         if (addedKeys.length > 0) {
           // Rester sur la même section et montrer un message de succès
           this.showNotification(`${addedKeys.length} barres importées avec succès.`, 'success');
           
-          // CORRIGÉ : Rafraîchir l'affichage des données
+          // Rafraîchir l'affichage des données
           if (this.refreshDataDisplay) {
             this.refreshDataDisplay();
           }
@@ -115,7 +116,8 @@ export const ImportHandler = {
       console.error('Import error:', error);
       this.showError(`Erreur d'import: ${error.message}`);
     } finally {
-      UIUtils.hideLoadingOverlay();
+      // MODIFIÉ: Masquer le simple overlay
+      UIUtils.hideSimpleLoadingOverlay();
       
       // Réinitialiser l'élément input file pour permettre la réimportation du même fichier
       const fileInput = document.getElementById('nc2-files-input');
@@ -131,16 +133,14 @@ export const ImportHandler = {
   processFiles: async function(files) {
     if (!files || files.length === 0) return;
     
-    const showLoadingOverlay = this.showLoadingOverlay || (() => {});
-    const hideLoadingOverlay = this.hideLoadingOverlay || (() => {});
-    
-    showLoadingOverlay();
+    // MODIFIÉ: Utiliser le simple overlay
+    UIUtils.showSimpleLoadingOverlay('Traitement des fichiers...');
     
     try {
       const results = await this.importManager.processFiles(files);
       
       if (results.success.length > 0) {
-        const addedKeys = this.dataManager.addBars(results.bars); // ✅ addedKeys au lieu d'addedBars
+        const addedKeys = this.dataManager.addBars(results.bars);
         
         if (addedKeys.length > 0) {
           if (this.refreshDataDisplay) {
@@ -162,7 +162,8 @@ export const ImportHandler = {
       console.error('Erreur lors du traitement des fichiers:', error);
       this.showNotification('Erreur lors de l\'import', 'error');
     } finally {
-      hideLoadingOverlay();
+      // MODIFIÉ: Masquer le simple overlay
+      UIUtils.hideSimpleLoadingOverlay();
     }
   },
   

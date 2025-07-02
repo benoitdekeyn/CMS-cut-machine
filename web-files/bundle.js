@@ -6709,7 +6709,7 @@ var ResultsRenderer = {
  */
 var UIUtils = {
   /**
-   * Affiche l'overlay de chargement avec étapes
+   * Affiche l'overlay de chargement avec étapes (pour l'optimisation)
    */
   showLoadingOverlay: function showLoadingOverlay() {
     var overlay = document.getElementById('loading-overlay');
@@ -6719,13 +6719,36 @@ var UIUtils = {
     }
   },
   /**
-   * Masque l'overlay de chargement
+   * Masque l'overlay de chargement (pour l'optimisation)
    */
   hideLoadingOverlay: function hideLoadingOverlay() {
     var overlay = document.getElementById('loading-overlay');
     if (overlay) {
       overlay.classList.add('hidden');
       this.resetLoadingSteps();
+    }
+  },
+  /**
+   * NOUVEAU: Affiche le simple overlay de chargement (pour l'upload)
+   */
+  showSimpleLoadingOverlay: function showSimpleLoadingOverlay() {
+    var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Traitement des fichiers en cours...';
+    var overlay = document.getElementById('simple-loading-overlay');
+    if (overlay) {
+      var textElement = overlay.querySelector('.simple-loading-text');
+      if (textElement) {
+        textElement.textContent = message;
+      }
+      overlay.classList.remove('hidden');
+    }
+  },
+  /**
+   * NOUVEAU: Masque le simple overlay de chargement (pour l'upload)
+   */
+  hideSimpleLoadingOverlay: function hideSimpleLoadingOverlay() {
+    var overlay = document.getElementById('simple-loading-overlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
     }
   },
   /**
@@ -6862,8 +6885,6 @@ var ImportHandler = {
   // Callbacks
   showNotification: null,
   refreshDataDisplay: null,
-  // CORRIGÉ : utiliser refreshDataDisplay au lieu de navigateToSection
-
   /**
    * Initialise le handler d'import
    */
@@ -6871,8 +6892,7 @@ var ImportHandler = {
     this.dataManager = options.dataManager;
     this.importManager = options.importManager;
     this.showNotification = options.showNotification;
-    this.refreshDataDisplay = options.refreshDataDisplay; // CORRIGÉ
-
+    this.refreshDataDisplay = options.refreshDataDisplay;
     this.initDropZone();
   },
   /**
@@ -6930,7 +6950,7 @@ var ImportHandler = {
     });
   },
   /**
-   * Traite les fichiers importés (CORRIGÉ - plus de référence ID)
+   * Traite les fichiers importés (MODIFIÉ - Utilise le simple overlay)
    */
   processImportedFiles: function () {
     var _processImportedFiles = import_handler_asyncToGenerator(/*#__PURE__*/import_handler_regenerator().m(function _callee(files) {
@@ -6944,7 +6964,8 @@ var ImportHandler = {
             }
             return _context.a(2);
           case 1:
-            UIUtils.showLoadingOverlay();
+            // MODIFIÉ: Utiliser le simple overlay au lieu de l'overlay complexe
+            UIUtils.showSimpleLoadingOverlay('Traitement des fichiers en cours...');
             this.hideError();
             _context.p = 2;
             _context.n = 3;
@@ -6953,12 +6974,12 @@ var ImportHandler = {
             importedBars = _context.v;
             if (importedBars && importedBars.length > 0) {
               // Ajouter les barres au DataManager
-              addedKeys = this.dataManager.addBars(importedBars); // ✅ addedKeys au lieu d'addedIds
+              addedKeys = this.dataManager.addBars(importedBars);
               if (addedKeys.length > 0) {
                 // Rester sur la même section et montrer un message de succès
                 this.showNotification("".concat(addedKeys.length, " barres import\xE9es avec succ\xE8s."), 'success');
 
-                // CORRIGÉ : Rafraîchir l'affichage des données
+                // Rafraîchir l'affichage des données
                 if (this.refreshDataDisplay) {
                   this.refreshDataDisplay();
                 }
@@ -6988,7 +7009,8 @@ var ImportHandler = {
             this.showError("Erreur d'import: ".concat(_t.message));
           case 5:
             _context.p = 5;
-            UIUtils.hideLoadingOverlay();
+            // MODIFIÉ: Masquer le simple overlay
+            UIUtils.hideSimpleLoadingOverlay();
 
             // Réinitialiser l'élément input file pour permettre la réimportation du même fichier
             fileInput = document.getElementById('nc2-files-input');
@@ -7011,7 +7033,7 @@ var ImportHandler = {
    */
   processFiles: function () {
     var _processFiles = import_handler_asyncToGenerator(/*#__PURE__*/import_handler_regenerator().m(function _callee2(files) {
-      var showLoadingOverlay, hideLoadingOverlay, results, addedKeys, errorMsg, _t2;
+      var results, addedKeys, errorMsg, _t2;
       return import_handler_regenerator().w(function (_context2) {
         while (1) switch (_context2.n) {
           case 0:
@@ -7021,16 +7043,15 @@ var ImportHandler = {
             }
             return _context2.a(2);
           case 1:
-            showLoadingOverlay = this.showLoadingOverlay || function () {};
-            hideLoadingOverlay = this.hideLoadingOverlay || function () {};
-            showLoadingOverlay();
+            // MODIFIÉ: Utiliser le simple overlay
+            UIUtils.showSimpleLoadingOverlay('Traitement des fichiers...');
             _context2.p = 2;
             _context2.n = 3;
             return this.importManager.processFiles(files);
           case 3:
             results = _context2.v;
             if (results.success.length > 0) {
-              addedKeys = this.dataManager.addBars(results.bars); // ✅ addedKeys au lieu d'addedBars
+              addedKeys = this.dataManager.addBars(results.bars);
               if (addedKeys.length > 0) {
                 if (this.refreshDataDisplay) {
                   this.refreshDataDisplay();
@@ -7053,7 +7074,8 @@ var ImportHandler = {
             this.showNotification('Erreur lors de l\'import', 'error');
           case 5:
             _context2.p = 5;
-            hideLoadingOverlay();
+            // MODIFIÉ: Masquer le simple overlay
+            UIUtils.hideSimpleLoadingOverlay();
             return _context2.f(5);
           case 6:
             return _context2.a(2);
