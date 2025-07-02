@@ -1284,17 +1284,16 @@
 /* Icône pour le bouton "Éditer les données" */
 .btn-edit-data .btn-icon {
   filter: brightness(0) invert(1); /* Blanc */
-  transform: scaleX(-1); /* Inverser horizontalement pour l'icône de retour */
 }
 
 .btn-edit-data:hover .btn-icon {
-  transform: scaleX(-1) scale(1.1);
+  transform: scale(1.1);
 }
 
 /* AJOUTÉ: Taille spéciale pour l'icône gears dans le bouton principal */
 .btn-success.btn-lg .btn-icon {
-  width: 22px; /* Plus gros pour l'icône gears */
-  height: 22px;
+  width: 30px; /* Plus gros pour l'icône gears */
+  height: 30px;
 }
 
 /* Espacement dans les boutons avec icônes */

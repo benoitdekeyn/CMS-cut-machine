@@ -1,4 +1,5 @@
 // Importer les fichiers CSS
+import '../css/fonts.css';     // NOUVEAU: Importer en premier
 import '../css/base.css';
 import '../css/layout.css';
 import '../css/components.css';
