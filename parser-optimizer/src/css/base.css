@@ -7,9 +7,9 @@
   --primary-light: #dbeafe;
   --secondary: #64748b;
   --secondary-hover: #475569;
-  --success: #10b981;
-  --success-hover: #059669;
-  --success-light: #d1fae5;
+  --success: #00d563; /* MODIFIÉ: Vert plus vif et moderne */
+  --success-hover: #00b84f; /* MODIFIÉ: Vert hover plus saturé */
+  --success-light: #d0ffd8; /* MODIFIÉ: Vert clair plus lumineux */
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --danger-light: #fee2e2;
@@ -64,7 +64,7 @@
   
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-success: linear-gradient(135deg, #00d563 0%, #00b84f 100%); /* MODIFIÉ: Gradient vert plus vif */
   --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
@@ -100,7 +100,7 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
     
     /* Couleurs de statut ajustées */
-    --success-light: #064e3b;
+    --success-light: #0a3d1a; /* MODIFIÉ: Vert foncé plus moderne pour le mode sombre */
     --danger-light: #7f1d1d;
     --warning-light: #92400e;
     --info-light: #164e63;
