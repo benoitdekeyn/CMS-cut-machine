@@ -1,11 +1,54 @@
 {
   "name": "parser-optimizer",
   "version": "1.0.0",
-  "main": "src/js/index.js",
+  "main": "electron/main.js",
+  "homepage": "./",
   "scripts": {
     "start": "webpack serve --mode development",
     "clean": "rm -rf dist",
-    "build": "npm run clean && webpack --mode development && mkdir -p ../web-files && cp -a dist/. ../web-files/ && rm -rf dist"
+    "build": "npm run clean && webpack --mode production && mkdir -p ../web-files && cp -a dist/. ../web-files/",
+    "electron": "electron .",
+    "electron-dev": "npm run build && electron .",
+    "build-win": "npm run build && electron-builder --win",
+    "build-win-portable": "npm run build && electron-builder --win portable",
+    "dist": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.cutoptimizer.app",
+    "productName": "CutOptimizer",
+    "directories": {
+      "output": "electron-dist"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "electron/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CutOptimizer"
+    },
+    "portable": {
+      "artifactName": "CutOptimizer-Portable.exe"
+    }
   },
   "keywords": [],
   "author": "",
@@ -17,6 +60,8 @@
     "babel-loader": "^10.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^7.1.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.2",
     "terser": "^5.19.2",

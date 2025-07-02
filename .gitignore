@@ -9,6 +9,8 @@ package-lock.json
 dist/
 build/
 
+electron-dist/
+
 # IDE and editor files
 .idea/
 .vscode/

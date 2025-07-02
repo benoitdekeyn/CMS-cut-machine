@@ -9,7 +9,7 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: ''  // This is important for asset paths
+    publicPath: './' // IMPORTANT pour Electron
   },
   resolve: {
     alias: {
@@ -43,7 +43,6 @@ module.exports = {
           }
         }
       },
-      // This is the key change for handling assets in dev mode
       {
         test: /\.(png|jpg|jpeg|gif|ico|svg)$/i,
         type: 'asset/resource',
@@ -70,7 +69,6 @@ module.exports = {
         useShortDoctype: true
       } : false
     }),
-    // Make sure assets are copied
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -87,13 +85,13 @@ module.exports = {
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
-      publicPath: '/' // This ensures paths start from root in dev mode
+      publicPath: '/'
     },
     compress: true,
     port: 9000,
     hot: true,
     devMiddleware: {
-      writeToDisk: true // This writes files to disk, helpful for debugging
+      writeToDisk: true
     },
   }
 };
