@@ -1,3 +1,70 @@
+/* Polices Ubuntu pour fonctionnement hors ligne */
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./1cbb1b79a23478cc89ad.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./e37c5546eb1a6efc4818.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./fec2d0f1431a6114a6ce.ttf) format('truetype');
+}
+
+/* Optionnel: Version italic si vous les avez */
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./fbb3310412795b02afc4.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url(./d68d789a6be6e034d129.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url(./6fe54aaa592aa54a8c88.ttf) format('truetype');
+}
+
+/* Fallback pour les styles manquants */
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(./0dd2d5986e2731a16ee7.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(./e37c5546eb1a6efc4818.ttf) format('truetype');
+}
 /* Base styles et variables améliorées */
 :root {
   /* Couleurs principales */
@@ -7,9 +74,9 @@
   --primary-light: #dbeafe;
   --secondary: #64748b;
   --secondary-hover: #475569;
-  --success: #10b981;
-  --success-hover: #059669;
-  --success-light: #d1fae5;
+  --success: #00d563; /* MODIFIÉ: Vert plus vif et moderne */
+  --success-hover: #00b84f; /* MODIFIÉ: Vert hover plus saturé */
+  --success-light: #d0ffd8; /* MODIFIÉ: Vert clair plus lumineux */
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --danger-light: #fee2e2;
@@ -64,7 +131,7 @@
   
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-success: linear-gradient(135deg, #00d563 0%, #00b84f 100%); /* MODIFIÉ: Gradient vert plus vif */
   --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
@@ -100,7 +167,7 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
     
     /* Couleurs de statut ajustées */
-    --success-light: #064e3b;
+    --success-light: #0a3d1a; /* MODIFIÉ: Vert foncé plus moderne pour le mode sombre */
     --danger-light: #7f1d1d;
     --warning-light: #92400e;
     --info-light: #164e63;
@@ -114,7 +181,8 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* MODIFIÉ: Utiliser Ubuntu comme police principale */
+  font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
   background-color: var(--bg-primary);
@@ -130,6 +198,8 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
   color: var(--text-primary);
   letter-spacing: -0.025em;
+  /* MODIFIÉ: S'assurer qu'Ubuntu est utilisé pour les titres */
+  font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 h1 {
@@ -155,6 +225,11 @@ h4 {
 p {
   margin-bottom: var(--space-md);
   color: var(--text-secondary);
+}
+
+/* NOUVEAU: S'assurer qu'Ubuntu est utilisé partout */
+input, button, select, textarea {
+  font-family: 'Ubuntu', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Classes d'utilitaires étendues */
@@ -954,7 +1029,7 @@ body.panel-open {
   max-height: 90vh;
   width: 100%;
   max-width: 600px;
-  background: var(--bg-card);
+  background: var(--bg-card); /* MODIFIÉ: Utilise la variable au lieu de white */
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-xl);
   overflow: hidden;
@@ -1128,7 +1203,7 @@ body.panel-open {
   margin-top: var(--space-xl);
   text-align: left;
   max-width: 300px;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
   scroll-behavior: smooth;
   /* Cache la barre de défilement */
@@ -1335,7 +1410,7 @@ body.panel-open {
 }
 
 .modal-content {
-  background: white;
+  background: var(--bg-card); /* MODIFIÉ: Utilise la variable au lieu de white */
   border-radius: 8px;
   max-width: 700px;
   width: 90%;
@@ -1400,7 +1475,7 @@ body.panel-open {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: var(--bg-primary);
+  background: var(--bg-primary); /* MODIFIÉ: Utilise la variable au lieu de white */
 }
 
 .scenario-item:hover {
@@ -1427,7 +1502,6 @@ body.panel-open {
   color: var(--text-secondary);
   font-weight: 500;
   font-style: italic;
-  font-size: 0.85rem;
 }
 
 /* Responsive */
@@ -1556,7 +1630,7 @@ body.panel-open {
 }
 
 .notification {
-  background: white;
+  background: var(--bg-card); /* MODIFIÉ: Utilise la variable au lieu de white */
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   margin-bottom: 8px;
@@ -1831,108 +1905,384 @@ body.panel-open {
 .btn-icon {
   width: 16px;
   height: 16px;
-  filter: brightness(0) invert(1); /* Rend l'icône blanche */
-  transition: filter var(--transition);
-  pointer-events: none;
+  flex-shrink: 0;
+  filter: currentColor;
+  transition: all var(--transition);
 }
 
-/* Effet de focus pour l'accessibilité */
-.btn-action:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius);
+/* Taille spécifique pour les boutons plus larges */
+.btn-lg .btn-icon {
+  width: 20px; /* MODIFIÉ: Augmenté de 18px à 20px pour l'icône gears */
+  height: 20px;
 }
 
-/* Responsive pour les boutons d'action */
-@media (max-width: 768px) {
-  .btn-action {
-    width: 28px;
-    height: 28px;
-  }
-  
+.btn-xl .btn-icon {
+  width: 22px; /* MODIFIÉ: Augmenté de 20px à 22px */
+  height: 22px;
+}
+
+/* Petits boutons */
+.btn-sm .btn-icon,
+.btn-xs .btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Effet hover sur les icônes */
+.btn:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+/* Icônes spécifiques pour les boutons d'action */
+.btn-action .btn-icon {
+  width: 14px;
+  height: 14px;
+  /* AJOUTÉ: Forcer les icônes edit et delete en blanc */
+  filter: brightness(0) invert(1) !important;
+}
+
+.btn-action:hover .btn-icon {
+  transform: scale(1.15);
+}
+
+/* Couleurs spécifiques pour les icônes selon le contexte */
+.btn-primary .btn-icon,
+.btn-success .btn-icon,
+.btn-danger .btn-icon,
+.btn-warning .btn-icon,
+.btn-action-edit .btn-icon,  /* AJOUTÉ: Force le blanc pour edit */
+.btn-action-delete .btn-icon { /* AJOUTÉ: Force le blanc pour delete */
+  filter: brightness(0) invert(1) !important; /* Icônes blanches pour boutons colorés */
+}
+
+.btn-secondary .btn-icon,
+.btn-outline .btn-icon,
+.btn-ghost .btn-icon {
+  filter: brightness(0) saturate(100%) invert(45%) sepia(11%) saturate(1210%) hue-rotate(202deg) brightness(94%) contrast(86%);
+}
+
+.btn-outline:hover .btn-icon {
+  filter: brightness(0) saturate(100%) invert(35%) sepia(91%) saturate(2574%) hue-rotate(218deg) brightness(99%) contrast(93%);
+}
+
+/* Icône pour le bouton "Éditer les données" */
+.btn-edit-data .btn-icon {
+  filter: brightness(0) invert(1); /* Blanc */
+}
+
+.btn-edit-data:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+/* AJOUTÉ: Taille spéciale pour l'icône gears dans le bouton principal */
+.btn-success.btn-lg .btn-icon {
+  width: 30px; /* Plus gros pour l'icône gears */
+  height: 30px;
+}
+
+/* Espacement dans les boutons avec icônes */
+.btn .btn-icon + span,
+.btn span + .btn-icon {
+  margin-left: var(--space-xs);
+}
+
+/* Alignement parfait dans les boutons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+/* Responsive pour les icônes */
+@media (max-width: 480px) {
   .btn-icon {
     width: 14px;
     height: 14px;
   }
   
-  .action-buttons {
-    gap: 0.25rem;
+  .btn-lg .btn-icon {
+    width: 18px; /* MODIFIÉ: Augmenté de 16px à 18px pour mobile */
+    height: 18px;
+  }
+  
+  /* Maintenir la taille spéciale pour gears même en mobile */
+  .btn-success.btn-lg .btn-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ===============================
+   MODAL PGM - STYLES ADAPTÉS AU DARK MODE
+   =============================== */
+
+/* Modal spécifique pour les informations PGM */
+.pgm-info-modal .pgm-modal-content {
+  max-width: 700px;
+  max-height: 85vh;
+}
+
+.pgm-modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* En-tête avec informations principales */
+.pgm-header-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+
+.pgm-header-item {
+  text-align: center;
+}
+
+.pgm-header-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.pgm-header-value {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+/* Informations de performance */
+.pgm-performance-info {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.pgm-performance-item {
+  color: var(--text-tertiary);
+  font-size: 0.95em;
+}
+
+.pgm-performance-value {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Sections de la modal */
+.pgm-section {
+  margin-bottom: 2rem;
+}
+
+.pgm-section-title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Grille des paramètres BODY */
+.pgm-params-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pgm-param-tag {
+  background: var(--bg-primary);
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--radius);
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.pgm-param-tag:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
+}
+
+/* Liste des pièces */
+.pgm-pieces-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pgm-piece-item {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  position: relative;
+  background: var(--bg-primary);
+  transition: all var(--transition);
+}
+
+.pgm-piece-item:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
+}
+
+/* Index de la pièce */
+.pgm-piece-index {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  background: var(--primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Nom de la pièce */
+.pgm-piece-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  padding-right: 3rem;
+  line-height: 1.4;
+}
+
+/* Grille des codes F4C */
+.pgm-f4c-grid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pgm-f4c-tag {
+  background: var(--bg-primary);
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--radius);
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.pgm-f4c-tag:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
+}
+
+/* Responsive pour la modal PGM */
+@media (max-width: 768px) {
+  .pgm-header-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    text-align: left;
+  }
+  
+  .pgm-header-item {
+    text-align: left;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+  }
+  
+  .pgm-performance-info {
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  
+  .pgm-params-grid,
+  .pgm-f4c-grid {
+    gap: 0.375rem;
+  }
+  
+  .pgm-param-tag,
+  .pgm-f4c-tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .pgm-piece-item {
+    padding: 0.75rem;
+  }
+  
+  .pgm-piece-name {
+    padding-right: 2.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .pgm-piece-index {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
   }
 }
 
 @media (max-width: 480px) {
-  .btn-action {
-    width: 26px;
-    height: 26px;
+  .pgm-info-modal .pgm-modal-content {
+    max-width: 95vw;
+    margin: 1rem;
   }
   
-  .btn-icon {
-    width: 12px;
-    height: 12px;
+  .pgm-header-grid {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .pgm-f4c-grid {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .pgm-f4c-tag {
+    text-align: center;
   }
 }
 
-/* NOUVEAU: Simple overlay de chargement pour l'upload */
-#simple-loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998; /* Inférieur à l'overlay d'optimisation */
-}
-
-#simple-loading-overlay.hidden {
-  display: none;
-}
-
-.simple-loading-content {
-  background: var(--bg-card);
-  padding: 2rem;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  text-align: center;
-  border: 1px solid var(--border-color);
-  min-width: 200px;
-  animation: fadeInUp 0.3s ease-out;
-}
-
-.simple-loading-text {
-  color: var(--text-primary);
-  font-size: 1rem;
-  margin: 1rem 0 0 0;
-  font-weight: 500;
-}
-
-/* Spinner simple */
-.simple-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border-color);
-  border-top: 4px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+/* Mode sombre - ajustements spécifiques */
+@media (prefers-color-scheme: dark) {
+  .pgm-param-tag,
+  .pgm-f4c-tag {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .pgm-param-tag:hover,
+  .pgm-f4c-tag:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-hover);
+  }
+  
+  .pgm-piece-item {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+  }
+  
+  .pgm-piece-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-hover);
+  }
+  
+  .pgm-header-grid {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+  }
+  
+  @media (max-width: 768px) {
+    .pgm-header-item {
+      background: var(--bg-secondary);
+    }
   }
 }
 
