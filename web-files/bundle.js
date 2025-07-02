@@ -8887,6 +8887,7 @@ var ResultsHandler = {
 };
 ;// ./src/js/ui-controller.js
 function ui_controller_typeof(o) { "@babel/helpers - typeof"; return ui_controller_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, ui_controller_typeof(o); }
+var _UIController;
 function ui_controller_defineProperty(e, r, t) { return (r = ui_controller_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function ui_controller_toPropertyKey(t) { var i = ui_controller_toPrimitive(t, "string"); return "symbol" == ui_controller_typeof(i) ? i : i + ""; }
 function ui_controller_toPrimitive(t, r) { if ("object" != ui_controller_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != ui_controller_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
@@ -8918,7 +8919,7 @@ function ui_controller_asyncToGenerator(n) { return function () { var t = this, 
 /**
  * Contrôleur d'interface utilisateur principal (ADAPTÉ SANS ID)
  */
-var UIController = ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty({
+var UIController = (_UIController = {
   // Services et gestionnaires
   dataManager: null,
   algorithmService: null,
@@ -8936,1021 +8937,794 @@ var UIController = ui_controller_defineProperty(ui_controller_defineProperty(ui_
   // NOUVEAU: Sauvegarde de l'état original des données
   originalDataState: null,
   /**
-   * Initialise le contrôleur et tous les services
+   * NOUVEAU: Initialise le thème au chargement
    */
-  init: function () {
-    var _init = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee() {
-      var _t;
-      return ui_controller_regenerator().w(function (_context) {
-        while (1) switch (_context.n) {
-          case 0:
-            _context.p = 0;
-            console.log('🚀 Initialisation de l\'application...');
-
-            // Initialiser les services principaux
-            this.initializeServices();
-
-            // Initialiser les gestionnaires UI
-            _context.n = 1;
-            return this.initializeUIHandlers();
-          case 1:
-            // Configurer les gestionnaires d'événements
-            this.setupEventListeners();
-            console.log('✅ Application initialisée avec succès');
-            _context.n = 3;
-            break;
-          case 2:
-            _context.p = 2;
-            _t = _context.v;
-            console.error('❌ Erreur lors de l\'initialisation:', _t);
-            this.showNotification('Erreur lors de l\'initialisation de l\'application', 'error');
-          case 3:
-            return _context.a(2);
-        }
-      }, _callee, this, [[0, 2]]);
-    }));
-    function init() {
-      return _init.apply(this, arguments);
-    }
-    return init;
-  }(),
-  /**
-   * Initialise les services principaux
-   */
-  initializeServices: function initializeServices() {
-    // Initialiser le service de notification en premier
-    this.notificationService = NotificationService;
-    this.notificationService.init();
-
-    // Initialiser les autres services
-    this.dataManager = DataManager;
-    this.algorithmService = AlgorithmService; // Plus besoin d'init car import direct
-    this.importManager = ImportManager;
-    this.pgmGenerator = PgmGenerator;
-    this.pgmManager = PgmManager;
-    console.log('📋 Services principaux initialisés');
+  initializeTheme: function initializeTheme() {
+    // MODIFIÉ: Ne plus utiliser localStorage, toujours partir du système
+    var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    console.log("\uD83D\uDDA5\uFE0F Initialisation avec le th\xE8me syst\xE8me: ".concat(systemTheme));
+    this.applyTheme(systemTheme);
+    console.log('🎨 Thème initialisé selon le système');
   },
   /**
-   * Initialise les gestionnaires d'interface utilisateur
+   * NOUVEAU: Applique un thème spécifique
    */
-  initializeUIHandlers: function () {
-    var _initializeUIHandlers = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee2() {
-      var _this = this;
-      var _t2;
-      return ui_controller_regenerator().w(function (_context2) {
-        while (1) switch (_context2.n) {
-          case 0:
-            _context2.p = 0;
-            // Initialiser les gestionnaires avec leurs dépendances
-            this.importHandler = ImportHandler;
-            this.importHandler.init({
-              importManager: this.importManager,
-              dataManager: this.dataManager,
-              showNotification: function showNotification(msg, type) {
-                return _this.showNotification(msg, type);
-              },
-              refreshDataDisplay: function refreshDataDisplay() {
-                return _this.refreshDataDisplay();
-              }
-            });
-            this.editHandler = EditHandler;
-            this.editHandler.init({
-              dataManager: this.dataManager,
-              showNotification: function showNotification(msg, type) {
-                return _this.showNotification(msg, type);
-              },
-              refreshDataDisplay: function refreshDataDisplay() {
-                return _this.refreshDataDisplay();
-              }
-            });
-            this.resultsHandler = ResultsHandler;
-            this.resultsHandler.init({
-              pgmGenerator: this.pgmGenerator,
-              dataManager: this.dataManager,
-              uiController: this,
-              showNotification: function showNotification(msg, type) {
-                return _this.showNotification(msg, type);
-              }
-            });
+  applyTheme: function applyTheme(theme) {
+    var html = document.documentElement;
+    console.log("\uD83C\uDFA8 Application du th\xE8me: ".concat(theme));
 
-            // Rendre les sections d'édition après initialisation
-            this.editHandler.renderSection();
-            console.log('🎨 Gestionnaires UI initialisés');
-            _context2.n = 2;
-            break;
-          case 1:
-            _context2.p = 1;
-            _t2 = _context2.v;
-            console.error('❌ Erreur lors de l\'initialisation des gestionnaires UI:', _t2);
-            throw _t2;
-          case 2:
-            return _context2.a(2);
-        }
-      }, _callee2, this, [[0, 1]]);
-    }));
-    function initializeUIHandlers() {
-      return _initializeUIHandlers.apply(this, arguments);
-    }
-    return initializeUIHandlers;
-  }(),
-  /**
-   * Méthode pour afficher les notifications
-   */
-  showNotification: function showNotification(message) {
-    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
-    if (this.notificationService && this.notificationService.show) {
-      this.notificationService.show(message, type);
+    // MODIFIÉ: Utiliser des classes au lieu de color-scheme
+    if (theme === 'dark') {
+      html.classList.add('dark-theme');
+      html.classList.remove('light-theme');
     } else {
-      // Fallback en cas de problème avec le service de notification
-      console.log("[".concat(type.toUpperCase(), "] ").concat(message));
+      html.classList.add('light-theme');
+      html.classList.remove('dark-theme');
+    }
+    console.log("\u2705 Th\xE8me ".concat(theme, " appliqu\xE9"));
+  },
+  /**
+   * NOUVEAU: Détecte si le mode sombre est actif
+   */
+  isDarkMode: function isDarkMode() {
+    // MODIFIÉ: Ne plus vérifier localStorage, toujours utiliser les classes appliquées ou le système
+    var html = document.documentElement;
+
+    // Vérifier si une classe de thème est appliquée
+    if (html.classList.contains('dark-theme')) {
+      return true;
+    } else if (html.classList.contains('light-theme')) {
+      return false;
+    }
+
+    // Sinon, utiliser la préférence système
+    if (window.matchMedia) {
+      var systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      console.log("\uD83C\uDFA8 Pr\xE9f\xE9rence syst\xE8me: ".concat(systemPreference ? 'dark' : 'light'));
+      return systemPreference;
+    }
+    console.log('🎨 Par défaut: light');
+    return false;
+  },
+  /**
+   * NOUVEAU: Bascule entre les thèmes
+   */
+  toggleTheme: function toggleTheme() {
+    var currentTheme = this.isDarkMode() ? 'light' : 'dark';
+    console.log("\uD83C\uDFA8 Basculement manuel vers: ".concat(currentTheme));
+
+    // SUPPRIMÉ: Ne plus sauvegarder la préférence utilisateur
+    // localStorage.setItem('theme', currentTheme);
+    console.log("\uD83D\uDD04 Basculement temporaire vers: ".concat(currentTheme));
+
+    // Appliquer le thème
+    this.applyTheme(currentTheme);
+
+    // Mettre à jour le toggle
+    this.updateThemeToggleState();
+    console.log("\u2705 Th\xE8me bascul\xE9 temporairement vers: ".concat(currentTheme));
+  },
+  /**
+   * NOUVEAU: Met à jour l'état visuel du toggle
+   */
+  updateThemeToggleState: function updateThemeToggleState() {
+    var themeToggle = document.getElementById('theme-toggle');
+    if (!themeToggle) {
+      console.warn('⚠️ Impossible de mettre à jour le toggle (élément non trouvé)');
+      return;
+    }
+    var isDarkMode = this.isDarkMode();
+    console.log("\uD83C\uDFA8 Mise \xE0 jour du toggle vers: ".concat(isDarkMode ? 'dark' : 'light'));
+    if (isDarkMode) {
+      themeToggle.classList.add('dark');
+    } else {
+      themeToggle.classList.remove('dark');
     }
   },
   /**
-   * Méthode pour rafraîchir l'affichage des données
+   * NOUVEAU: Initialise l'état du toggle de thème
    */
-  refreshDataDisplay: function refreshDataDisplay() {
-    try {
-      if (this.editHandler && this.editHandler.refreshTables) {
-        this.editHandler.refreshTables();
-      }
-
-      // Mettre à jour les compteurs s'ils existent
-      this.updateDataCounters();
-    } catch (error) {
-      console.error('❌ Erreur lors du rafraîchissement de l\'affichage:', error);
-    }
+  initializeThemeToggle: function initializeThemeToggle() {
+    console.log('🎨 Initialisation de l\'état du toggle');
+    this.updateThemeToggleState();
   },
   /**
-   * Met à jour les compteurs de données dans l'interface
+   * NOUVEAU: Configure le toggle de thème
    */
-  updateDataCounters: function updateDataCounters() {
-    try {
-      var data = this.dataManager.getData();
+  setupThemeToggle: function setupThemeToggle() {
+    var _this = this;
+    var themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      console.log('🎨 Configuration du toggle de thème');
 
-      // Compter les pièces
-      var totalPieces = 0;
-      for (var profile in data.pieces) {
-        var _iterator = ui_controller_createForOfIteratorHelper(data.pieces[profile]),
-          _step;
-        try {
-          for (_iterator.s(); !(_step = _iterator.n()).done;) {
-            var piece = _step.value;
-            totalPieces += piece.quantity;
-          }
-        } catch (err) {
-          _iterator.e(err);
-        } finally {
-          _iterator.f();
-        }
-      }
+      // Initialiser l'état du toggle selon le thème actuel
+      this.initializeThemeToggle();
 
-      // Compter les barres mères
-      var totalMotherBars = 0;
-      for (var _profile in data.motherBars) {
-        var _iterator2 = ui_controller_createForOfIteratorHelper(data.motherBars[_profile]),
-          _step2;
-        try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-            var bar = _step2.value;
-            totalMotherBars += bar.quantity;
-          }
-        } catch (err) {
-          _iterator2.e(err);
-        } finally {
-          _iterator2.f();
-        }
-      }
-
-      // Mettre à jour l'interface si les éléments existent
-      var piecesCounter = document.getElementById('pieces-counter');
-      var mothersCounter = document.getElementById('mothers-counter');
-      if (piecesCounter) {
-        piecesCounter.textContent = totalPieces;
-      }
-      if (mothersCounter) {
-        mothersCounter.textContent = totalMotherBars;
-      }
-    } catch (error) {
-      console.error('❌ Erreur lors de la mise à jour des compteurs:', error);
-    }
-  },
-  /**
-   * Méthode pour obtenir les objets PGM actuels
-   */
-  getCurrentPgmObjects: function getCurrentPgmObjects() {
-    return this.currentPgmObjects;
-  },
-  /**
-   * Configure tous les gestionnaires d'événements
-   */
-  setupEventListeners: function setupEventListeners() {
-    var _this2 = this;
-    try {
-      console.log('Configuration des gestionnaires d\'événements...');
-
-      // Configurer le bouton d'optimisation
-      var setupOptimizeButton = function setupOptimizeButton() {
-        var optimizeBtn = document.getElementById('generate-cuts-btn');
-        if (optimizeBtn) {
-          optimizeBtn.addEventListener('click', function () {
-            _this2.runOptimization();
-          });
-        }
-      };
-
-      // Configurer les boutons
-      setupOptimizeButton();
-
-      // Configuration du bouton "Éditer les Données"
-      this.setupEditDataButton();
-      console.log('Gestionnaires d\'événements configurés');
-    } catch (error) {
-      console.error('Erreur lors de la configuration des événements:', error);
-    }
-  },
-  /**
-   * Configure le bouton "Éditer les Données"
-   */
-  setupEditDataButton: function setupEditDataButton() {
-    var _this3 = this;
-    var editDataBtn = document.querySelector('.btn-edit-data');
-    if (editDataBtn) {
-      editDataBtn.addEventListener('click', function () {
-        _this3.showSection('data-section');
+      // MODIFIÉ: Toggle qui bascule toujours entre les modes mais reste synchronisé au système
+      themeToggle.addEventListener('click', function (event) {
+        console.log('🎨 Toggle de thème cliqué !');
+        event.preventDefault();
+        event.stopPropagation();
+        _this.toggleTheme();
       });
+
+      // MODIFIÉ: Toujours synchroniser avec le système, même s'il y a une préférence stockée
+      if (window.matchMedia) {
+        var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', function (e) {
+          console.log('🎨 Préférence système changée vers:', e.matches ? 'dark' : 'light');
+
+          // NOUVEAU: Toujours suivre le système, peu importe les préférences stockées
+          var newTheme = e.matches ? 'dark' : 'light';
+          console.log("\uD83D\uDD04 Synchronisation automatique vers: ".concat(newTheme));
+
+          // Appliquer le nouveau thème
+          _this.applyTheme(newTheme);
+
+          // Mettre à jour le toggle pour refléter le changement
+          _this.updateThemeToggleState();
+
+          // Notification discrète
+          if (_this.showNotification) {
+            _this.showNotification("Mode ".concat(newTheme === 'dark' ? 'sombre' : 'clair', " (syst\xE8me)"), 'info');
+          }
+        });
+      }
+      console.log('✅ Toggle de thème configuré avec synchronisation automatique permanente');
+    } else {
+      console.warn('⚠️ Élément theme-toggle non trouvé');
     }
   },
   /**
-   * Affiche une section spécifique
+   * NOUVEAU: Méthode pour réinitialiser et suivre les préférences système
    */
-  showSection: function showSection(sectionName) {
-    // MODIFIÉ: Restaurer les données originales quand on retourne à l'édition
-    if (sectionName === 'data-section') {
-      this.restoreOriginalDataState();
-      this.clearOptimizationResults();
-      console.log('🔄 Données originales restaurées lors du retour à l\'édition');
-    }
+  resetToSystemTheme: function resetToSystemTheme() {
+    console.log('🔄 Réinitialisation vers les préférences système');
 
-    // Cacher toutes les sections
-    var sections = document.querySelectorAll('.content-section');
-    sections.forEach(function (section) {
-      section.classList.remove('active');
+    // Supprimer la préférence stockée
+    localStorage.removeItem('theme');
+
+    // Détecter et appliquer le thème système actuel
+    var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    console.log("\uD83D\uDDA5\uFE0F Th\xE8me syst\xE8me d\xE9tect\xE9: ".concat(systemTheme));
+
+    // Appliquer le thème système
+    this.applyTheme(systemTheme);
+
+    // Mettre à jour le toggle
+    this.updateThemeToggleState();
+    if (this.showNotification) {
+      this.showNotification('Synchronisation automatique avec le système activée', 'info');
+    }
+    console.log('✅ Synchronisation système activée');
+  }
+}, ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(_UIController, "initializeThemeToggle", function initializeThemeToggle() {
+  console.log('🎨 Initialisation de l\'état du toggle');
+  this.updateThemeToggleState();
+}), "setupThemeToggle", function setupThemeToggle() {
+  var _this2 = this;
+  var themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    console.log('🎨 Configuration du toggle de thème');
+
+    // Initialiser l'état du toggle selon le thème actuel
+    this.initializeThemeToggle();
+
+    // MODIFIÉ: Toggle qui bascule toujours entre les modes mais reste synchronisé au système
+    themeToggle.addEventListener('click', function (event) {
+      console.log('🎨 Toggle de thème cliqué !');
+      event.preventDefault();
+      event.stopPropagation();
+      _this2.toggleTheme();
     });
 
-    // Afficher la section demandée
-    var targetSection = document.getElementById(sectionName);
-    if (targetSection) {
-      targetSection.classList.add('active');
-    }
+    // MODIFIÉ: Toujours synchroniser avec le système, même s'il y a une préférence stockée
+    if (window.matchMedia) {
+      var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQuery.addEventListener('change', function (e) {
+        console.log('🎨 Préférence système changée vers:', e.matches ? 'dark' : 'light');
 
-    // Gérer l'affichage de la navigation
-    var resultsNav = document.getElementById('results-nav');
-    if (sectionName === 'result-section') {
-      // Afficher le bouton "Éditer les Données" sur la page résultats
-      if (resultsNav) {
-        resultsNav.style.display = 'flex';
-      }
-    } else {
-      // Cacher la navigation sur la page données
-      if (resultsNav) {
-        resultsNav.style.display = 'none';
-      }
+        // NOUVEAU: Toujours suivre le système, peu importe les préférences stockées
+        var newTheme = e.matches ? 'dark' : 'light';
+        console.log("\uD83D\uDD04 Synchronisation automatique vers: ".concat(newTheme));
 
-      // MODIFIÉ: Vérifier et rafraîchir l'affichage des données
-      if (sectionName === 'data-section') {
-        this.verifyAndRefreshDataDisplay();
-      }
-    }
-  },
-  /**
-   * Sauvegarde l'état original des données avant optimisation (CORRIGÉ)
-   */
-  saveOriginalDataState: function saveOriginalDataState() {
-    try {
-      var currentData = this.dataManager.getData();
+        // Appliquer le nouveau thème
+        _this2.applyTheme(newTheme);
 
-      // CORRIGÉ: Plus de barsList, seulement pieces et motherBars
-      this.originalDataState = {
-        pieces: JSON.parse(JSON.stringify(currentData.pieces)),
-        motherBars: JSON.parse(JSON.stringify(currentData.motherBars))
-      };
-      console.log('💾 État original des données sauvegardé');
+        // Mettre à jour le toggle pour refléter le changement
+        _this2.updateThemeToggleState();
 
-      // Log des données sauvegardées pour le débogage
-      var totalPieces = 0;
-      for (var profile in this.originalDataState.pieces) {
-        var _iterator3 = ui_controller_createForOfIteratorHelper(this.originalDataState.pieces[profile]),
-          _step3;
-        try {
-          for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-            var piece = _step3.value;
-            totalPieces += piece.quantity;
-          }
-        } catch (err) {
-          _iterator3.e(err);
-        } finally {
-          _iterator3.f();
+        // Notification discrète
+        if (_this2.showNotification) {
+          _this2.showNotification("Mode ".concat(newTheme === 'dark' ? 'sombre' : 'clair', " (syst\xE8me)"), 'info');
         }
-      }
-      var totalMotherBars = 0;
-      for (var _profile2 in this.originalDataState.motherBars) {
-        var _iterator4 = ui_controller_createForOfIteratorHelper(this.originalDataState.motherBars[_profile2]),
-          _step4;
-        try {
-          for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-            var bar = _step4.value;
-            totalMotherBars += bar.quantity;
-          }
-        } catch (err) {
-          _iterator4.e(err);
-        } finally {
-          _iterator4.f();
-        }
-      }
-      console.log("    \uD83D\uDCE6 Sauvegard\xE9: ".concat(totalPieces, " pi\xE8ces, ").concat(totalMotherBars, " barres m\xE8res"));
-    } catch (error) {
-      console.error('❌ Erreur lors de la sauvegarde de l\'état original:', error);
-    }
-  },
-  /**
-   * Restaure l'état original des données (CORRIGÉ)
-   */
-  restoreOriginalDataState: function restoreOriginalDataState() {
-    try {
-      if (!this.originalDataState) {
-        console.warn('⚠️ Aucun état original à restaurer');
-        return;
-      }
-
-      // CORRIGÉ: Restaurer seulement pieces et motherBars
-      this.dataManager.data.pieces = JSON.parse(JSON.stringify(this.originalDataState.pieces));
-      this.dataManager.data.motherBars = JSON.parse(JSON.stringify(this.originalDataState.motherBars));
-      console.log('🔄 État original des données restauré');
-
-      // Log des données restaurées pour le débogage
-      var totalPieces = 0;
-      for (var profile in this.dataManager.data.pieces) {
-        var _iterator5 = ui_controller_createForOfIteratorHelper(this.dataManager.data.pieces[profile]),
-          _step5;
-        try {
-          for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-            var piece = _step5.value;
-            totalPieces += piece.quantity;
-          }
-        } catch (err) {
-          _iterator5.e(err);
-        } finally {
-          _iterator5.f();
-        }
-      }
-      var totalMotherBars = 0;
-      for (var _profile3 in this.dataManager.data.motherBars) {
-        var _iterator6 = ui_controller_createForOfIteratorHelper(this.dataManager.data.motherBars[_profile3]),
-          _step6;
-        try {
-          for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-            var bar = _step6.value;
-            totalMotherBars += bar.quantity;
-          }
-        } catch (err) {
-          _iterator6.e(err);
-        } finally {
-          _iterator6.f();
-        }
-      }
-      console.log("    \u2705 Restaur\xE9: ".concat(totalPieces, " pi\xE8ces, ").concat(totalMotherBars, " barres m\xE8res"));
-    } catch (error) {
-      console.error('❌ Erreur lors de la restauration de l\'état original:', error);
-      // En cas d'erreur, essayer de réinitialiser
-      this.dataManager.initData();
-    }
-  },
-  /**
-   * Affiche les schémas de coupe retenus dans la console
-   */
-  displayCuttingSchemesInConsole: function displayCuttingSchemesInConsole(results) {
-    var _results$globalStats, _results$globalStats2;
-    console.log('\n🎯 ===== SCHÉMAS DE COUPE RETENUS =====');
-    var modelResults = results.modelResults || {};
-    for (var _i = 0, _Object$entries = Object.entries(modelResults); _i < _Object$entries.length; _i++) {
-      var _Object$entries$_i = ui_controller_slicedToArray(_Object$entries[_i], 2),
-        modelKey = _Object$entries$_i[0],
-        modelResult = _Object$entries$_i[1];
-      console.log("\n\uD83D\uDCCB Mod\xE8le: ".concat(modelKey));
-      console.log('─'.repeat(50));
-      var layouts = modelResult.layouts || [];
-      if (layouts.length === 0) {
-        console.log('  Aucun schéma de coupe');
-        continue;
-      }
-      layouts.forEach(function (layout, index) {
-        var cuts = layout.cuts || layout.pieces || [];
-        var count = layout.count || 1;
-        var waste = layout.waste || layout.remainingLength || 0;
-        var barLength = layout.originalLength || 0;
-
-        // Grouper les coupes par longueur
-        var cutCounts = {};
-        cuts.forEach(function (cut) {
-          cutCounts[cut] = (cutCounts[cut] || 0) + 1;
-        });
-
-        // Formater les coupes
-        var cutsDisplay = Object.entries(cutCounts).sort(function (a, b) {
-          return parseInt(b[0]) - parseInt(a[0]);
-        }) // Trier par longueur décroissante
-        .map(function (_ref) {
-          var _ref2 = ui_controller_slicedToArray(_ref, 2),
-            length = _ref2[0],
-            count = _ref2[1];
-          return "".concat(count, "\xD7").concat(length, "cm");
-        }).join(' + ');
-
-        // Calculer l'efficacité
-        var usedLength = cuts.reduce(function (sum, cut) {
-          return sum + cut;
-        }, 0);
-        var efficiency = barLength > 0 ? (usedLength / barLength * 100).toFixed(1) : 0;
-        console.log("  Sch\xE9ma #".concat(index + 1, ": ").concat(count, "\xD7 r\xE9p\xE9tition(s)"));
-        console.log("    \u2514\u2500 Barre ".concat(barLength, "cm: ").concat(cutsDisplay));
-        console.log("    \u2514\u2500 Chute: ".concat(waste, "cm | Efficacit\xE9: ").concat(efficiency, "%"));
       });
+    }
+    console.log('✅ Toggle de thème configuré avec synchronisation automatique permanente');
+  } else {
+    console.warn('⚠️ Élément theme-toggle non trouvé');
+  }
+}), "setupEditDataButton", function setupEditDataButton() {
+  var _this3 = this;
+  var editDataBtn = document.getElementById('edit-data-btn');
+  if (editDataBtn) {
+    editDataBtn.addEventListener('click', function () {
+      console.log('🔄 Retour à l\'édition des données');
+      _this3.showSection('data-section');
+    });
+  }
+}), "setupEventListeners", function setupEventListeners() {
+  var _this4 = this;
+  try {
+    console.log('Configuration des gestionnaires d\'événements...');
 
-      // Statistiques du modèle
-      var totalBars = layouts.reduce(function (sum, layout) {
-        return sum + (layout.count || 1);
-      }, 0);
-      var totalWaste = layouts.reduce(function (sum, layout) {
-        return sum + (layout.count || 1) * (layout.waste || 0);
-      }, 0);
-      var totalLength = layouts.reduce(function (sum, layout) {
-        return sum + (layout.count || 1) * (layout.originalLength || 0);
-      }, 0);
-      var globalEfficiency = totalLength > 0 ? ((totalLength - totalWaste) / totalLength * 100).toFixed(1) : 0;
-      console.log("\n  \uD83D\uDCCA R\xE9sum\xE9 ".concat(modelKey, ":"));
-      console.log("    \u2022 ".concat(totalBars, " barres m\xE8res utilis\xE9es"));
-      console.log("    \u2022 ".concat(totalWaste, "cm de chutes au total"));
-      console.log("    \u2022 ".concat(globalEfficiency, "% d'efficacit\xE9 globale"));
+    // Configurer le bouton d'optimisation
+    var setupOptimizeButton = function setupOptimizeButton() {
+      var optimizeBtn = document.getElementById('generate-cuts-btn');
+      if (optimizeBtn) {
+        optimizeBtn.addEventListener('click', function () {
+          _this4.runOptimization();
+        });
+      }
+    };
+
+    // Configurer les boutons
+    setupOptimizeButton();
+
+    // Configuration du bouton "Éditer les Données"
+    this.setupEditDataButton();
+
+    // NOUVEAU: Configuration du toggle de thème
+    this.setupThemeToggle();
+    console.log('Gestionnaires d\'événements configurés');
+  } catch (error) {
+    console.error('Erreur lors de la configuration des événements:', error);
+  }
+}), "init", function () {
+  var _init = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee() {
+    var _t;
+    return ui_controller_regenerator().w(function (_context) {
+      while (1) switch (_context.n) {
+        case 0:
+          _context.p = 0;
+          console.log('🚀 Initialisation de l\'application...');
+
+          // NOUVEAU: Initialiser le thème en premier
+          this.initializeTheme();
+
+          // Initialiser les services principaux
+          this.initializeServices();
+
+          // Initialiser les gestionnaires UI
+          _context.n = 1;
+          return this.initializeUIHandlers();
+        case 1:
+          // Configurer les gestionnaires d'événements
+          this.setupEventListeners();
+          console.log('✅ Application initialisée avec succès');
+          _context.n = 3;
+          break;
+        case 2:
+          _context.p = 2;
+          _t = _context.v;
+          console.error('❌ Erreur lors de l\'initialisation:', _t);
+          this.showNotification('Erreur lors de l\'initialisation de l\'application', 'error');
+        case 3:
+          return _context.a(2);
+      }
+    }, _callee, this, [[0, 2]]);
+  }));
+  function init() {
+    return _init.apply(this, arguments);
+  }
+  return init;
+}()), "initializeServices", function initializeServices() {
+  // Initialiser le service de notification en premier
+  this.notificationService = NotificationService;
+  this.notificationService.init();
+
+  // Initialiser les autres services
+  this.dataManager = DataManager;
+  this.algorithmService = AlgorithmService; // Plus besoin d'init car import direct
+  this.importManager = ImportManager;
+  this.pgmGenerator = PgmGenerator;
+  this.pgmManager = PgmManager;
+  console.log('📋 Services principaux initialisés');
+}), "initializeUIHandlers", function () {
+  var _initializeUIHandlers = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee2() {
+    var _this5 = this;
+    var _t2;
+    return ui_controller_regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          _context2.p = 0;
+          // Initialiser les gestionnaires avec leurs dépendances
+          this.importHandler = ImportHandler;
+          this.importHandler.init({
+            importManager: this.importManager,
+            dataManager: this.dataManager,
+            showNotification: function showNotification(msg, type) {
+              return _this5.showNotification(msg, type);
+            },
+            refreshDataDisplay: function refreshDataDisplay() {
+              return _this5.refreshDataDisplay();
+            }
+          });
+          this.editHandler = EditHandler;
+          this.editHandler.init({
+            dataManager: this.dataManager,
+            showNotification: function showNotification(msg, type) {
+              return _this5.showNotification(msg, type);
+            },
+            refreshDataDisplay: function refreshDataDisplay() {
+              return _this5.refreshDataDisplay();
+            }
+          });
+          this.resultsHandler = ResultsHandler;
+          this.resultsHandler.init({
+            pgmGenerator: this.pgmGenerator,
+            dataManager: this.dataManager,
+            uiController: this,
+            showNotification: function showNotification(msg, type) {
+              return _this5.showNotification(msg, type);
+            }
+          });
+
+          // Rendre les sections d'édition après initialisation
+          this.editHandler.renderSection();
+          console.log('🎨 Gestionnaires UI initialisés');
+          _context2.n = 2;
+          break;
+        case 1:
+          _context2.p = 1;
+          _t2 = _context2.v;
+          console.error('❌ Erreur lors de l\'initialisation des gestionnaires UI:', _t2);
+          throw _t2;
+        case 2:
+          return _context2.a(2);
+      }
+    }, _callee2, this, [[0, 1]]);
+  }));
+  function initializeUIHandlers() {
+    return _initializeUIHandlers.apply(this, arguments);
+  }
+  return initializeUIHandlers;
+}()), "showNotification", function showNotification(message) {
+  var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+  if (this.notificationService && this.notificationService.show) {
+    this.notificationService.show(message, type);
+  } else {
+    // Fallback en cas de problème avec le service de notification
+    console.log("[".concat(type.toUpperCase(), "] ").concat(message));
+  }
+}), "refreshDataDisplay", function refreshDataDisplay() {
+  try {
+    if (this.editHandler && this.editHandler.refreshTables) {
+      this.editHandler.refreshTables();
     }
 
-    // Statistiques globales
-    var globalStats = ((_results$globalStats = results.globalStats) === null || _results$globalStats === void 0 ? void 0 : _results$globalStats.statistics) || {};
-    console.log("\n\uD83C\uDFC6 R\xC9SUM\xC9 GLOBAL:");
-    console.log("  \u2022 Total barres utilis\xE9es: ".concat(((_results$globalStats2 = results.globalStats) === null || _results$globalStats2 === void 0 ? void 0 : _results$globalStats2.totalBarsUsed) || 0));
-    console.log("  \u2022 Efficacit\xE9 globale: ".concat(globalStats.utilizationRate || 0, "%"));
-    console.log("  \u2022 Algorithme utilis\xE9: ".concat(results.bestAlgorithm === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire'));
-    if (results.comparison) {
-      console.log("  \u2022 Comparaison: FFD ".concat(results.comparison.ffdEfficiency, "% vs ILP ").concat(results.comparison.ilpEfficiency, "%"));
-    }
-    console.log('🎯 =====================================\n');
-  },
-  /**
-   * Affiche les statistiques détaillées des données pour le débogage (CORRIGÉ)
-   */
-  logDataStatistics: function logDataStatistics(data) {
-    console.log('📊 === STATISTIQUES DES DONNÉES ===');
+    // Mettre à jour les compteurs s'ils existent
+    this.updateDataCounters();
+  } catch (error) {
+    console.error('❌ Erreur lors du rafraîchissement de l\'affichage:', error);
+  }
+}), "updateDataCounters", function updateDataCounters() {
+  try {
+    var data = this.dataManager.getData();
 
     // Compter les pièces
     var totalPieces = 0;
-    var pieceProfiles = 0;
-    var totalPieceTypes = 0;
     for (var profile in data.pieces) {
-      pieceProfiles++;
-      var profilePieces = data.pieces[profile];
-      var profileTotal = profilePieces.reduce(function (sum, piece) {
-        return sum + piece.quantity;
-      }, 0);
-      totalPieces += profileTotal;
-      totalPieceTypes += profilePieces.length;
-      console.log("  \uD83D\uDD27 ".concat(profile, ": ").concat(profilePieces.length, " types, ").concat(profileTotal, " pi\xE8ces"));
+      var _iterator = ui_controller_createForOfIteratorHelper(data.pieces[profile]),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var piece = _step.value;
+          totalPieces += piece.quantity;
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
     }
 
     // Compter les barres mères
     var totalMotherBars = 0;
-    var motherProfiles = 0;
-    var totalMotherTypes = 0;
-    for (var _profile4 in data.motherBars) {
-      motherProfiles++;
-      var profileBars = data.motherBars[_profile4];
-      var _profileTotal = profileBars.reduce(function (sum, bar) {
-        return sum + bar.quantity;
-      }, 0);
-      totalMotherBars += _profileTotal;
-      totalMotherTypes += profileBars.length;
-      console.log("  \uD83D\uDCCF ".concat(_profile4, ": ").concat(profileBars.length, " longueurs, ").concat(_profileTotal, " barres"));
+    for (var _profile in data.motherBars) {
+      var _iterator2 = ui_controller_createForOfIteratorHelper(data.motherBars[_profile]),
+        _step2;
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var bar = _step2.value;
+          totalMotherBars += bar.quantity;
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
     }
-    console.log("\uD83D\uDCCB Total: ".concat(totalPieces, " pi\xE8ces (").concat(totalPieceTypes, " types), ").concat(totalMotherBars, " barres m\xE8res (").concat(totalMotherTypes, " types)"));
-    console.log("\uD83D\uDCC1 Profils: ".concat(pieceProfiles, " pour pi\xE8ces, ").concat(motherProfiles, " pour barres"));
-    // SUPPRIMÉ: Plus de référence à barsList
-    console.log('📊 =====================================');
-  },
-  /**
-   * Vérifie l'intégrité des données (SIMPLIFIÉ - Plus de barsList)
-   */
-  checkDataIntegrity: function checkDataIntegrity() {
-    var data = this.dataManager.getData();
 
-    // CORRIGÉ: Vérifier seulement que les structures de base existent
-    if (!data.pieces || !data.motherBars) {
-      console.warn('⚠️ Structure de données corrompue, réinitialisation...');
-      this.dataManager.initData();
+    // Mettre à jour l'interface si les éléments existent
+    var piecesCounter = document.getElementById('pieces-counter');
+    var mothersCounter = document.getElementById('mothers-counter');
+    if (piecesCounter) {
+      piecesCounter.textContent = totalPieces;
+    }
+    if (mothersCounter) {
+      mothersCounter.textContent = totalMotherBars;
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de la mise à jour des compteurs:', error);
+  }
+}), ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(_UIController, "getCurrentPgmObjects", function getCurrentPgmObjects() {
+  return this.currentPgmObjects;
+}), "showSection", function showSection(sectionName) {
+  // MODIFIÉ: Restaurer les données originales quand on retourne à l'édition
+  if (sectionName === 'data-section') {
+    this.restoreOriginalDataState();
+    this.clearOptimizationResults();
+    console.log('🔄 Données originales restaurées lors du retour à l\'édition');
+  }
+
+  // Cacher toutes les sections
+  var sections = document.querySelectorAll('.content-section');
+  sections.forEach(function (section) {
+    section.classList.remove('active');
+  });
+
+  // Afficher la section demandée
+  var targetSection = document.getElementById(sectionName);
+  if (targetSection) {
+    targetSection.classList.add('active');
+  }
+
+  // MODIFIÉ: Gérer l'affichage de la navigation avec le toggle
+  var editDataBtn = document.getElementById('edit-data-btn');
+  var themeToggleContainer = document.getElementById('theme-toggle-container');
+  if (sectionName === 'result-section') {
+    // Page résultats : afficher le bouton "Éditer les Données", masquer le toggle
+    if (editDataBtn) {
+      editDataBtn.style.display = 'flex';
+    }
+    if (themeToggleContainer) {
+      themeToggleContainer.style.display = 'none';
+    }
+  } else {
+    // Page données : masquer le bouton "Éditer les Données", afficher le toggle
+    if (editDataBtn) {
+      editDataBtn.style.display = 'none';
+    }
+    if (themeToggleContainer) {
+      themeToggleContainer.style.display = 'flex';
+    }
+
+    // MODIFIÉ: Vérifier et rafraîchir l'affichage des données
+    if (sectionName === 'data-section') {
+      this.verifyAndRefreshDataDisplay();
+    }
+  }
+}), "saveOriginalDataState", function saveOriginalDataState() {
+  try {
+    var currentData = this.dataManager.getData();
+
+    // CORRIGÉ: Plus de barsList, seulement pieces et motherBars
+    this.originalDataState = {
+      pieces: JSON.parse(JSON.stringify(currentData.pieces)),
+      motherBars: JSON.parse(JSON.stringify(currentData.motherBars))
+    };
+    console.log('💾 État original des données sauvegardé');
+
+    // Log des données sauvegardées pour le débogage
+    var totalPieces = 0;
+    for (var profile in this.originalDataState.pieces) {
+      var _iterator3 = ui_controller_createForOfIteratorHelper(this.originalDataState.pieces[profile]),
+        _step3;
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var piece = _step3.value;
+          totalPieces += piece.quantity;
+        }
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
+    }
+    var totalMotherBars = 0;
+    for (var _profile2 in this.originalDataState.motherBars) {
+      var _iterator4 = ui_controller_createForOfIteratorHelper(this.originalDataState.motherBars[_profile2]),
+        _step4;
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var bar = _step4.value;
+          totalMotherBars += bar.quantity;
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+    }
+    console.log("    \uD83D\uDCE6 Sauvegard\xE9: ".concat(totalPieces, " pi\xE8ces, ").concat(totalMotherBars, " barres m\xE8res"));
+  } catch (error) {
+    console.error('❌ Erreur lors de la sauvegarde de l\'état original:', error);
+  }
+}), "restoreOriginalDataState", function restoreOriginalDataState() {
+  try {
+    if (!this.originalDataState) {
+      console.warn('⚠️ Aucun état original à restaurer');
+      return;
+    }
+
+    // CORRIGÉ: Restaurer seulement pieces et motherBars
+    this.dataManager.data.pieces = JSON.parse(JSON.stringify(this.originalDataState.pieces));
+    this.dataManager.data.motherBars = JSON.parse(JSON.stringify(this.originalDataState.motherBars));
+    console.log('🔄 État original des données restauré');
+
+    // Log des données restaurées pour le débogage
+    var totalPieces = 0;
+    for (var profile in this.dataManager.data.pieces) {
+      var _iterator5 = ui_controller_createForOfIteratorHelper(this.dataManager.data.pieces[profile]),
+        _step5;
+      try {
+        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+          var piece = _step5.value;
+          totalPieces += piece.quantity;
+        }
+      } catch (err) {
+        _iterator5.e(err);
+      } finally {
+        _iterator5.f();
+      }
+    }
+    var totalMotherBars = 0;
+    for (var _profile3 in this.dataManager.data.motherBars) {
+      var _iterator6 = ui_controller_createForOfIteratorHelper(this.dataManager.data.motherBars[_profile3]),
+        _step6;
+      try {
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          var bar = _step6.value;
+          totalMotherBars += bar.quantity;
+        }
+      } catch (err) {
+        _iterator6.e(err);
+      } finally {
+        _iterator6.f();
+      }
+    }
+    console.log("    \u2705 Restaur\xE9: ".concat(totalPieces, " pi\xE8ces, ").concat(totalMotherBars, " barres m\xE8res"));
+  } catch (error) {
+    console.error('❌ Erreur lors de la restauration de l\'état original:', error);
+    // En cas d'erreur, essayer de réinitialiser
+    this.dataManager.initData();
+  }
+}), "displayCuttingSchemesInConsole", function displayCuttingSchemesInConsole(results) {
+  var _results$globalStats, _results$globalStats2;
+  console.log('\n🎯 ===== SCHÉMAS DE COUPE RETENUS =====');
+  var modelResults = results.modelResults || {};
+  for (var _i = 0, _Object$entries = Object.entries(modelResults); _i < _Object$entries.length; _i++) {
+    var _Object$entries$_i = ui_controller_slicedToArray(_Object$entries[_i], 2),
+      modelKey = _Object$entries$_i[0],
+      modelResult = _Object$entries$_i[1];
+    console.log("\n\uD83D\uDCCB Mod\xE8le: ".concat(modelKey));
+    console.log('─'.repeat(50));
+    var layouts = modelResult.layouts || [];
+    if (layouts.length === 0) {
+      console.log('  Aucun schéma de coupe');
+      continue;
+    }
+    layouts.forEach(function (layout, index) {
+      var cuts = layout.cuts || layout.pieces || [];
+      var count = layout.count || 1;
+      var waste = layout.waste || layout.remainingLength || 0;
+      var barLength = layout.originalLength || 0;
+
+      // Grouper les coupes par longueur
+      var cutCounts = {};
+      cuts.forEach(function (cut) {
+        cutCounts[cut] = (cutCounts[cut] || 0) + 1;
+      });
+
+      // Formater les coupes
+      var cutsDisplay = Object.entries(cutCounts).sort(function (a, b) {
+        return parseInt(b[0]) - parseInt(a[0]);
+      }) // Trier par longueur décroissante
+      .map(function (_ref) {
+        var _ref2 = ui_controller_slicedToArray(_ref, 2),
+          length = _ref2[0],
+          count = _ref2[1];
+        return "".concat(count, "\xD7").concat(length, "cm");
+      }).join(' + ');
+
+      // Calculer l'efficacité
+      var usedLength = cuts.reduce(function (sum, cut) {
+        return sum + cut;
+      }, 0);
+      var efficiency = barLength > 0 ? (usedLength / barLength * 100).toFixed(1) : 0;
+      console.log("  Sch\xE9ma #".concat(index + 1, ": ").concat(count, "\xD7 r\xE9p\xE9tition(s)"));
+      console.log("    \u2514\u2500 Barre ".concat(barLength, "cm: ").concat(cutsDisplay));
+      console.log("    \u2514\u2500 Chute: ".concat(waste, "cm | Efficacit\xE9: ").concat(efficiency, "%"));
+    });
+
+    // Statistiques du modèle
+    var totalBars = layouts.reduce(function (sum, layout) {
+      return sum + (layout.count || 1);
+    }, 0);
+    var totalWaste = layouts.reduce(function (sum, layout) {
+      return sum + (layout.count || 1) * (layout.waste || 0);
+    }, 0);
+    var totalLength = layouts.reduce(function (sum, layout) {
+      return sum + (layout.count || 1) * (layout.originalLength || 0);
+    }, 0);
+    var globalEfficiency = totalLength > 0 ? ((totalLength - totalWaste) / totalLength * 100).toFixed(1) : 0;
+    console.log("\n  \uD83D\uDCCA R\xE9sum\xE9 ".concat(modelKey, ":"));
+    console.log("    \u2022 ".concat(totalBars, " barres m\xE8res utilis\xE9es"));
+    console.log("    \u2022 ".concat(totalWaste, "cm de chutes au total"));
+    console.log("    \u2022 ".concat(globalEfficiency, "% d'efficacit\xE9 globale"));
+  }
+
+  // Statistiques globales
+  var globalStats = ((_results$globalStats = results.globalStats) === null || _results$globalStats === void 0 ? void 0 : _results$globalStats.statistics) || {};
+  console.log("\n\uD83C\uDFC6 R\xC9SUM\xC9 GLOBAL:");
+  console.log("  \u2022 Total barres utilis\xE9es: ".concat(((_results$globalStats2 = results.globalStats) === null || _results$globalStats2 === void 0 ? void 0 : _results$globalStats2.totalBarsUsed) || 0));
+  console.log("  \u2022 Efficacit\xE9 globale: ".concat(globalStats.utilizationRate || 0, "%"));
+  console.log("  \u2022 Algorithme utilis\xE9: ".concat(results.bestAlgorithm === 'ffd' ? 'First-Fit Decreasing' : 'Programmation Linéaire'));
+  if (results.comparison) {
+    console.log("  \u2022 Comparaison: FFD ".concat(results.comparison.ffdEfficiency, "% vs ILP ").concat(results.comparison.ilpEfficiency, "%"));
+  }
+  console.log('🎯 =====================================\n');
+}), "logDataStatistics", function logDataStatistics(data) {
+  console.log('📊 === STATISTIQUES DES DONNÉES ===');
+
+  // Compter les pièces
+  var totalPieces = 0;
+  var pieceProfiles = 0;
+  var totalPieceTypes = 0;
+  for (var profile in data.pieces) {
+    pieceProfiles++;
+    var profilePieces = data.pieces[profile];
+    var profileTotal = profilePieces.reduce(function (sum, piece) {
+      return sum + piece.quantity;
+    }, 0);
+    totalPieces += profileTotal;
+    totalPieceTypes += profilePieces.length;
+    console.log("  \uD83D\uDD27 ".concat(profile, ": ").concat(profilePieces.length, " types, ").concat(profileTotal, " pi\xE8ces"));
+  }
+
+  // Compter les barres mères
+  var totalMotherBars = 0;
+  var motherProfiles = 0;
+  var totalMotherTypes = 0;
+  for (var _profile4 in data.motherBars) {
+    motherProfiles++;
+    var profileBars = data.motherBars[_profile4];
+    var _profileTotal = profileBars.reduce(function (sum, bar) {
+      return sum + bar.quantity;
+    }, 0);
+    totalMotherBars += _profileTotal;
+    totalMotherTypes += profileBars.length;
+    console.log("  \uD83D\uDCCF ".concat(_profile4, ": ").concat(profileBars.length, " longueurs, ").concat(_profileTotal, " barres"));
+  }
+  console.log("\uD83D\uDCCB Total: ".concat(totalPieces, " pi\xE8ces (").concat(totalPieceTypes, " types), ").concat(totalMotherBars, " barres m\xE8res (").concat(totalMotherTypes, " types)"));
+  console.log("\uD83D\uDCC1 Profils: ".concat(pieceProfiles, " pour pi\xE8ces, ").concat(motherProfiles, " pour barres"));
+  console.log('📊 =====================================');
+}), "checkDataIntegrity", function checkDataIntegrity() {
+  var data = this.dataManager.getData();
+
+  // CORRIGÉ: Vérifier seulement que les structures de base existent
+  if (!data.pieces || !data.motherBars) {
+    console.warn('⚠️ Structure de données corrompue, réinitialisation...');
+    this.dataManager.initData();
+    return false;
+  }
+
+  // NOUVEAU: Vérifications de cohérence interne
+  for (var profile in data.pieces) {
+    if (!Array.isArray(data.pieces[profile])) {
+      console.warn("\u26A0\uFE0F Structure pieces[".concat(profile, "] corrompue"));
       return false;
     }
 
-    // NOUVEAU: Vérifications de cohérence interne
-    for (var profile in data.pieces) {
-      if (!Array.isArray(data.pieces[profile])) {
-        console.warn("\u26A0\uFE0F Structure pieces[".concat(profile, "] corrompue"));
-        return false;
-      }
-
-      // Vérifier chaque pièce
-      var _iterator7 = ui_controller_createForOfIteratorHelper(data.pieces[profile]),
-        _step7;
-      try {
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-          var piece = _step7.value;
-          if (!piece.profile || !piece.length || !piece.quantity) {
-            console.warn("\u26A0\uFE0F Pi\xE8ce invalide dans ".concat(profile, ":"), piece);
-            return false;
-          }
-        }
-      } catch (err) {
-        _iterator7.e(err);
-      } finally {
-        _iterator7.f();
-      }
-    }
-    for (var _profile5 in data.motherBars) {
-      if (!Array.isArray(data.motherBars[_profile5])) {
-        console.warn("\u26A0\uFE0F Structure motherBars[".concat(_profile5, "] corrompue"));
-        return false;
-      }
-
-      // Vérifier chaque barre mère
-      var _iterator8 = ui_controller_createForOfIteratorHelper(data.motherBars[_profile5]),
-        _step8;
-      try {
-        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-          var bar = _step8.value;
-          if (!bar.profile || !bar.length || !bar.quantity) {
-            console.warn("\u26A0\uFE0F Barre m\xE8re invalide dans ".concat(_profile5, ":"), bar);
-            return false;
-          }
-        }
-      } catch (err) {
-        _iterator8.e(err);
-      } finally {
-        _iterator8.f();
-      }
-    }
-    console.log('✅ Intégrité des données vérifiée');
-    return true;
-  },
-  /**
-   * NOUVEAU: Compte le nombre total d'éléments dans les données
-   */
-  getTotalDataElements: function getTotalDataElements() {
-    var data = this.dataManager.getData();
-    var totalElements = 0;
-
-    // Compter les types de pièces
-    for (var profile in data.pieces) {
-      totalElements += data.pieces[profile].length;
-    }
-
-    // Compter les types de barres mères  
-    for (var _profile6 in data.motherBars) {
-      totalElements += data.motherBars[_profile6].length;
-    }
-    return totalElements;
-  },
-  /**
-   * Vérifie l'intégrité des données et rafraîchit l'affichage (AMÉLIORÉ)
-   */
-  verifyAndRefreshDataDisplay: function verifyAndRefreshDataDisplay() {
+    // Vérifier chaque pièce
+    var _iterator7 = ui_controller_createForOfIteratorHelper(data.pieces[profile]),
+      _step7;
     try {
-      console.log('🔍 Vérification de l\'intégrité des données...');
-
-      // Obtenir les données actuelles
-      var data = this.dataManager.getData();
-
-      // Afficher les statistiques de débogage
-      this.logDataStatistics(data);
-
-      // Vérifier l'intégrité
-      if (!this.checkDataIntegrity()) {
-        console.log('🔧 Données corrigées automatiquement');
-      } else {
-        console.log("\u2705 ".concat(this.getTotalDataElements(), " \xE9l\xE9ments de donn\xE9es valid\xE9s"));
+      for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+        var piece = _step7.value;
+        if (!piece.profile || !piece.length || !piece.quantity) {
+          console.warn("\u26A0\uFE0F Pi\xE8ce invalide dans ".concat(profile, ":"), piece);
+          return false;
+        }
       }
-
-      // Rafraîchir l'affichage
-      this.refreshDataDisplay();
-      console.log('🔄 Vérification et rafraîchissement terminés');
-    } catch (error) {
-      console.error('❌ Erreur lors de la vérification:', error);
-      // En cas d'erreur critique, ne pas réinitialiser les données
-      this.showNotification('Erreur lors de la vérification des données', 'warning');
+    } catch (err) {
+      _iterator7.e(err);
+    } finally {
+      _iterator7.f();
     }
-  },
-  /**
-   * Lance l'optimisation avec étapes RÉELLES synchronisées
-   */
-  runOptimization: function () {
-    var _runOptimization = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee3() {
-      var data, progress, models, allResults, finalResults, _t3;
-      return ui_controller_regenerator().w(function (_context3) {
-        while (1) switch (_context3.n) {
-          case 0:
-            _context3.p = 0;
-            this.saveOriginalDataState();
-            this.clearOptimizationResults();
-            data = this.dataManager.getData();
-            console.log('🔍 Vérification des données avant optimisation...');
-            this.logDataStatistics(data);
-            if (this.validateDataForOptimization(data)) {
-              _context3.n = 1;
-              break;
-            }
-            return _context3.a(2);
-          case 1:
-            UIUtils.showLoadingOverlay();
-            progress = document.querySelector('#loading-overlay .loading-progress');
-            if (progress) progress.style.display = 'none';
+  }
+  for (var _profile5 in data.motherBars) {
+    if (!Array.isArray(data.motherBars[_profile5])) {
+      console.warn("\u26A0\uFE0F Structure motherBars[".concat(_profile5, "] corrompue"));
+      return false;
+    }
 
-            // === 1. CRÉATION DES MODÈLES ===
-            // Création des modèles AVANT génération des étapes
-            models = this.algorithmService.createModelsFromDataManager();
-            console.log("\uD83D\uDCCB ".concat(models.length, " mod\xE8les cr\xE9\xE9s"));
-
-            // === 2. GÉNÉRATION DES ÉTAPES ===
-            this.generateExecutionSteps(models);
-
-            // === 3. ÉTAPE TRANSFORM ===
-            _context3.n = 2;
-            return this.activateStep('step-transform', 'Préparation des modèles...');
-          case 2:
-            _context3.n = 3;
-            return new Promise(function (resolve) {
-              return setTimeout(resolve, 500);
-            });
-          case 3:
-            _context3.n = 4;
-            return this.completeStep('step-transform', 'Modèles prêts');
-          case 4:
-            _context3.n = 5;
-            return this.runRealAlgorithmSteps(models);
-          case 5:
-            allResults = _context3.v;
-            _context3.n = 6;
-            return this.runFinalComparison(allResults);
-          case 6:
-            finalResults = _context3.v;
-            this.currentResults = finalResults;
-
-            // === 6. GÉNÉRATION DES PGM ===
-            _context3.n = 7;
-            return this.runPgmGenerationStep();
-          case 7:
-            _context3.n = 8;
-            return new Promise(function (resolve) {
-              return setTimeout(resolve, 400);
-            });
-          case 8:
-            this.showResultsTabs();
-            _context3.n = 10;
-            break;
-          case 9:
-            _context3.p = 9;
-            _t3 = _context3.v;
-            console.error('Erreur lors de l\'optimisation:', _t3);
-            this.showNotification("Erreur: ".concat(_t3.message), 'error');
-            this.restoreOriginalDataState();
-            this.clearOptimizationResults();
-          case 10:
-            _context3.p = 10;
-            UIUtils.hideLoadingOverlay();
-            UIUtils.showLoadingProgressBar();
-            return _context3.f(10);
-          case 11:
-            return _context3.a(2);
+    // Vérifier chaque barre mère
+    var _iterator8 = ui_controller_createForOfIteratorHelper(data.motherBars[_profile5]),
+      _step8;
+    try {
+      for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+        var bar = _step8.value;
+        if (!bar.profile || !bar.length || !bar.quantity) {
+          console.warn("\u26A0\uFE0F Barre m\xE8re invalide dans ".concat(_profile5, ":"), bar);
+          return false;
         }
-      }, _callee3, this, [[0, 9, 10, 11]]);
-    }));
-    function runOptimization() {
-      return _runOptimization.apply(this, arguments);
+      }
+    } catch (err) {
+      _iterator8.e(err);
+    } finally {
+      _iterator8.f();
     }
-    return runOptimization;
-  }(),
-  /**
-   * Génère les étapes d'exécution basées sur les modèles réels - VERSION SIMPLIFIÉE
-   * Une étape par modèle (FFD + ILP en arrière-plan)
-   */
-  generateExecutionSteps: function generateExecutionSteps(models) {
-    var _this4 = this;
-    var stepsContainer = document.querySelector('#loading-overlay .loading-steps');
-    if (!stepsContainer) return;
-    stepsContainer.innerHTML = '';
-    var stepNum = 1;
+  }
+  console.log('✅ Intégrité des données vérifiée');
+  return true;
+}), "getTotalDataElements", function getTotalDataElements() {
+  var data = this.dataManager.getData();
+  var totalElements = 0;
 
-    // Étape 1 : Création des modèles
-    stepsContainer.appendChild(this.createStepDiv('step-transform', stepNum++, 'Préparation des modèles'));
+  // Compter les types de pièces
+  for (var profile in data.pieces) {
+    totalElements += data.pieces[profile].length;
+  }
 
-    // Une étape par modèle (FFD + ILP combinés)
-    models.forEach(function (model, modelIndex) {
-      var modelLabel = model.label;
-      stepsContainer.appendChild(_this4.createStepDiv("step-model-".concat(modelIndex), stepNum++, "Optimisation: ".concat(modelLabel)));
-    });
+  // Compter les types de barres mères  
+  for (var _profile6 in data.motherBars) {
+    totalElements += data.motherBars[_profile6].length;
+  }
+  return totalElements;
+}), "verifyAndRefreshDataDisplay", function verifyAndRefreshDataDisplay() {
+  try {
+    console.log('🔍 Vérification de l\'intégrité des données...');
 
-    // Étapes finales
-    stepsContainer.appendChild(this.createStepDiv('step-compare', stepNum++, 'Comparaison et sélection'));
-    stepsContainer.appendChild(this.createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM'));
-    console.log("\uD83C\uDFAF ".concat(stepNum - 1, " \xE9tapes g\xE9n\xE9r\xE9es pour ").concat(models.length, " mod\xE8les"));
-  },
-  /**
-   * NOUVEAU: Active une étape (état "en cours")
-   */
-  activateStep: function () {
-    var _activateStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee4(stepId, message) {
-      var step;
-      return ui_controller_regenerator().w(function (_context4) {
-        while (1) switch (_context4.n) {
-          case 0:
-            step = document.getElementById(stepId);
-            if (!step) {
-              _context4.n = 1;
-              break;
-            }
-            // Marquer comme actif
-            step.classList.add('active');
-            step.classList.remove('completed');
+    // Obtenir les données actuelles
+    var data = this.dataManager.getData();
 
-            // SUPPRIMÉ: Plus de mise à jour du texte dynamique
-            // UIUtils.setLoadingStepText(message);
+    // Afficher les statistiques de débogage
+    this.logDataStatistics(data);
 
-            // Petite pause pour l'effet visuel
-            _context4.n = 1;
-            return new Promise(function (resolve) {
-              return setTimeout(resolve, 200);
-            });
-          case 1:
-            console.log("\uD83D\uDFE1 \xC9tape ".concat(stepId, " activ\xE9e: ").concat(message));
-          case 2:
-            return _context4.a(2);
-        }
-      }, _callee4);
-    }));
-    function activateStep(_x, _x2) {
-      return _activateStep.apply(this, arguments);
+    // Vérifier l'intégrité
+    if (!this.checkDataIntegrity()) {
+      console.log('🔧 Données corrigées automatiquement');
+    } else {
+      console.log("\u2705 ".concat(this.getTotalDataElements(), " \xE9l\xE9ments de donn\xE9es valid\xE9s"));
     }
-    return activateStep;
-  }(),
-  /**
-   * AMÉLIORÉ: Complète une étape avec animation
-   */
-  completeStep: function () {
-    var _completeStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee5(stepId, message) {
-      var step;
-      return ui_controller_regenerator().w(function (_context5) {
-        while (1) switch (_context5.n) {
-          case 0:
-            step = document.getElementById(stepId);
-            if (!step) {
-              _context5.n = 2;
-              break;
-            }
-            _context5.n = 1;
-            return new Promise(function (resolve) {
-              return setTimeout(resolve, 300);
-            });
-          case 1:
-            // Marquer comme complété
-            step.classList.remove('active');
-            step.classList.add('completed');
 
-            // SUPPRIMÉ: Plus de mise à jour du texte dynamique
-            // UIUtils.setLoadingStepText(message);
-
-            // Petite pause avant l'étape suivante
-            _context5.n = 2;
-            return new Promise(function (resolve) {
-              return setTimeout(resolve, 200);
-            });
-          case 2:
-            console.log("\u2705 \xC9tape ".concat(stepId, " termin\xE9e: ").concat(message));
-          case 3:
-            return _context5.a(2);
-        }
-      }, _callee5);
-    }));
-    function completeStep(_x3, _x4) {
-      return _completeStep.apply(this, arguments);
-    }
-    return completeStep;
-  }(),
-  /**
-   * SIMPLIFIÉ: Exécute les deux algorithmes pour chaque modèle dans une seule étape
-   * Une étape visuelle = FFD + ILP pour un modèle
-   */
-  runRealAlgorithmSteps: function () {
-    var _runRealAlgorithmSteps = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee6(models) {
-      var allResults, i, model, stepId, ffdResult, ilpResult, _ffdResult, _t4, _t5;
-      return ui_controller_regenerator().w(function (_context6) {
-        while (1) switch (_context6.n) {
-          case 0:
-            console.log('🚀 Exécution réelle étape par étape (version simplifiée)');
-            allResults = {}; // Initialiser la structure des résultats
-            models.forEach(function (model) {
-              allResults[model.key] = {
-                model: model,
-                ffdResult: null,
-                ilpResult: null
-              };
-            });
-
-            // EXÉCUTION: Une étape par modèle (FFD + ILP combinés)
-            i = 0;
-          case 1:
-            if (!(i < models.length)) {
-              _context6.n = 12;
-              break;
-            }
-            model = models[i];
-            stepId = "step-model-".concat(i);
-            console.log("\uD83C\uDFAF Optimisation compl\xE8te pour ".concat(model.key, " (").concat(i + 1, "/").concat(models.length, ")"));
-
-            // ACTIVER l'étape avant l'exécution
-            _context6.n = 2;
-            return this.activateStep(stepId, "Optimisation de ".concat(model.label, "..."));
-          case 2:
-            _context6.p = 2;
-            // EXÉCUTION FFD en arrière-plan
-            console.log("  \uD83D\uDD04 FFD pour ".concat(model.key));
-            ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
-            allResults[model.key].ffdResult = ffdResult;
-
-            // SUPPRIMÉ: Plus de mise à jour du message
-            // UIUtils.setLoadingStepText(`Optimisation de ${model.label} (FFD terminé)...`);
-            _context6.n = 3;
-            return new Promise(function (resolve) {
-              return setTimeout(resolve, 200);
-            });
-          case 3:
-            // EXÉCUTION ILP en arrière-plan
-            console.log("  \uD83D\uDD04 ILP pour ".concat(model.key));
-            ilpResult = this.algorithmService.runAlgorithmOnSingleModel('ilp', model);
-            allResults[model.key].ilpResult = ilpResult;
-
-            // COMPLÉTER l'étape après les deux algorithmes
-            _context6.n = 4;
-            return this.completeStep(stepId, "".concat(model.label, " optimis\xE9"));
-          case 4:
-            _context6.n = 11;
-            break;
-          case 5:
-            _context6.p = 5;
-            _t4 = _context6.v;
-            console.error("\u274C Erreur optimisation pour ".concat(model.key, ":"), _t4);
-
-            // Essayer au moins un algorithme si l'autre a échoué
-            if (!(!allResults[model.key].ffdResult && !allResults[model.key].ilpResult)) {
-              _context6.n = 10;
-              break;
-            }
-            _context6.p = 6;
-            console.log("  \uD83D\uDD04 Tentative FFD seul pour ".concat(model.key));
-            _ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
-            allResults[model.key].ffdResult = _ffdResult;
-            _context6.n = 7;
-            return this.completeStep(stepId, "".concat(model.label, " optimis\xE9 (FFD uniquement)"));
-          case 7:
-            _context6.n = 9;
-            break;
-          case 8:
-            _context6.p = 8;
-            _t5 = _context6.v;
-            console.error("\u274C Erreur FFD pour ".concat(model.key, ":"), _t5);
-            _context6.n = 9;
-            return this.completeStep(stepId, "".concat(model.label, " - \xC9chec optimisation"));
-          case 9:
-            _context6.n = 11;
-            break;
-          case 10:
-            _context6.n = 11;
-            return this.completeStep(stepId, "".concat(model.label, " partiellement optimis\xE9"));
-          case 11:
-            i++;
-            _context6.n = 1;
-            break;
-          case 12:
-            return _context6.a(2, allResults);
-        }
-      }, _callee6, this, [[6, 8], [2, 5]]);
-    }));
-    function runRealAlgorithmSteps(_x5) {
-      return _runRealAlgorithmSteps.apply(this, arguments);
-    }
-    return runRealAlgorithmSteps;
-  }(),
-  /**
-   * NOUVEAU: Effectue la comparaison finale et sélection des meilleurs résultats
-   */
-  runFinalComparison: function () {
-    var _runFinalComparison = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee7(allResults) {
-      var stepCompareId, modelResults, _i2, _Object$entries2, _Object$entries2$_i, modelKey, results, ffdResult, ilpResult, bestResult, finalResults;
-      return ui_controller_regenerator().w(function (_context7) {
-        while (1) switch (_context7.n) {
-          case 0:
-            stepCompareId = 'step-compare'; // ACTIVER l'étape de comparaison
-            _context7.n = 1;
-            return this.activateStep(stepCompareId, 'Comparaison des algorithmes et sélection...');
-          case 1:
-            console.log('🔄 Comparaison finale des résultats');
-            modelResults = {}; // Comparer et sélectionner pour chaque modèle
-            for (_i2 = 0, _Object$entries2 = Object.entries(allResults); _i2 < _Object$entries2.length; _i2++) {
-              _Object$entries2$_i = ui_controller_slicedToArray(_Object$entries2[_i2], 2), modelKey = _Object$entries2$_i[0], results = _Object$entries2$_i[1];
-              ffdResult = results.ffdResult, ilpResult = results.ilpResult;
-              if (ffdResult || ilpResult) {
-                bestResult = this.algorithmService.selectBestForModel(modelKey, ffdResult, ilpResult);
-                modelResults[modelKey] = bestResult;
-              }
-            }
-
-            // Construire les résultats finaux
-            finalResults = this.algorithmService.buildFinalResults(modelResults); // COMPLÉTER l'étape de comparaison
-            _context7.n = 2;
-            return this.completeStep(stepCompareId, 'Comparaison terminée');
-          case 2:
-            return _context7.a(2, finalResults);
-        }
-      }, _callee7, this);
-    }));
-    function runFinalComparison(_x6) {
-      return _runFinalComparison.apply(this, arguments);
-    }
-    return runFinalComparison;
-  }(),
-  /**
-   * AMÉLIORÉ: Exécute l'étape de génération PGM
-   */
-  runPgmGenerationStep: function () {
-    var _runPgmGenerationStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee8() {
-      var stepPgmId, _t6;
-      return ui_controller_regenerator().w(function (_context8) {
-        while (1) switch (_context8.n) {
-          case 0:
-            stepPgmId = 'step-pgm'; // ACTIVER l'étape PGM
-            _context8.n = 1;
-            return this.activateStep(stepPgmId, 'Génération des fichiers PGM...');
-          case 1:
-            _context8.p = 1;
-            // Génération réelle des PGM
-            this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
-            ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
-            this.resultsHandler.generatePgmPreviews();
-
-            // COMPLÉTER l'étape PGM
-            _context8.n = 2;
-            return this.completeStep(stepPgmId, 'Fichiers PGM générés');
-          case 2:
-            _context8.n = 5;
-            break;
-          case 3:
-            _context8.p = 3;
-            _t6 = _context8.v;
-            console.error('❌ Erreur lors de la génération PGM:', _t6);
-            _context8.n = 4;
-            return this.completeStep(stepPgmId, 'Erreur génération PGM');
-          case 4:
-            this.showNotification('Erreur lors de la génération des aperçus PGM', 'warning');
-          case 5:
-            return _context8.a(2);
-        }
-      }, _callee8, this, [[1, 3]]);
-    }));
-    function runPgmGenerationStep() {
-      return _runPgmGenerationStep.apply(this, arguments);
-    }
-    return runPgmGenerationStep;
-  }()
-}, "runOptimization", function () {
-  var _runOptimization2 = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee9() {
-    var data, progress, models, allResults, finalResults, _t7;
-    return ui_controller_regenerator().w(function (_context9) {
-      while (1) switch (_context9.n) {
+    // Rafraîchir l'affichage
+    this.refreshDataDisplay();
+    console.log('🔄 Vérification et rafraîchissement terminés');
+  } catch (error) {
+    console.error('❌ Erreur lors de la vérification:', error);
+    // En cas d'erreur critique, ne pas réinitialiser les données
+    this.showNotification('Erreur lors de la vérification des données', 'warning');
+  }
+}), "runOptimization", function () {
+  var _runOptimization = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee3() {
+    var data, progress, models, allResults, finalResults, _t3;
+    return ui_controller_regenerator().w(function (_context3) {
+      while (1) switch (_context3.n) {
         case 0:
-          _context9.p = 0;
+          _context3.p = 0;
           this.saveOriginalDataState();
           this.clearOptimizationResults();
           data = this.dataManager.getData();
           console.log('🔍 Vérification des données avant optimisation...');
           this.logDataStatistics(data);
           if (this.validateDataForOptimization(data)) {
-            _context9.n = 1;
+            _context3.n = 1;
             break;
           }
-          return _context9.a(2);
+          return _context3.a(2);
         case 1:
           UIUtils.showLoadingOverlay();
           progress = document.querySelector('#loading-overlay .loading-progress');
@@ -9965,60 +9739,316 @@ var UIController = ui_controller_defineProperty(ui_controller_defineProperty(ui_
           this.generateExecutionSteps(models);
 
           // === 3. ÉTAPE TRANSFORM ===
-          _context9.n = 2;
+          _context3.n = 2;
           return this.activateStep('step-transform', 'Préparation des modèles...');
         case 2:
-          _context9.n = 3;
+          _context3.n = 3;
           return new Promise(function (resolve) {
             return setTimeout(resolve, 500);
           });
         case 3:
-          _context9.n = 4;
+          _context3.n = 4;
           return this.completeStep('step-transform', 'Modèles prêts');
         case 4:
-          _context9.n = 5;
+          _context3.n = 5;
           return this.runRealAlgorithmSteps(models);
         case 5:
-          allResults = _context9.v;
-          _context9.n = 6;
+          allResults = _context3.v;
+          _context3.n = 6;
           return this.runFinalComparison(allResults);
         case 6:
-          finalResults = _context9.v;
+          finalResults = _context3.v;
           this.currentResults = finalResults;
 
           // === 6. GÉNÉRATION DES PGM ===
-          _context9.n = 7;
+          _context3.n = 7;
           return this.runPgmGenerationStep();
         case 7:
-          _context9.n = 8;
+          _context3.n = 8;
           return new Promise(function (resolve) {
             return setTimeout(resolve, 400);
           });
         case 8:
           this.showResultsTabs();
-          _context9.n = 10;
+          _context3.n = 10;
           break;
         case 9:
-          _context9.p = 9;
-          _t7 = _context9.v;
-          console.error('Erreur lors de l\'optimisation:', _t7);
-          this.showNotification("Erreur: ".concat(_t7.message), 'error');
+          _context3.p = 9;
+          _t3 = _context3.v;
+          console.error('Erreur lors de l\'optimisation:', _t3);
+          this.showNotification("Erreur: ".concat(_t3.message), 'error');
           this.restoreOriginalDataState();
           this.clearOptimizationResults();
         case 10:
-          _context9.p = 10;
+          _context3.p = 10;
           UIUtils.hideLoadingOverlay();
           UIUtils.showLoadingProgressBar();
-          return _context9.f(10);
+          return _context3.f(10);
         case 11:
-          return _context9.a(2);
+          return _context3.a(2);
       }
-    }, _callee9, this, [[0, 9, 10, 11]]);
+    }, _callee3, this, [[0, 9, 10, 11]]);
   }));
   function runOptimization() {
-    return _runOptimization2.apply(this, arguments);
+    return _runOptimization.apply(this, arguments);
   }
   return runOptimization;
+}()), ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(_UIController, "generateExecutionSteps", function generateExecutionSteps(models) {
+  var _this6 = this;
+  var stepsContainer = document.querySelector('#loading-overlay .loading-steps');
+  if (!stepsContainer) return;
+  stepsContainer.innerHTML = '';
+  var stepNum = 1;
+
+  // Étape 1 : Création des modèles
+  stepsContainer.appendChild(this.createStepDiv('step-transform', stepNum++, 'Préparation des modèles'));
+
+  // Une étape par modèle (FFD + ILP combinés)
+  models.forEach(function (model, modelIndex) {
+    var modelLabel = model.label;
+    stepsContainer.appendChild(_this6.createStepDiv("step-model-".concat(modelIndex), stepNum++, "Optimisation: ".concat(modelLabel)));
+  });
+
+  // Étapes finales
+  stepsContainer.appendChild(this.createStepDiv('step-compare', stepNum++, 'Comparaison et sélection'));
+  stepsContainer.appendChild(this.createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM'));
+  console.log("\uD83C\uDFAF ".concat(stepNum - 1, " \xE9tapes g\xE9n\xE9r\xE9es pour ").concat(models.length, " mod\xE8les"));
+}), "activateStep", function () {
+  var _activateStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee4(stepId, message) {
+    var step;
+    return ui_controller_regenerator().w(function (_context4) {
+      while (1) switch (_context4.n) {
+        case 0:
+          step = document.getElementById(stepId);
+          if (!step) {
+            _context4.n = 1;
+            break;
+          }
+          // Marquer comme actif
+          step.classList.add('active');
+          step.classList.remove('completed');
+
+          // Petite pause pour l'effet visuel
+          _context4.n = 1;
+          return new Promise(function (resolve) {
+            return setTimeout(resolve, 200);
+          });
+        case 1:
+          console.log("\uD83D\uDFE1 \xC9tape ".concat(stepId, " activ\xE9e: ").concat(message));
+        case 2:
+          return _context4.a(2);
+      }
+    }, _callee4);
+  }));
+  function activateStep(_x, _x2) {
+    return _activateStep.apply(this, arguments);
+  }
+  return activateStep;
+}()), "completeStep", function () {
+  var _completeStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee5(stepId, message) {
+    var step;
+    return ui_controller_regenerator().w(function (_context5) {
+      while (1) switch (_context5.n) {
+        case 0:
+          step = document.getElementById(stepId);
+          if (!step) {
+            _context5.n = 2;
+            break;
+          }
+          _context5.n = 1;
+          return new Promise(function (resolve) {
+            return setTimeout(resolve, 300);
+          });
+        case 1:
+          // Marquer comme complété
+          step.classList.remove('active');
+          step.classList.add('completed');
+
+          // Petite pause avant l'étape suivante
+          _context5.n = 2;
+          return new Promise(function (resolve) {
+            return setTimeout(resolve, 200);
+          });
+        case 2:
+          console.log("\u2705 \xC9tape ".concat(stepId, " termin\xE9e: ").concat(message));
+        case 3:
+          return _context5.a(2);
+      }
+    }, _callee5);
+  }));
+  function completeStep(_x3, _x4) {
+    return _completeStep.apply(this, arguments);
+  }
+  return completeStep;
+}()), "runRealAlgorithmSteps", function () {
+  var _runRealAlgorithmSteps = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee6(models) {
+    var allResults, i, model, stepId, ffdResult, ilpResult, _ffdResult, _t4, _t5;
+    return ui_controller_regenerator().w(function (_context6) {
+      while (1) switch (_context6.n) {
+        case 0:
+          console.log('🚀 Exécution réelle étape par étape (version simplifiée)');
+          allResults = {}; // Initialiser la structure des résultats
+          models.forEach(function (model) {
+            allResults[model.key] = {
+              model: model,
+              ffdResult: null,
+              ilpResult: null
+            };
+          });
+
+          // EXÉCUTION: Une étape par modèle (FFD + ILP combinés)
+          i = 0;
+        case 1:
+          if (!(i < models.length)) {
+            _context6.n = 12;
+            break;
+          }
+          model = models[i];
+          stepId = "step-model-".concat(i);
+          console.log("\uD83C\uDFAF Optimisation compl\xE8te pour ".concat(model.key, " (").concat(i + 1, "/").concat(models.length, ")"));
+
+          // ACTIVER l'étape avant l'exécution
+          _context6.n = 2;
+          return this.activateStep(stepId, "Optimisation de ".concat(model.label, "..."));
+        case 2:
+          _context6.p = 2;
+          // EXÉCUTION FFD en arrière-plan
+          console.log("  \uD83D\uDD04 FFD pour ".concat(model.key));
+          ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
+          allResults[model.key].ffdResult = ffdResult;
+          _context6.n = 3;
+          return new Promise(function (resolve) {
+            return setTimeout(resolve, 200);
+          });
+        case 3:
+          // EXÉCUTION ILP en arrière-plan
+          console.log("  \uD83D\uDD04 ILP pour ".concat(model.key));
+          ilpResult = this.algorithmService.runAlgorithmOnSingleModel('ilp', model);
+          allResults[model.key].ilpResult = ilpResult;
+
+          // COMPLÉTER l'étape après les deux algorithmes
+          _context6.n = 4;
+          return this.completeStep(stepId, "".concat(model.label, " optimis\xE9"));
+        case 4:
+          _context6.n = 11;
+          break;
+        case 5:
+          _context6.p = 5;
+          _t4 = _context6.v;
+          console.error("\u274C Erreur optimisation pour ".concat(model.key, ":"), _t4);
+
+          // Essayer au moins un algorithme si l'autre a échoué
+          if (!(!allResults[model.key].ffdResult && !allResults[model.key].ilpResult)) {
+            _context6.n = 10;
+            break;
+          }
+          _context6.p = 6;
+          console.log("  \uD83D\uDD04 Tentative FFD seul pour ".concat(model.key));
+          _ffdResult = this.algorithmService.runAlgorithmOnSingleModel('ffd', model);
+          allResults[model.key].ffdResult = _ffdResult;
+          _context6.n = 7;
+          return this.completeStep(stepId, "".concat(model.label, " optimis\xE9 (FFD uniquement)"));
+        case 7:
+          _context6.n = 9;
+          break;
+        case 8:
+          _context6.p = 8;
+          _t5 = _context6.v;
+          console.error("\u274C Erreur FFD pour ".concat(model.key, ":"), _t5);
+          _context6.n = 9;
+          return this.completeStep(stepId, "".concat(model.label, " - \xC9chec optimisation"));
+        case 9:
+          _context6.n = 11;
+          break;
+        case 10:
+          _context6.n = 11;
+          return this.completeStep(stepId, "".concat(model.label, " partiellement optimis\xE9"));
+        case 11:
+          i++;
+          _context6.n = 1;
+          break;
+        case 12:
+          return _context6.a(2, allResults);
+      }
+    }, _callee6, this, [[6, 8], [2, 5]]);
+  }));
+  function runRealAlgorithmSteps(_x5) {
+    return _runRealAlgorithmSteps.apply(this, arguments);
+  }
+  return runRealAlgorithmSteps;
+}()), "runFinalComparison", function () {
+  var _runFinalComparison = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee7(allResults) {
+    var stepCompareId, modelResults, _i2, _Object$entries2, _Object$entries2$_i, modelKey, results, ffdResult, ilpResult, bestResult, finalResults;
+    return ui_controller_regenerator().w(function (_context7) {
+      while (1) switch (_context7.n) {
+        case 0:
+          stepCompareId = 'step-compare'; // ACTIVER l'étape de comparaison
+          _context7.n = 1;
+          return this.activateStep(stepCompareId, 'Comparaison des algorithmes et sélection...');
+        case 1:
+          console.log('🔄 Comparaison finale des résultats');
+          modelResults = {}; // Comparer et sélectionner pour chaque modèle
+          for (_i2 = 0, _Object$entries2 = Object.entries(allResults); _i2 < _Object$entries2.length; _i2++) {
+            _Object$entries2$_i = ui_controller_slicedToArray(_Object$entries2[_i2], 2), modelKey = _Object$entries2$_i[0], results = _Object$entries2$_i[1];
+            ffdResult = results.ffdResult, ilpResult = results.ilpResult;
+            if (ffdResult || ilpResult) {
+              bestResult = this.algorithmService.selectBestForModel(modelKey, ffdResult, ilpResult);
+              modelResults[modelKey] = bestResult;
+            }
+          }
+
+          // Construire les résultats finaux
+          finalResults = this.algorithmService.buildFinalResults(modelResults); // COMPLÉTER l'étape de comparaison
+          _context7.n = 2;
+          return this.completeStep(stepCompareId, 'Comparaison terminée');
+        case 2:
+          return _context7.a(2, finalResults);
+      }
+    }, _callee7, this);
+  }));
+  function runFinalComparison(_x6) {
+    return _runFinalComparison.apply(this, arguments);
+  }
+  return runFinalComparison;
+}()), "runPgmGenerationStep", function () {
+  var _runPgmGenerationStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee8() {
+    var stepPgmId, _t6;
+    return ui_controller_regenerator().w(function (_context8) {
+      while (1) switch (_context8.n) {
+        case 0:
+          stepPgmId = 'step-pgm'; // ACTIVER l'étape PGM
+          _context8.n = 1;
+          return this.activateStep(stepPgmId, 'Génération des fichiers PGM...');
+        case 1:
+          _context8.p = 1;
+          // Génération réelle des PGM
+          this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
+          ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
+          this.resultsHandler.generatePgmPreviews();
+
+          // COMPLÉTER l'étape PGM
+          _context8.n = 2;
+          return this.completeStep(stepPgmId, 'Fichiers PGM générés');
+        case 2:
+          _context8.n = 5;
+          break;
+        case 3:
+          _context8.p = 3;
+          _t6 = _context8.v;
+          console.error('❌ Erreur lors de la génération PGM:', _t6);
+          _context8.n = 4;
+          return this.completeStep(stepPgmId, 'Erreur génération PGM');
+        case 4:
+          this.showNotification('Erreur lors de la génération des aperçus PGM', 'warning');
+        case 5:
+          return _context8.a(2);
+      }
+    }, _callee8, this, [[1, 3]]);
+  }));
+  function runPgmGenerationStep() {
+    return _runPgmGenerationStep.apply(this, arguments);
+  }
+  return runPgmGenerationStep;
 }()), "createStepDiv", function createStepDiv(id, icon, label) {
   var div = document.createElement('div');
   div.className = 'loading-step';
@@ -10187,7 +10217,7 @@ var UIController = ui_controller_defineProperty(ui_controller_defineProperty(ui_
     console.error('❌ Erreur lors de l\'affichage des résultats:', error);
     this.showNotification('Erreur lors de l\'affichage des résultats', 'error');
   }
-});
+}));
 ;// ./src/js/parser.js
 /**
  * Analyseur pour fichiers .nc2
@@ -11386,6 +11416,27 @@ var algorithms = {
 
 // Export parser for the import manager
 
+
+// NOUVEAU: Initialiser le thème très tôt
+function initializeEarlyTheme() {
+  // MODIFIÉ: Ne plus utiliser localStorage, toujours partir du système
+  var html = document.documentElement;
+
+  // Supprimer toutes les classes de thème existantes
+  html.classList.remove('dark-theme', 'light-theme');
+
+  // Appliquer le thème selon les préférences système
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    html.classList.add('dark-theme');
+    console.log('🌙 Thème système: dark');
+  } else {
+    html.classList.add('light-theme');
+    console.log('☀️ Thème système: light');
+  }
+}
+
+// Initialiser le thème avant même le DOM
+initializeEarlyTheme();
 
 // Initialiser l'application
 document.addEventListener('DOMContentLoaded', /*#__PURE__*/js_asyncToGenerator(/*#__PURE__*/js_regenerator().m(function _callee() {
