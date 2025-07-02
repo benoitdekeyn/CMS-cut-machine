@@ -40,13 +40,12 @@ export const UIController = {
    * NOUVEAU: Initialise le thème au chargement
    */
   initializeTheme: function() {
-    const storedTheme = localStorage.getItem('theme');
+    // MODIFIÉ: Ne plus utiliser localStorage, toujours partir du système
+    const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    console.log(`🖥️ Initialisation avec le thème système: ${systemTheme}`);
     
-    if (storedTheme) {
-      this.applyTheme(storedTheme);
-    }
-    
-    console.log('🎨 Thème initialisé');
+    this.applyTheme(systemTheme);
+    console.log('🎨 Thème initialisé selon le système');
   },
 
   /**
@@ -72,11 +71,14 @@ export const UIController = {
    * NOUVEAU: Détecte si le mode sombre est actif
    */
   isDarkMode: function() {
-    // Vérifier d'abord s'il y a une préférence stockée
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme) {
-      console.log(`🎨 Thème stocké: ${storedTheme}`);
-      return storedTheme === 'dark';
+    // MODIFIÉ: Ne plus vérifier localStorage, toujours utiliser les classes appliquées ou le système
+    const html = document.documentElement;
+    
+    // Vérifier si une classe de thème est appliquée
+    if (html.classList.contains('dark-theme')) {
+      return true;
+    } else if (html.classList.contains('light-theme')) {
+      return false;
     }
     
     // Sinon, utiliser la préférence système
@@ -95,11 +97,11 @@ export const UIController = {
    */
   toggleTheme: function() {
     const currentTheme = this.isDarkMode() ? 'light' : 'dark';
-    console.log(`🎨 Basculement vers: ${currentTheme}`);
+    console.log(`🎨 Basculement manuel vers: ${currentTheme}`);
     
-    // Stocker la préférence
-    localStorage.setItem('theme', currentTheme);
-    console.log(`💾 Thème sauvegardé: ${currentTheme}`);
+    // SUPPRIMÉ: Ne plus sauvegarder la préférence utilisateur
+    // localStorage.setItem('theme', currentTheme);
+    console.log(`🔄 Basculement temporaire vers: ${currentTheme}`);
     
     // Appliquer le thème
     this.applyTheme(currentTheme);
@@ -107,7 +109,7 @@ export const UIController = {
     // Mettre à jour le toggle
     this.updateThemeToggleState();
     
-    console.log(`✅ Thème basculé vers: ${currentTheme}`);
+    console.log(`✅ Thème basculé temporairement vers: ${currentTheme}`);
   },
 
   /**
@@ -149,7 +151,7 @@ export const UIController = {
       // Initialiser l'état du toggle selon le thème actuel
       this.initializeThemeToggle();
       
-      // AJOUTÉ: Debug pour vérifier que l'événement est bien attaché
+      // MODIFIÉ: Toggle qui bascule toujours entre les modes mais reste synchronisé au système
       themeToggle.addEventListener('click', (event) => {
         console.log('🎨 Toggle de thème cliqué !');
         event.preventDefault();
@@ -157,16 +159,112 @@ export const UIController = {
         this.toggleTheme();
       });
       
-      // Écouter les changements de préférence système
+      // MODIFIÉ: Toujours synchroniser avec le système, même s'il y a une préférence stockée
       if (window.matchMedia) {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', () => {
-          console.log('🎨 Préférence système changée');
+        mediaQuery.addEventListener('change', (e) => {
+          console.log('🎨 Préférence système changée vers:', e.matches ? 'dark' : 'light');
+          
+          // NOUVEAU: Toujours suivre le système, peu importe les préférences stockées
+          const newTheme = e.matches ? 'dark' : 'light';
+          console.log(`🔄 Synchronisation automatique vers: ${newTheme}`);
+          
+          // Appliquer le nouveau thème
+          this.applyTheme(newTheme);
+          
+          // Mettre à jour le toggle pour refléter le changement
           this.updateThemeToggleState();
+          
+          // Notification discrète
+          if (this.showNotification) {
+            this.showNotification(`Mode ${newTheme === 'dark' ? 'sombre' : 'clair'} (système)`, 'info');
+          }
         });
       }
       
-      console.log('✅ Toggle de thème configuré');
+      console.log('✅ Toggle de thème configuré avec synchronisation automatique permanente');
+    } else {
+      console.warn('⚠️ Élément theme-toggle non trouvé');
+    }
+  },
+
+  /**
+   * NOUVEAU: Méthode pour réinitialiser et suivre les préférences système
+   */
+  resetToSystemTheme: function() {
+    console.log('🔄 Réinitialisation vers les préférences système');
+    
+    // Supprimer la préférence stockée
+    localStorage.removeItem('theme');
+    
+    // Détecter et appliquer le thème système actuel
+    const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    console.log(`🖥️ Thème système détecté: ${systemTheme}`);
+    
+    // Appliquer le thème système
+    this.applyTheme(systemTheme);
+    
+    // Mettre à jour le toggle
+    this.updateThemeToggleState();
+    
+    if (this.showNotification) {
+      this.showNotification('Synchronisation automatique avec le système activée', 'info');
+    }
+    
+    console.log('✅ Synchronisation système activée');
+  },
+
+  /**
+   * NOUVEAU: Initialise l'état du toggle de thème
+   */
+  initializeThemeToggle: function() {
+    console.log('🎨 Initialisation de l\'état du toggle');
+    this.updateThemeToggleState();
+  },
+
+  /**
+   * NOUVEAU: Configure le toggle de thème
+   */
+  setupThemeToggle: function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      console.log('🎨 Configuration du toggle de thème');
+      
+      // Initialiser l'état du toggle selon le thème actuel
+      this.initializeThemeToggle();
+      
+      // MODIFIÉ: Toggle qui bascule toujours entre les modes mais reste synchronisé au système
+      themeToggle.addEventListener('click', (event) => {
+        console.log('🎨 Toggle de thème cliqué !');
+        event.preventDefault();
+        event.stopPropagation();
+        this.toggleTheme();
+      });
+      
+      // MODIFIÉ: Toujours synchroniser avec le système, même s'il y a une préférence stockée
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', (e) => {
+          console.log('🎨 Préférence système changée vers:', e.matches ? 'dark' : 'light');
+          
+          // NOUVEAU: Toujours suivre le système, peu importe les préférences stockées
+          const newTheme = e.matches ? 'dark' : 'light';
+          console.log(`🔄 Synchronisation automatique vers: ${newTheme}`);
+          
+          // Appliquer le nouveau thème
+          this.applyTheme(newTheme);
+          
+          // Mettre à jour le toggle pour refléter le changement
+          this.updateThemeToggleState();
+          
+          // Notification discrète
+          if (this.showNotification) {
+            this.showNotification(`Mode ${newTheme === 'dark' ? 'sombre' : 'clair'} (système)`, 'info');
+          }
+        });
+      }
+      
+      console.log('✅ Toggle de thème configuré avec synchronisation automatique permanente');
     } else {
       console.warn('⚠️ Élément theme-toggle non trouvé');
     }

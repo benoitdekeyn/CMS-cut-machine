@@ -31,17 +31,20 @@ export { Parser };
 
 // NOUVEAU: Initialiser le thème très tôt
 function initializeEarlyTheme() {
-  const storedTheme = localStorage.getItem('theme');
+  // MODIFIÉ: Ne plus utiliser localStorage, toujours partir du système
   const html = document.documentElement;
   
-  if (storedTheme === 'dark') {
+  // Supprimer toutes les classes de thème existantes
+  html.classList.remove('dark-theme', 'light-theme');
+  
+  // Appliquer le thème selon les préférences système
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     html.classList.add('dark-theme');
-    html.classList.remove('light-theme');
-  } else if (storedTheme === 'light') {
+    console.log('🌙 Thème système: dark');
+  } else {
     html.classList.add('light-theme');
-    html.classList.remove('dark-theme');
+    console.log('☀️ Thème système: light');
   }
-  // Si pas de thème stocké, laisser les préférences système agir via CSS
 }
 
 // Initialiser le thème avant même le DOM
