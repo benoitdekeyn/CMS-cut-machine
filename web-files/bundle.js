@@ -8513,8 +8513,7 @@ function results_handler_asyncToGenerator(n) { return function () { var t = this
  * Gère le rendu des résultats et la génération des fichiers PGM
  */
 
- // AJOUT: Import manquant
- // AJOUT: Import manquant
+
 
 var ResultsHandler = {
   // Dépendances
@@ -8622,20 +8621,33 @@ var ResultsHandler = {
     });
   },
   /**
-   * Télécharge un fichier PGM individuel
+   * MODIFIÉ: Télécharge un fichier PGM individuel avec overlay de chargement
    */
   downloadSinglePgm: function downloadSinglePgm(pgmIndex) {
     try {
+      // NOUVEAU: Afficher l'overlay de téléchargement
+      UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
       var pgmObjects = this.uiController.getCurrentPgmObjects();
       if (!pgmObjects || !pgmObjects[pgmIndex]) {
+        UIUtils.hideSimpleLoadingOverlay();
         this.showNotification('Objet PGM introuvable', 'error');
         return;
       }
       var pgmObject = pgmObjects[pgmIndex];
       var pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
       var fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
-      UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+
+      // Utiliser setTimeout pour permettre à l'overlay de s'afficher avant le téléchargement
+      setTimeout(function () {
+        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+
+        // Masquer l'overlay après un court délai pour laisser le temps au popup de s'afficher
+        setTimeout(function () {
+          UIUtils.hideSimpleLoadingOverlay();
+        }, 500);
+      }, 100);
     } catch (error) {
+      UIUtils.hideSimpleLoadingOverlay();
       console.error('Erreur lors du téléchargement PGM:', error);
       this.showNotification("Erreur lors du t\xE9l\xE9chargement: ".concat(error.message), 'error');
     }
@@ -8763,61 +8775,109 @@ var ResultsHandler = {
     };
     document.addEventListener('keydown', _handleEscape);
 
-    // Bouton de téléchargement
+    // MODIFIÉ: Bouton de téléchargement avec overlay
     modal.querySelector('.modal-download').addEventListener('click', function () {
       try {
-        var pgmContent = _this3.pgmGenerator.generatePgmFromObject(pgmObject, _this3.dataManager);
-        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
-        _this3.closePgmInfoModal();
+        // NOUVEAU: Afficher l'overlay de téléchargement
+        UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
+
+        // Utiliser setTimeout pour permettre à l'overlay de s'afficher
+        setTimeout(function () {
+          var pgmContent = _this3.pgmGenerator.generatePgmFromObject(pgmObject, _this3.dataManager);
+          UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+
+          // Fermer le modal et masquer l'overlay après un délai
+          setTimeout(function () {
+            _this3.closePgmInfoModal();
+            UIUtils.hideSimpleLoadingOverlay();
+          }, 500);
+        }, 100);
       } catch (error) {
+        UIUtils.hideSimpleLoadingOverlay();
         console.error('Erreur téléchargement:', error);
         _this3.showNotification('Erreur lors du téléchargement', 'error');
       }
     });
   },
   /**
-   * CORRIGÉ: Télécharge tous les fichiers PGM dans un ZIP
+   * MODIFIÉ: Télécharge tous les fichiers PGM dans un ZIP avec overlay de chargement
    */
   downloadAllPgm: function () {
-    var _downloadAllPgm = results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee() {
-      var result, _t;
-      return results_handler_regenerator().w(function (_context) {
-        while (1) switch (_context.n) {
+    var _downloadAllPgm = results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee2() {
+      var _this4 = this;
+      var _t2;
+      return results_handler_regenerator().w(function (_context2) {
+        while (1) switch (_context2.n) {
           case 0:
-            _context.p = 0;
+            _context2.p = 0;
             console.log('🔽 Début du téléchargement des PGM...');
             if (this.uiController.currentPgmObjects) {
-              _context.n = 1;
+              _context2.n = 1;
               break;
             }
             throw new Error('Aucun objet PGM disponible');
           case 1:
-            _context.n = 2;
-            return PgmGenerator.generateAllPgmFromObjects(this.uiController.currentPgmObjects, this.uiController.dataManager);
-          case 2:
-            result = _context.v;
-            // CORRECTION: Vérifier que result a la bonne structure
-            console.log("\uD83D\uDCE6 Nom du ZIP g\xE9n\xE9r\xE9: ".concat(result.fileName));
+            // NOUVEAU: Afficher l'overlay de téléchargement
+            UIUtils.showSimpleLoadingOverlay('Génération du fichier ZIP...');
 
-            // Télécharger avec le nom automatiquement généré
-            UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
-            _context.n = 4;
+            // Utiliser setTimeout pour permettre à l'overlay de s'afficher
+            setTimeout(/*#__PURE__*/results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee() {
+              var result, _t;
+              return results_handler_regenerator().w(function (_context) {
+                while (1) switch (_context.n) {
+                  case 0:
+                    _context.p = 0;
+                    _context.n = 1;
+                    return PgmGenerator.generateAllPgmFromObjects(_this4.uiController.currentPgmObjects, _this4.uiController.dataManager);
+                  case 1:
+                    result = _context.v;
+                    // CORRECTION: Vérifier que result a la bonne structure
+                    console.log("\uD83D\uDCE6 Nom du ZIP g\xE9n\xE9r\xE9: ".concat(result.fileName));
+
+                    // Télécharger avec le nom automatiquement généré
+                    UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
+
+                    // Masquer l'overlay après un délai pour laisser le temps au popup de s'afficher
+                    setTimeout(function () {
+                      UIUtils.hideSimpleLoadingOverlay();
+                    }, 1000); // Délai plus long pour le ZIP car il peut être plus lourd
+                    _context.n = 3;
+                    break;
+                  case 2:
+                    _context.p = 2;
+                    _t = _context.v;
+                    UIUtils.hideSimpleLoadingOverlay();
+                    console.error('❌ Erreur téléchargement PGM:', _t);
+
+                    // CORRECTION: Utiliser this.showNotification ou NotificationService
+                    if (_this4.showNotification) {
+                      _this4.showNotification("\u274C Erreur: ".concat(_t.message), 'error');
+                    } else {
+                      NotificationService.show("\u274C Erreur: ".concat(_t.message), 'error');
+                    }
+                  case 3:
+                    return _context.a(2);
+                }
+              }, _callee, null, [[0, 2]]);
+            })), 100);
+            _context2.n = 3;
             break;
-          case 3:
-            _context.p = 3;
-            _t = _context.v;
-            console.error('❌ Erreur téléchargement PGM:', _t);
+          case 2:
+            _context2.p = 2;
+            _t2 = _context2.v;
+            UIUtils.hideSimpleLoadingOverlay();
+            console.error('❌ Erreur téléchargement PGM:', _t2);
 
             // CORRECTION: Utiliser this.showNotification ou NotificationService
             if (this.showNotification) {
-              this.showNotification("\u274C Erreur: ".concat(_t.message), 'error');
+              this.showNotification("\u274C Erreur: ".concat(_t2.message), 'error');
             } else {
-              NotificationService.show("\u274C Erreur: ".concat(_t.message), 'error');
+              NotificationService.show("\u274C Erreur: ".concat(_t2.message), 'error');
             }
-          case 4:
-            return _context.a(2);
+          case 3:
+            return _context2.a(2);
         }
-      }, _callee, this, [[0, 3]]);
+      }, _callee2, this, [[0, 2]]);
     }));
     function downloadAllPgm() {
       return _downloadAllPgm.apply(this, arguments);

@@ -3,8 +3,8 @@
  * Gère le rendu des résultats et la génération des fichiers PGM
  */
 import { UIUtils } from './utils.js';
-import { NotificationService } from './notification-service.js'; // AJOUT: Import manquant
-import { PgmGenerator } from '../pgm-generator.js'; // AJOUT: Import manquant
+import { NotificationService } from './notification-service.js';
+import { PgmGenerator } from '../pgm-generator.js';
 
 export const ResultsHandler = {
   // Dépendances
@@ -154,13 +154,17 @@ export const ResultsHandler = {
   },
   
   /**
-   * Télécharge un fichier PGM individuel
+   * MODIFIÉ: Télécharge un fichier PGM individuel avec overlay de chargement
    */
   downloadSinglePgm: function(pgmIndex) {
     try {
+      // NOUVEAU: Afficher l'overlay de téléchargement
+      UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
+      
       const pgmObjects = this.uiController.getCurrentPgmObjects();
       
       if (!pgmObjects || !pgmObjects[pgmIndex]) {
+        UIUtils.hideSimpleLoadingOverlay();
         this.showNotification('Objet PGM introuvable', 'error');
         return;
       }
@@ -169,9 +173,18 @@ export const ResultsHandler = {
       const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
       const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
       
-      UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+      // Utiliser setTimeout pour permettre à l'overlay de s'afficher avant le téléchargement
+      setTimeout(() => {
+        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+        
+        // Masquer l'overlay après un court délai pour laisser le temps au popup de s'afficher
+        setTimeout(() => {
+          UIUtils.hideSimpleLoadingOverlay();
+        }, 500);
+      }, 100);
       
     } catch (error) {
+      UIUtils.hideSimpleLoadingOverlay();
       console.error('Erreur lors du téléchargement PGM:', error);
       this.showNotification(`Erreur lors du téléchargement: ${error.message}`, 'error');
     }
@@ -385,13 +398,26 @@ export const ResultsHandler = {
     };
     document.addEventListener('keydown', handleEscape);
     
-    // Bouton de téléchargement
+    // MODIFIÉ: Bouton de téléchargement avec overlay
     modal.querySelector('.modal-download').addEventListener('click', () => {
       try {
-        const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
-        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
-        this.closePgmInfoModal();
+        // NOUVEAU: Afficher l'overlay de téléchargement
+        UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
+        
+        // Utiliser setTimeout pour permettre à l'overlay de s'afficher
+        setTimeout(() => {
+          const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
+          UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+          
+          // Fermer le modal et masquer l'overlay après un délai
+          setTimeout(() => {
+            this.closePgmInfoModal();
+            UIUtils.hideSimpleLoadingOverlay();
+          }, 500);
+        }, 100);
+        
       } catch (error) {
+        UIUtils.hideSimpleLoadingOverlay();
         console.error('Erreur téléchargement:', error);
         this.showNotification('Erreur lors du téléchargement', 'error');
       }
@@ -399,7 +425,7 @@ export const ResultsHandler = {
   },
   
   /**
-   * CORRIGÉ: Télécharge tous les fichiers PGM dans un ZIP
+   * MODIFIÉ: Télécharge tous les fichiers PGM dans un ZIP avec overlay de chargement
    */
   downloadAllPgm: async function() {
     try {
@@ -409,23 +435,44 @@ export const ResultsHandler = {
         throw new Error('Aucun objet PGM disponible');
       }
       
+      // NOUVEAU: Afficher l'overlay de téléchargement
+      UIUtils.showSimpleLoadingOverlay('Génération du fichier ZIP...');
       
-      
-      // CORRECTION: Utiliser PgmGenerator directement (pas this.pgmGenerator)
-      const result = await PgmGenerator.generateAllPgmFromObjects(
-        this.uiController.currentPgmObjects, 
-        this.uiController.dataManager
-      );
-      
-      // CORRECTION: Vérifier que result a la bonne structure
-      console.log(`📦 Nom du ZIP généré: ${result.fileName}`);
-      
-      // Télécharger avec le nom automatiquement généré
-      UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
-      
-      
+      // Utiliser setTimeout pour permettre à l'overlay de s'afficher
+      setTimeout(async () => {
+        try {
+          // CORRECTION: Utiliser PgmGenerator directement (pas this.pgmGenerator)
+          const result = await PgmGenerator.generateAllPgmFromObjects(
+            this.uiController.currentPgmObjects, 
+            this.uiController.dataManager
+          );
+          
+          // CORRECTION: Vérifier que result a la bonne structure
+          console.log(`📦 Nom du ZIP généré: ${result.fileName}`);
+          
+          // Télécharger avec le nom automatiquement généré
+          UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
+          
+          // Masquer l'overlay après un délai pour laisser le temps au popup de s'afficher
+          setTimeout(() => {
+            UIUtils.hideSimpleLoadingOverlay();
+          }, 1000); // Délai plus long pour le ZIP car il peut être plus lourd
+          
+        } catch (error) {
+          UIUtils.hideSimpleLoadingOverlay();
+          console.error('❌ Erreur téléchargement PGM:', error);
+          
+          // CORRECTION: Utiliser this.showNotification ou NotificationService
+          if (this.showNotification) {
+            this.showNotification(`❌ Erreur: ${error.message}`, 'error');
+          } else {
+            NotificationService.show(`❌ Erreur: ${error.message}`, 'error');
+          }
+        }
+      }, 100);
       
     } catch (error) {
+      UIUtils.hideSimpleLoadingOverlay();
       console.error('❌ Erreur téléchargement PGM:', error);
       
       // CORRECTION: Utiliser this.showNotification ou NotificationService

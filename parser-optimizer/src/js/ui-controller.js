@@ -1062,6 +1062,17 @@ export const UIController = {
       
       console.log('✅ Onglets de résultats affichés');
       
+      // MODIFIÉ: Scroll immédiat vers le haut sans animation, puis pas de scroll vers les détails
+      setTimeout(() => {
+        // Scroll instantané vers le haut de la page (sans animation)
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        console.log('🔝 Page positionnée en haut');
+        
+        // SUPPRIMÉ: Le scroll vers les détails des modèles
+        // La page reste simplement en haut, l'utilisateur peut défiler manuellement
+        
+      }, 100); // Court délai pour laisser le rendu se faire
+      
     } catch (error) {
       console.error('❌ Erreur lors de l\'affichage des résultats:', error);
       this.showNotification('Erreur lors de l\'affichage des résultats', 'error');
