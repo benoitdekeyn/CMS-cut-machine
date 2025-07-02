@@ -518,6 +518,19 @@
   margin-top: var(--space-xl);
   text-align: left;
   max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  /* Cache la barre de défilement */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer et Edge */
+  /* AJOUTÉ: Toujours commencer en haut */
+  scroll-padding-top: 0;
+}
+
+/* Cache la barre de défilement pour WebKit (Chrome, Safari) */
+.loading-steps::-webkit-scrollbar {
+  display: none;
 }
 
 .loading-step {
