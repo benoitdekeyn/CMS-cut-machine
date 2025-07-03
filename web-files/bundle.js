@@ -10377,27 +10377,31 @@ var Parser = {
     barre.S054 = Math.round((90 + barre.angle_1) * 100).toString();
     barre.S055 = Math.round((90 + barre.angle_2) * 100).toString();
 
-    // S058 = 1 sauf si les angles sont opposes = 2
-    barre.S058 = barre.angle_1 * barre.angle_2 < 0 ? '2' : '1';
-
     // S051 = longueur en fonction des angles
     var position_AK_S051 = [0, 0, 0];
+    var S058;
     if (barre.orientation === 'a-plat') {
       if (barre.angle_1 > 0) {
         position_AK_S051 = [1, 1, 4]; // AK v(1;4)
+        S058 = 2;
       } else {
         position_AK_S051 = [1, 1, 2]; // AK v(1;2)
+        S058 = 1;
       }
     } else if (barre.orientation === 'debout') {
       if (barre.angle_1 < 0) {
         position_AK_S051 = [2, 1, 2]; // AK o(1;2)
-      } else if (barre.angle_2 > 0 || barre.angle_1 > 0 && barre.angle_2 < 0) {
-        position_AK_S051 = [2, 1, 4]; // AK o(1;4)
-      } else {
+        S058 = 1;
+      } else if (barre.angle_1 == 0 && barre.angle_2 < 0) {
         position_AK_S051 = [2, 1, 3]; // AK o(1;3)
+        S058 = 1;
+      } else {
+        position_AK_S051 = [2, 1, 4]; // AK o(1;4)
+        S058 = 2;
       }
     }
     barre.S051 = Math.round(AK_valeurs[position_AK_S051[0]][position_AK_S051[1]][position_AK_S051[2]] * 10000).toString();
+    barre.S058 = S058.toString();
   },
   /**
    * Initialise un tableau 3D pour les valeurs AK avec indexation base 1
