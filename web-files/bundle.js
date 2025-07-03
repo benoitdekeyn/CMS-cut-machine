@@ -5690,7 +5690,7 @@ var ImportManager = {
         1: parsedData.angle_1 || 90,
         2: parsedData.angle_2 || 90
       },
-      // Propriétés F4C pour la génération PGM
+      // Propriétés F4C pour la génération F4C
       f4cData: {
         B021: parsedData.B021 || '',
         B035: parsedData.B035 || '',
@@ -5706,22 +5706,22 @@ var ImportManager = {
     };
   }
 };
-;// ./src/js/pgm-generator.js
-function pgm_generator_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return pgm_generator_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (pgm_generator_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, pgm_generator_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, pgm_generator_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), pgm_generator_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", pgm_generator_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), pgm_generator_regeneratorDefine2(u), pgm_generator_regeneratorDefine2(u, o, "Generator"), pgm_generator_regeneratorDefine2(u, n, function () { return this; }), pgm_generator_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (pgm_generator_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function pgm_generator_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } pgm_generator_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { pgm_generator_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, pgm_generator_regeneratorDefine2(e, r, n, t); }
-function pgm_generator_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function pgm_generator_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { pgm_generator_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { pgm_generator_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function pgm_generator_slicedToArray(r, e) { return pgm_generator_arrayWithHoles(r) || pgm_generator_iterableToArrayLimit(r, e) || pgm_generator_unsupportedIterableToArray(r, e) || pgm_generator_nonIterableRest(); }
-function pgm_generator_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function pgm_generator_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return pgm_generator_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? pgm_generator_arrayLikeToArray(r, a) : void 0; } }
-function pgm_generator_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function pgm_generator_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function pgm_generator_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+;// ./src/js/F4C-generator.js
+function F4C_generator_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return F4C_generator_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (F4C_generator_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, F4C_generator_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, F4C_generator_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), F4C_generator_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", F4C_generator_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), F4C_generator_regeneratorDefine2(u), F4C_generator_regeneratorDefine2(u, o, "Generator"), F4C_generator_regeneratorDefine2(u, n, function () { return this; }), F4C_generator_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (F4C_generator_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function F4C_generator_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } F4C_generator_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { F4C_generator_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, F4C_generator_regeneratorDefine2(e, r, n, t); }
+function F4C_generator_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function F4C_generator_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { F4C_generator_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { F4C_generator_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function F4C_generator_slicedToArray(r, e) { return F4C_generator_arrayWithHoles(r) || F4C_generator_iterableToArrayLimit(r, e) || F4C_generator_unsupportedIterableToArray(r, e) || F4C_generator_nonIterableRest(); }
+function F4C_generator_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function F4C_generator_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return F4C_generator_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? F4C_generator_arrayLikeToArray(r, a) : void 0; } }
+function F4C_generator_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function F4C_generator_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function F4C_generator_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 /**
- * Générateur de fichiers PGM à partir des objets PGM
+ * Générateur de fichiers F4C à partir des objets F4C
  */
 
-var PgmGenerator = {
+var F4CGenerator = {
   /**
    * MODIFIÉ: Formate une longueur en mètres avec décimales précises (POINT comme séparateur pour les noms de fichiers)
    * @param {number} lengthInCm - Longueur en centimètres
@@ -5780,15 +5780,15 @@ var PgmGenerator = {
     return "".concat(day, "-").concat(month, "-").concat(year);
   },
   /**
-   * MODIFIÉ: Génère le nom de fichier PGM adapté au nouveau format
-   * @param {Object} pgmObject - Objet PGM (nouveau format)
+   * MODIFIÉ: Génère le nom de fichier F4C adapté au nouveau format
+   * @param {Object} F4CObject - Objet F4C (nouveau format)
    * @returns {string} - Nom du fichier
    */
-  generatePgmFileName: function generatePgmFileName(pgmObject) {
-    var profil = pgmObject.profile;
-    var longueurCm = pgmObject.length;
-    var orientation = pgmObject.orientation;
-    var pieces = pgmObject.pieces || [];
+  generateF4CFileName: function generateF4CFileName(F4CObject) {
+    var profil = F4CObject.profile;
+    var longueurCm = F4CObject.length;
+    var orientation = F4CObject.orientation;
+    var pieces = F4CObject.pieces || [];
 
     // Longueur en mètres avec POINT décimal pour les noms de fichiers
     var longueurMetres = this.formatLengthInMeters(longueurCm, false);
@@ -5806,7 +5806,7 @@ var PgmGenerator = {
     });
 
     // Assembler le nom avec longueur précise (point décimal)
-    var nomFichier = "".concat(profil, "_").concat(longueurMetres, "m_").concat(orientation, "__").concat(nomsPieces.join('-'), ".pgm");
+    var nomFichier = "".concat(profil, "_").concat(longueurMetres, "m_").concat(orientation, "__").concat(nomsPieces.join('-'), ".F4C");
 
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
     nomFichier = nomFichier.replace(/[<>:"/\\|?*]/g, '_');
@@ -5814,27 +5814,27 @@ var PgmGenerator = {
     // Optionnel : tronquer à 120 caractères avant l'extension
     var maxLen = 120;
     if (nomFichier.length > maxLen + 4) {
-      // 4 pour ".pgm"
-      var ext = '.pgm';
+      // 4 pour ".F4C"
+      var ext = '.F4C';
       nomFichier = nomFichier.slice(0, maxLen) + ext;
     }
     return nomFichier;
   },
   /**
-   * Génère un fichier PGM à partir d'un objet PGM (nouveau format)
-   * @param {Object} pgmObject - Objet PGM (nouveau format)
+   * Génère un fichier F4C à partir d'un objet F4C (nouveau format)
+   * @param {Object} F4CObject - Objet F4C (nouveau format)
    * @param {Object} dataManager - Instance du DataManager
-   * @returns {string} - Contenu du fichier PGM
+   * @returns {string} - Contenu du fichier F4C
    */
-  generatePgmFromObject: function generatePgmFromObject(pgmObject, dataManager) {
+  generateF4CFromObject: function generateF4CFromObject(F4CObject, dataManager) {
     var _this = this;
-    console.log("\uD83D\uDD27 G\xE9n\xE9ration PGM pour ".concat(pgmObject.profile, "_").concat(pgmObject.orientation));
+    console.log("\uD83D\uDD27 G\xE9n\xE9ration F4C pour ".concat(F4CObject.profile, "_").concat(F4CObject.orientation));
     try {
       // NOUVEAU FORMAT : accès direct aux propriétés
-      var pieces = pgmObject.pieces || [];
-      var barLength = pgmObject.length;
+      var pieces = F4CObject.pieces || [];
+      var barLength = F4CObject.length;
       if (!pieces || pieces.length === 0) {
-        throw new Error('Aucune pièce à découper dans l\'objet PGM');
+        throw new Error('Aucune pièce à découper dans l\'objet F4C');
       }
 
       // Prendre les données F4C de la première pièce comme base pour le BODY
@@ -5842,9 +5842,9 @@ var PgmGenerator = {
 
       // Générer le BODY avec les données de la première pièce
       var bodyContent = this.generateBody(firstPiece, {
-        profile: pgmObject.profile,
+        profile: F4CObject.profile,
         length: barLength,
-        orientation: pgmObject.orientation
+        orientation: F4CObject.orientation
       });
 
       // Grouper les pièces identiques pour optimiser les STEPs
@@ -5856,17 +5856,17 @@ var PgmGenerator = {
       }).join('\n');
 
       // Assembler le contenu final
-      var pgmContent = "<!--CEB-->\n".concat(bodyContent, "\n").concat(stepsContent);
-      console.log("\u2705 PGM g\xE9n\xE9r\xE9: ".concat(groupedSteps.length, " steps pour ").concat(pieces.length, " pi\xE8ces"));
-      return pgmContent;
+      var F4CContent = "<!--CEB-->\n".concat(bodyContent, "\n").concat(stepsContent);
+      console.log("\u2705 F4C g\xE9n\xE9r\xE9: ".concat(groupedSteps.length, " steps pour ").concat(pieces.length, " pi\xE8ces"));
+      return F4CContent;
     } catch (error) {
-      console.error("\u274C Erreur g\xE9n\xE9ration PGM ".concat(pgmObject.profile, "_").concat(pgmObject.orientation, ":"), error);
+      console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(F4CObject.profile, "_").concat(F4CObject.orientation, ":"), error);
       throw error;
     }
   },
   /**
    * MODIFIÉ: Génère le contenu du BODY (adapté au nouveau format)
-   * @param {Object} firstPiece - Première pièce du PGM
+   * @param {Object} firstPiece - Première pièce du F4C
    * @param {Object} motherBarInfo - Informations de la barre mère
    * @returns {string} - Contenu du BODY
    */
@@ -5936,7 +5936,7 @@ var PgmGenerator = {
     // Construire la chaîne BODY
     var bodyParts = [];
     for (var _i = 0, _Object$entries = Object.entries(bodyTemplate); _i < _Object$entries.length; _i++) {
-      var _Object$entries$_i = pgm_generator_slicedToArray(_Object$entries[_i], 2),
+      var _Object$entries$_i = F4C_generator_slicedToArray(_Object$entries[_i], 2),
         key = _Object$entries$_i[0],
         value = _Object$entries$_i[1];
       bodyParts.push("".concat(key, "=\"").concat(value, "\""));
@@ -6025,7 +6025,7 @@ var PgmGenerator = {
     // Construire la chaîne STEP
     var stepParts = [];
     for (var _i2 = 0, _Object$entries2 = Object.entries(stepTemplate); _i2 < _Object$entries2.length; _i2++) {
-      var _Object$entries2$_i = pgm_generator_slicedToArray(_Object$entries2[_i2], 2),
+      var _Object$entries2$_i = F4C_generator_slicedToArray(_Object$entries2[_i2], 2),
         key = _Object$entries2$_i[0],
         value = _Object$entries2$_i[1];
       stepParts.push("".concat(key, "=\"").concat(value, "\""));
@@ -6034,18 +6034,18 @@ var PgmGenerator = {
   },
   /**
    * CORRIGÉ: Génère le nom du fichier ZIP au format demandé
-   * @param {Array} pgmObjects - Liste des objets PGM
+   * @param {Array} F4CObjects - Liste des objets F4C
    * @returns {string} - Nom du fichier ZIP
    */
-  generateZipFileName: function generateZipFileName(pgmObjects) {
+  generateZipFileName: function generateZipFileName(F4CObjects) {
     // Date au format AAAA-MM-JJ_HH-mm
     var now = new Date();
     var dateStr = this.formatDateTimeForFileName(now);
 
     // Compter le nombre total de barres uniques
     var barNames = new Set();
-    pgmObjects.forEach(function (pgm) {
-      pgm.pieces.forEach(function (piece) {
+    F4CObjects.forEach(function (F4C) {
+      F4C.pieces.forEach(function (piece) {
         // Correction : fallback si pieceReference absent
         var barName = '';
         if (piece.pieceReference && piece.pieceReference.nom && piece.pieceReference.nom.trim() !== '') {
@@ -6063,68 +6063,68 @@ var PgmGenerator = {
     var nombreBarres = barNames.size;
 
     // MODIFIÉ: Format final avec nombre de barres avant la date
-    var fileName = "lot_PGM_".concat(nombreBarres, "_barres_").concat(dateStr, ".zip");
+    var fileName = "lot_F4C_".concat(nombreBarres, "_barres_").concat(dateStr, ".zip");
 
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
     return fileName.replace(/[<>:"/\\|?*]/g, '_');
   },
   /**
-   * MODIFIÉ: Génère un ZIP avec tous les fichiers PGM à partir des objets PGM
-   * @param {Array} pgmObjects - Liste des objets PGM
+   * MODIFIÉ: Génère un ZIP avec tous les fichiers F4C à partir des objets F4C
+   * @param {Array} F4CObjects - Liste des objets F4C
    * @param {Object} dataManager - Instance du DataManager
    * @returns {Promise<{blob: Blob, fileName: string}>} - Blob et nom du fichier ZIP
    */
-  generateAllPgmFromObjects: function () {
-    var _generateAllPgmFromObjects = pgm_generator_asyncToGenerator(/*#__PURE__*/pgm_generator_regenerator().m(function _callee(pgmObjects, dataManager) {
-      var zip, fileNames, i, pgmObject, pgmContent, fileName, counter, uniqueFileName, nameParts, errorFileName, errorContent, summary, zipFileName, blob, _t;
-      return pgm_generator_regenerator().w(function (_context) {
+  generateAllF4CFromObjects: function () {
+    var _generateAllF4CFromObjects = F4C_generator_asyncToGenerator(/*#__PURE__*/F4C_generator_regenerator().m(function _callee(F4CObjects, dataManager) {
+      var zip, fileNames, i, F4CObject, F4CContent, fileName, counter, uniqueFileName, nameParts, errorFileName, errorContent, summary, zipFileName, blob, _t;
+      return F4C_generator_regenerator().w(function (_context) {
         while (1) switch (_context.n) {
           case 0:
-            console.log("\uD83C\uDFD7\uFE0F G\xE9n\xE9ration de ".concat(pgmObjects.length, " fichiers PGM..."));
-            if (!(!pgmObjects || pgmObjects.length === 0)) {
+            console.log("\uD83C\uDFD7\uFE0F G\xE9n\xE9ration de ".concat(F4CObjects.length, " fichiers F4C..."));
+            if (!(!F4CObjects || F4CObjects.length === 0)) {
               _context.n = 1;
               break;
             }
-            throw new Error('Aucun objet PGM fourni');
+            throw new Error('Aucun objet F4C fourni');
           case 1:
             zip = new (jszip_min_default())();
             fileNames = new Set(); // Pour éviter les doublons
             _context.p = 2;
-            // Générer chaque fichier PGM
-            for (i = 0; i < pgmObjects.length; i++) {
-              pgmObject = pgmObjects[i];
+            // Générer chaque fichier F4C
+            for (i = 0; i < F4CObjects.length; i++) {
+              F4CObject = F4CObjects[i];
               try {
-                // Générer le contenu PGM
-                pgmContent = this.generatePgmFromObject(pgmObject, dataManager); // Générer le nom de fichier
-                fileName = this.generatePgmFileName(pgmObject); // Gérer les doublons en ajoutant un numéro
+                // Générer le contenu F4C
+                F4CContent = this.generateF4CFromObject(F4CObject, dataManager); // Générer le nom de fichier
+                fileName = this.generateF4CFileName(F4CObject); // Gérer les doublons en ajoutant un numéro
                 counter = 1;
                 uniqueFileName = fileName;
                 while (fileNames.has(uniqueFileName)) {
-                  nameParts = fileName.split('.pgm');
-                  uniqueFileName = "".concat(nameParts[0], "_").concat(counter, ".pgm");
+                  nameParts = fileName.split('.F4C');
+                  uniqueFileName = "".concat(nameParts[0], "_").concat(counter, ".F4C");
                   counter++;
                 }
                 fileNames.add(uniqueFileName);
 
                 // Ajouter au ZIP
-                zip.file(uniqueFileName, pgmContent);
-                console.log("  \u2705 ".concat(uniqueFileName, " (").concat(pgmObject.pieces.length, " pi\xE8ces)"));
+                zip.file(uniqueFileName, F4CContent);
+                console.log("  \u2705 ".concat(uniqueFileName, " (").concat(F4CObject.pieces.length, " pi\xE8ces)"));
               } catch (error) {
-                console.error("\u274C Erreur g\xE9n\xE9ration PGM ".concat(i + 1, ":"), error);
+                console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(i + 1, ":"), error);
 
                 // Créer un fichier d'erreur pour continuer le processus
-                errorFileName = "ERREUR_PGM_".concat(i + 1, ".txt");
-                errorContent = "Erreur lors de la g\xE9n\xE9ration du PGM:\n".concat(error.message, "\n\nObjet PGM:\n").concat(JSON.stringify(pgmObject, null, 2));
+                errorFileName = "ERREUR_F4C_".concat(i + 1, ".txt");
+                errorContent = "Erreur lors de la g\xE9n\xE9ration du F4C:\n".concat(error.message, "\n\nObjet F4C:\n").concat(JSON.stringify(F4CObject, null, 2));
                 zip.file(errorFileName, errorContent);
               }
             }
 
             // Ajouter un fichier de résumé
-            summary = this.generateSummaryFile(pgmObjects);
+            summary = this.generateSummaryFile(F4CObjects);
             zip.file('RESUME_GENERATION.txt', summary);
 
             // Générer le nom du fichier ZIP
-            zipFileName = this.generateZipFileName(pgmObjects); // Générer le ZIP
+            zipFileName = this.generateZipFileName(F4CObjects); // Générer le ZIP
             console.log('📦 Création du fichier ZIP...');
             _context.n = 3;
             return zip.generateAsync({
@@ -6136,7 +6136,7 @@ var PgmGenerator = {
             });
           case 3:
             blob = _context.v;
-            console.log("\u2705 ZIP g\xE9n\xE9r\xE9 avec succ\xE8s: ".concat(zipFileName, " (").concat(fileNames.size, " fichiers PGM)"));
+            console.log("\u2705 ZIP g\xE9n\xE9r\xE9 avec succ\xE8s: ".concat(zipFileName, " (").concat(fileNames.size, " fichiers F4C)"));
 
             // Retourner le blob et le nom du fichier
             return _context.a(2, {
@@ -6153,30 +6153,30 @@ var PgmGenerator = {
         }
       }, _callee, this, [[2, 4]]);
     }));
-    function generateAllPgmFromObjects(_x, _x2) {
-      return _generateAllPgmFromObjects.apply(this, arguments);
+    function generateAllF4CFromObjects(_x, _x2) {
+      return _generateAllF4CFromObjects.apply(this, arguments);
     }
-    return generateAllPgmFromObjects;
+    return generateAllF4CFromObjects;
   }(),
   /**
    * MODIFIÉ: Génère un fichier de résumé pour le ZIP avec virgules décimales et format de date français
-   * @param {Array} pgmObjects - Liste des objets PGM
+   * @param {Array} F4CObjects - Liste des objets F4C
    * @returns {string} - Contenu du fichier de résumé
    */
-  generateSummaryFile: function generateSummaryFile(pgmObjects) {
+  generateSummaryFile: function generateSummaryFile(F4CObjects) {
     var _this2 = this;
     var now = new Date();
     var dateStr = this.formatDate(now);
     var timeStr = now.toLocaleTimeString('fr-FR');
-    var summary = "R\xC9SUM\xC9 DE G\xC9N\xC9RATION PGM\n";
+    var summary = "R\xC9SUM\xC9 DE G\xC9N\xC9RATION F4C\n";
     summary += "========================\n\n";
     summary += "Date de g\xE9n\xE9ration: ".concat(dateStr, " \xE0 ").concat(timeStr, "\n");
-    summary += "Nombre total de fichiers PGM: ".concat(pgmObjects.length, "\n\n");
+    summary += "Nombre total de fichiers F4C: ".concat(F4CObjects.length, "\n\n");
 
     // Statistiques par profil
     var profileStats = {};
-    pgmObjects.forEach(function (pgm) {
-      var profile = pgm.profile;
+    F4CObjects.forEach(function (F4C) {
+      var profile = F4C.profile;
       if (!profileStats[profile]) {
         profileStats[profile] = {
           count: 0,
@@ -6186,23 +6186,23 @@ var PgmGenerator = {
         };
       }
       profileStats[profile].count++;
-      profileStats[profile].totalPieces += pgm.pieces.length;
-      profileStats[profile].totalLength += pgm.length;
-      // Si tu as la chute sur le PGM, ajoute-la ici
-      if (typeof pgm.waste === 'number') {
-        profileStats[profile].totalWaste += pgm.waste;
+      profileStats[profile].totalPieces += F4C.pieces.length;
+      profileStats[profile].totalLength += F4C.length;
+      // Si tu as la chute sur le F4C, ajoute-la ici
+      if (typeof F4C.waste === 'number') {
+        profileStats[profile].totalWaste += F4C.waste;
       } else {
         // Sinon, calcule-la
-        var totalPiecesLength = pgm.pieces.reduce(function (sum, piece) {
+        var totalPiecesLength = F4C.pieces.reduce(function (sum, piece) {
           return sum + piece.length;
         }, 0);
-        profileStats[profile].totalWaste += pgm.length - totalPiecesLength;
+        profileStats[profile].totalWaste += F4C.length - totalPiecesLength;
       }
     });
     summary += "STATISTIQUES PAR PROFIL:\n";
     summary += "------------------------\n";
     for (var _i3 = 0, _Object$entries3 = Object.entries(profileStats); _i3 < _Object$entries3.length; _i3++) {
-      var _Object$entries3$_i = pgm_generator_slicedToArray(_Object$entries3[_i3], 2),
+      var _Object$entries3$_i = F4C_generator_slicedToArray(_Object$entries3[_i3], 2),
         profile = _Object$entries3$_i[0],
         stats = _Object$entries3$_i[1];
       var efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
@@ -6216,31 +6216,31 @@ var PgmGenerator = {
       summary += "  - Efficacit\xE9: ".concat(efficiency, "%\n\n");
     }
 
-    // DÉTAIL DES BARRES À DÉCOUPER PAR PGM
+    // DÉTAIL DES BARRES À DÉCOUPER PAR F4C
     summary += "D\xC9TAIL DES BARRES \xC0 D\xC9COUPER:\n";
     summary += "=============================\n\n";
-    pgmObjects.forEach(function (pgm, pgmIndex) {
-      var fileName = _this2.generatePgmFileName(pgm);
+    F4CObjects.forEach(function (F4C, F4CIndex) {
+      var fileName = _this2.generateF4CFileName(F4C);
       summary += "\u2554".concat('═'.repeat(80), "\n");
-      summary += "\u2551 PGM ".concat(pgmIndex + 1, ": ").concat(fileName, "\n");
+      summary += "\u2551 F4C ".concat(F4CIndex + 1, ": ").concat(fileName, "\n");
       summary += "\u255A".concat('═'.repeat(80), "\n\n");
-      var motherBarLengthMeters = _this2.formatLengthInMeters(pgm.length, true);
-      var totalPiecesLength = pgm.pieces.reduce(function (sum, piece) {
+      var motherBarLengthMeters = _this2.formatLengthInMeters(F4C.length, true);
+      var totalPiecesLength = F4C.pieces.reduce(function (sum, piece) {
         return sum + piece.length;
       }, 0);
-      var waste = pgm.length - totalPiecesLength;
-      summary += "Profil: ".concat(pgm.profile, "\n");
-      summary += "Orientation: ".concat(pgm.orientation, "\n");
+      var waste = F4C.length - totalPiecesLength;
+      summary += "Profil: ".concat(F4C.profile, "\n");
+      summary += "Orientation: ".concat(F4C.orientation, "\n");
       summary += "Longueur: ".concat(motherBarLengthMeters, " m\n");
       summary += "Chute: ".concat(waste, " cm\n");
 
       // Efficacité
-      var efficiency = pgm.length > 0 ? Math.round(totalPiecesLength / pgm.length * 100) : 0;
+      var efficiency = F4C.length > 0 ? Math.round(totalPiecesLength / F4C.length * 100) : 0;
       summary += "Efficacit\xE9: ".concat(efficiency, "%\n\n");
       summary += "Barres \xE0 d\xE9couper:\n";
       summary += "".concat('─'.repeat(50), "\n");
-      if (pgm.pieces && pgm.pieces.length > 0) {
-        pgm.pieces.forEach(function (piece, pieceIndex) {
+      if (F4C.pieces && F4C.pieces.length > 0) {
+        F4C.pieces.forEach(function (piece, pieceIndex) {
           var _piece$angles, _piece$angles2;
           var pieceName = piece.nom && piece.nom.trim() !== '' ? piece.nom : "".concat(piece.profile, "_").concat(piece.length, "cm");
           var angle1 = ((_piece$angles = piece.angles) === null || _piece$angles === void 0 ? void 0 : _piece$angles[1]) || 90;
@@ -6256,40 +6256,40 @@ var PgmGenerator = {
     return summary;
   }
 };
-;// ./src/js/pgm-manager.js
-function pgm_manager_typeof(o) { "@babel/helpers - typeof"; return pgm_manager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, pgm_manager_typeof(o); }
-function pgm_manager_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function pgm_manager_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? pgm_manager_ownKeys(Object(t), !0).forEach(function (r) { pgm_manager_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : pgm_manager_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function pgm_manager_defineProperty(e, r, t) { return (r = pgm_manager_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function pgm_manager_toPropertyKey(t) { var i = pgm_manager_toPrimitive(t, "string"); return "symbol" == pgm_manager_typeof(i) ? i : i + ""; }
-function pgm_manager_toPrimitive(t, r) { if ("object" != pgm_manager_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != pgm_manager_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function pgm_manager_toConsumableArray(r) { return pgm_manager_arrayWithoutHoles(r) || pgm_manager_iterableToArray(r) || pgm_manager_unsupportedIterableToArray(r) || pgm_manager_nonIterableSpread(); }
-function pgm_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function pgm_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function pgm_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return pgm_manager_arrayLikeToArray(r); }
-function pgm_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = pgm_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function pgm_manager_slicedToArray(r, e) { return pgm_manager_arrayWithHoles(r) || pgm_manager_iterableToArrayLimit(r, e) || pgm_manager_unsupportedIterableToArray(r, e) || pgm_manager_nonIterableRest(); }
-function pgm_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function pgm_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return pgm_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? pgm_manager_arrayLikeToArray(r, a) : void 0; } }
-function pgm_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function pgm_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function pgm_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+;// ./src/js/F4C-manager.js
+function F4C_manager_typeof(o) { "@babel/helpers - typeof"; return F4C_manager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, F4C_manager_typeof(o); }
+function F4C_manager_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function F4C_manager_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? F4C_manager_ownKeys(Object(t), !0).forEach(function (r) { F4C_manager_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : F4C_manager_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function F4C_manager_defineProperty(e, r, t) { return (r = F4C_manager_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function F4C_manager_toPropertyKey(t) { var i = F4C_manager_toPrimitive(t, "string"); return "symbol" == F4C_manager_typeof(i) ? i : i + ""; }
+function F4C_manager_toPrimitive(t, r) { if ("object" != F4C_manager_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != F4C_manager_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function F4C_manager_toConsumableArray(r) { return F4C_manager_arrayWithoutHoles(r) || F4C_manager_iterableToArray(r) || F4C_manager_unsupportedIterableToArray(r) || F4C_manager_nonIterableSpread(); }
+function F4C_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function F4C_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function F4C_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return F4C_manager_arrayLikeToArray(r); }
+function F4C_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = F4C_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function F4C_manager_slicedToArray(r, e) { return F4C_manager_arrayWithHoles(r) || F4C_manager_iterableToArrayLimit(r, e) || F4C_manager_unsupportedIterableToArray(r, e) || F4C_manager_nonIterableRest(); }
+function F4C_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function F4C_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return F4C_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? F4C_manager_arrayLikeToArray(r, a) : void 0; } }
+function F4C_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function F4C_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function F4C_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 /**
- * PGM Manager - Gère la création d'objets PGM à partir des schémas de coupe
- * Chaque objet PGM représente une barre mère à découper avec les références des pièces
+ * F4C Manager - Gère la création d'objets F4C à partir des schémas de coupe
+ * Chaque objet F4C représente une barre mère à découper avec les références des pièces
  */
 
 
-var PgmManager = {
+var F4CManager = {
   /**
-   * Génère les objets PGM à partir des résultats d'optimisation
+   * Génère les objets F4C à partir des résultats d'optimisation
    * @param {Object} optimizationResults - Résultats de l'optimisation
-   * @returns {Array} Liste d'objets PGM
+   * @returns {Array} Liste d'objets F4C
    */
-  generatePgmObjects: function generatePgmObjects(optimizationResults) {
+  generateF4CObjects: function generateF4CObjects(optimizationResults) {
     var pools = this.createPools(optimizationResults);
-    var pgmObjects = this.createPgmFromPools(pools);
-    return pgmObjects;
+    var F4CObjects = this.createF4CFromPools(pools);
+    return F4CObjects;
   },
   /**
    * Crée les pools à partir des résultats d'optimisation
@@ -6303,7 +6303,7 @@ var PgmManager = {
     for (var _i = 0, _modelNames = modelNames; _i < _modelNames.length; _i++) {
       var modelName = _modelNames[_i];
       var _modelName$split = modelName.split('_'),
-        _modelName$split2 = pgm_manager_slicedToArray(_modelName$split, 2),
+        _modelName$split2 = F4C_manager_slicedToArray(_modelName$split, 2),
         profile = _modelName$split2[0],
         orientation = _modelName$split2[1];
       var pool = this.createNewPool();
@@ -6311,7 +6311,7 @@ var PgmManager = {
       pool.orientation = orientation;
       var modelData = modelResults[modelName];
       if (modelData.layouts && Array.isArray(modelData.layouts)) {
-        var _iterator = pgm_manager_createForOfIteratorHelper(modelData.layouts),
+        var _iterator = F4C_manager_createForOfIteratorHelper(modelData.layouts),
           _step;
         try {
           for (_iterator.s(); !(_step = _iterator.n()).done;) {
@@ -6336,28 +6336,28 @@ var PgmManager = {
     return pools;
   },
   /**
-   * Crée les objets PGM finaux à partir des pools
+   * Crée les objets F4C finaux à partir des pools
    * @param {Array} pools - Les pools générés précédemment
-   * @returns {Array} Liste d'objets PGM
+   * @returns {Array} Liste d'objets F4C
    */
-  createPgmFromPools: function createPgmFromPools(pools) {
-    console.log('Création des PGM à partir des pools...');
-    var pgmList = [];
-    var _iterator2 = pgm_manager_createForOfIteratorHelper(pools),
+  createF4CFromPools: function createF4CFromPools(pools) {
+    console.log('Création des F4C à partir des pools...');
+    var F4CList = [];
+    var _iterator2 = F4C_manager_createForOfIteratorHelper(pools),
       _step2;
     try {
       for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         var pool = _step2.value;
         // Créer une copie des pièces disponibles pour cette pool
-        var availablePieces = pgm_manager_toConsumableArray(pool.pieces);
+        var availablePieces = F4C_manager_toConsumableArray(pool.pieces);
 
-        // Pour chaque layout, créer un PGM
-        var _iterator3 = pgm_manager_createForOfIteratorHelper(pool.layouts),
+        // Pour chaque layout, créer un F4C
+        var _iterator3 = F4C_manager_createForOfIteratorHelper(pool.layouts),
           _step3;
         try {
           for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
             var layout = _step3.value;
-            var pgm = {
+            var F4C = {
               profile: pool.profile,
               length: layout.length,
               orientation: pool.orientation,
@@ -6369,7 +6369,7 @@ var PgmManager = {
             };
 
             // Assigner les pièces aux cuts du layout
-            var _iterator4 = pgm_manager_createForOfIteratorHelper(layout.cuts),
+            var _iterator4 = F4C_manager_createForOfIteratorHelper(layout.cuts),
               _step4;
             try {
               var _loop = function _loop() {
@@ -6379,14 +6379,14 @@ var PgmManager = {
                   return piece.length === cutLength;
                 });
                 if (pieceIndex !== -1) {
-                  // Assigner cette pièce au PGM
+                  // Assigner cette pièce au F4C
                   var assignedPiece = availablePieces[pieceIndex];
-                  pgm.pieces.push(pgm_manager_objectSpread({}, assignedPiece)); // Copie de la pièce
+                  F4C.pieces.push(F4C_manager_objectSpread({}, assignedPiece)); // Copie de la pièce
 
                   // Si c'est la première pièce, définir B035 et B021
-                  if (pgm.pieces.length === 1 && assignedPiece.f4cData) {
-                    pgm.B035 = assignedPiece.f4cData.B035 || "0";
-                    pgm.B021 = assignedPiece.f4cData.B021 || "0";
+                  if (F4C.pieces.length === 1 && assignedPiece.f4cData) {
+                    F4C.B035 = assignedPiece.f4cData.B035 || "0";
+                    F4C.B021 = assignedPiece.f4cData.B021 || "0";
                   }
 
                   // Réduire la quantité ou retirer la pièce si quantité = 1
@@ -6407,7 +6407,7 @@ var PgmManager = {
             } finally {
               _iterator4.f();
             }
-            pgmList.push(pgm);
+            F4CList.push(F4C);
           }
         } catch (err) {
           _iterator3.e(err);
@@ -6420,67 +6420,67 @@ var PgmManager = {
     } finally {
       _iterator2.f();
     }
-    console.log('PGM créés:', pgmList);
-    return pgmList;
+    console.log('F4C créés:', F4CList);
+    return F4CList;
   },
   /**
-   * Génère un rapport de synthèse des objets PGM
-   * @param {Array} pgmObjects - Liste des objets PGM (nouveau format)
+   * Génère un rapport de synthèse des objets F4C
+   * @param {Array} F4CObjects - Liste des objets F4C (nouveau format)
    * @returns {Object} Rapport de synthèse
    */
-  generateSummaryReport: function generateSummaryReport(pgmObjects) {
-    if (!pgmObjects || pgmObjects.length === 0) {
+  generateSummaryReport: function generateSummaryReport(F4CObjects) {
+    if (!F4CObjects || F4CObjects.length === 0) {
       return {
-        totalPgm: 0,
+        totalF4C: 0,
         totalPieces: 0,
         byProfile: {},
         byOrientation: {},
-        summary: "Aucun PGM généré"
+        summary: "Aucun F4C généré"
       };
     }
     var report = {
-      totalPgm: pgmObjects.length,
+      totalF4C: F4CObjects.length,
       totalPieces: 0,
       byProfile: {},
       byOrientation: {},
       details: []
     };
 
-    // Analyser chaque PGM
-    pgmObjects.forEach(function (pgm, index) {
-      var piecesCount = pgm.pieces ? pgm.pieces.length : 0;
+    // Analyser chaque F4C
+    F4CObjects.forEach(function (F4C, index) {
+      var piecesCount = F4C.pieces ? F4C.pieces.length : 0;
       report.totalPieces += piecesCount;
 
       // Compter par profil
-      if (!report.byProfile[pgm.profile]) {
-        report.byProfile[pgm.profile] = {
+      if (!report.byProfile[F4C.profile]) {
+        report.byProfile[F4C.profile] = {
           count: 0,
           pieces: 0
         };
       }
-      report.byProfile[pgm.profile].count++;
-      report.byProfile[pgm.profile].pieces += piecesCount;
+      report.byProfile[F4C.profile].count++;
+      report.byProfile[F4C.profile].pieces += piecesCount;
 
       // Compter par orientation
-      if (!report.byOrientation[pgm.orientation]) {
-        report.byOrientation[pgm.orientation] = {
+      if (!report.byOrientation[F4C.orientation]) {
+        report.byOrientation[F4C.orientation] = {
           count: 0,
           pieces: 0
         };
       }
-      report.byOrientation[pgm.orientation].count++;
-      report.byOrientation[pgm.orientation].pieces += piecesCount;
+      report.byOrientation[F4C.orientation].count++;
+      report.byOrientation[F4C.orientation].pieces += piecesCount;
 
-      // Détails par PGM
+      // Détails par F4C
       report.details.push({
         index: index + 1,
-        profile: pgm.profile,
-        orientation: pgm.orientation,
-        length: pgm.length,
+        profile: F4C.profile,
+        orientation: F4C.orientation,
+        length: F4C.length,
         piecesCount: piecesCount,
-        B035: pgm.B035,
-        B021: pgm.B021,
-        pieceNames: pgm.pieces ? pgm.pieces.map(function (p) {
+        B035: F4C.B035,
+        B021: F4C.B021,
+        pieceNames: F4C.pieces ? F4C.pieces.map(function (p) {
           return p.nom;
         }).join(', ') : ''
       });
@@ -6488,23 +6488,23 @@ var PgmManager = {
 
     // Générer le résumé textuel
     var profileSummary = Object.entries(report.byProfile).map(function (_ref) {
-      var _ref2 = pgm_manager_slicedToArray(_ref, 2),
+      var _ref2 = F4C_manager_slicedToArray(_ref, 2),
         profile = _ref2[0],
         data = _ref2[1];
-      return "".concat(profile, ": ").concat(data.count, " PGM(s), ").concat(data.pieces, " pi\xE8ce(s)");
+      return "".concat(profile, ": ").concat(data.count, " F4C(s), ").concat(data.pieces, " pi\xE8ce(s)");
     }).join(' | ');
     var orientationSummary = Object.entries(report.byOrientation).map(function (_ref3) {
-      var _ref4 = pgm_manager_slicedToArray(_ref3, 2),
+      var _ref4 = F4C_manager_slicedToArray(_ref3, 2),
         orientation = _ref4[0],
         data = _ref4[1];
-      return "".concat(orientation, ": ").concat(data.count, " PGM(s), ").concat(data.pieces, " pi\xE8ce(s)");
+      return "".concat(orientation, ": ").concat(data.count, " F4C(s), ").concat(data.pieces, " pi\xE8ce(s)");
     }).join(' | ');
-    report.summary = "".concat(report.totalPgm, " PGM(s) g\xE9n\xE9r\xE9s avec ").concat(report.totalPieces, " pi\xE8ce(s) au total. Profils: ").concat(profileSummary, ". Orientations: ").concat(orientationSummary, ".");
+    report.summary = "".concat(report.totalF4C, " F4C(s) g\xE9n\xE9r\xE9s avec ").concat(report.totalPieces, " pi\xE8ce(s) au total. Profils: ").concat(profileSummary, ". Orientations: ").concat(orientationSummary, ".");
     return report;
   },
   /**
-   * Nouvel Objet PGM
-   * @returns {Object} Un nouvel objet PGM
+   * Nouvel Objet F4C
+   * @returns {Object} Un nouvel objet F4C
    */
   createNewPool: function createNewPool() {
     return {
@@ -8510,14 +8510,14 @@ function results_handler_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i =
 function results_handler_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { results_handler_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { results_handler_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 /**
  * Gestionnaire de la section résultats
- * Gère le rendu des résultats et la génération des fichiers PGM
+ * Gère le rendu des résultats et la génération des fichiers F4C
  */
 
 
 
 var ResultsHandler = {
   // Dépendances
-  pgmGenerator: null,
+  F4CGenerator: null,
   dataManager: null,
   uiController: null,
   // Callbacks
@@ -8528,118 +8528,118 @@ var ResultsHandler = {
    * Initialise le gestionnaire de résultats
    */
   init: function init(options) {
-    this.pgmGenerator = options.pgmGenerator;
+    this.F4CGenerator = options.F4CGenerator;
     this.dataManager = options.dataManager;
     this.uiController = options.uiController;
     this.showNotification = options.showNotification;
   },
   /**
-   * Génère les aperçus des fichiers PGM à partir des objets PGM
+   * Génère les aperçus des fichiers F4C à partir des objets F4C
    */
-  generatePgmPreviews: function generatePgmPreviews() {
+  generateF4CPreviews: function generateF4CPreviews() {
     var _this = this;
     try {
-      var container = document.getElementById('pgm-files-list');
+      var container = document.getElementById('F4C-files-list');
       if (!container) {
-        console.warn('Container pgm-files-list non trouvé');
+        console.warn('Container F4C-files-list non trouvé');
         return;
       }
-      var pgmObjects = this.uiController.getCurrentPgmObjects();
-      if (!pgmObjects || pgmObjects.length === 0) {
-        container.innerHTML = '<p class="info-text">Aucun fichier PGM à générer.</p>';
+      var F4CObjects = this.uiController.getCurrentF4CObjects();
+      if (!F4CObjects || F4CObjects.length === 0) {
+        container.innerHTML = '<p class="info-text">Aucun fichier F4C à générer.</p>';
         return;
       }
 
-      // Filtrer les objets PGM valides
-      var validPgmObjects = pgmObjects.filter(function (pgmObject) {
-        if (!pgmObject) {
-          console.warn('Objet PGM undefined trouvé');
+      // Filtrer les objets F4C valides
+      var validF4CObjects = F4CObjects.filter(function (F4CObject) {
+        if (!F4CObject) {
+          console.warn('Objet F4C undefined trouvé');
           return false;
         }
-        if (!pgmObject.profile) {
-          console.warn('Objet PGM sans profile:', pgmObject);
+        if (!F4CObject.profile) {
+          console.warn('Objet F4C sans profile:', F4CObject);
           return false;
         }
         return true;
       });
-      if (validPgmObjects.length === 0) {
-        container.innerHTML = '<p class="error-text">Aucun objet PGM valide trouvé.</p>';
+      if (validF4CObjects.length === 0) {
+        container.innerHTML = '<p class="error-text">Aucun objet F4C valide trouvé.</p>';
         return;
       }
-      var html = "<div class=\"pgm-preview-header\">\n        <h3>Fichiers PGM \xE0 g\xE9n\xE9rer</h3>\n        <button id=\"download-all-pgm-btn\" class=\"btn btn-primary\">\n          <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n          T\xE9l\xE9charger tous les PGM (ZIP)\n        </button>\n      </div>";
+      var html = "<div class=\"F4C-preview-header\">\n        <h3>Fichiers F4C \xE0 g\xE9n\xE9rer</h3>\n        <button id=\"download-all-F4C-btn\" class=\"btn btn-primary\">\n          <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n          T\xE9l\xE9charger tous les F4C (ZIP)\n        </button>\n      </div>";
 
-      // Générer l'aperçu pour chaque objet PGM valide
-      validPgmObjects.forEach(function (pgmObject, index) {
+      // Générer l'aperçu pour chaque objet F4C valide
+      validF4CObjects.forEach(function (F4CObject, index) {
         try {
-          var fileName = _this.pgmGenerator.generatePgmFileName(pgmObject);
-          html += "\n            <div class=\"pgm-file-item\" data-pgm-index=\"".concat(index, "\">\n              <div class=\"pgm-file-header\">\n                <span class=\"pgm-file-name\">").concat(fileName, "</span>\n                <div class=\"pgm-file-actions\">\n                  <button class=\"btn btn-sm btn-outline info-pgm-btn\" \n                          data-pgm-index=\"").concat(index, "\">\n                    <img src=\"assets/info.svg\" alt=\"\" class=\"btn-icon\">\n                    D\xE9tails\n                  </button>\n                  <button class=\"btn btn-sm btn-primary download-pgm-btn\" \n                          data-pgm-index=\"").concat(index, "\">\n                    <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n                    T\xE9l\xE9charger\n                  </button>\n                </div>\n              </div>\n            </div>\n          ");
+          var fileName = _this.F4CGenerator.generateF4CFileName(F4CObject);
+          html += "\n            <div class=\"F4C-file-item\" data-F4C-index=\"".concat(index, "\">\n              <div class=\"F4C-file-header\">\n                <span class=\"F4C-file-name\">").concat(fileName, "</span>\n                <div class=\"F4C-file-actions\">\n                  <button class=\"btn btn-sm btn-outline info-F4C-btn\" \n                          data-F4C-index=\"").concat(index, "\">\n                    <img src=\"assets/info.svg\" alt=\"\" class=\"btn-icon\">\n                    D\xE9tails\n                  </button>\n                  <button class=\"btn btn-sm btn-primary download-F4C-btn\" \n                          data-F4C-index=\"").concat(index, "\">\n                    <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n                    T\xE9l\xE9charger\n                  </button>\n                </div>\n              </div>\n            </div>\n          ");
         } catch (error) {
-          console.error('Erreur lors de la génération du nom de fichier PGM:', error, pgmObject);
-          html += "\n            <div class=\"pgm-file-item error\">\n              <div class=\"pgm-file-header\">\n                <span class=\"pgm-file-name\">Erreur - PGM ".concat(index + 1, "</span>\n                <div class=\"pgm-file-actions\">\n                  <span class=\"error-text\">Erreur</span>\n                </div>\n              </div>\n            </div>\n          ");
+          console.error('Erreur lors de la génération du nom de fichier F4C:', error, F4CObject);
+          html += "\n            <div class=\"F4C-file-item error\">\n              <div class=\"F4C-file-header\">\n                <span class=\"F4C-file-name\">Erreur - F4C ".concat(index + 1, "</span>\n                <div class=\"F4C-file-actions\">\n                  <span class=\"error-text\">Erreur</span>\n                </div>\n              </div>\n            </div>\n          ");
         }
       });
       container.innerHTML = html;
 
       // Configurer les événements
-      this.setupPgmPreviewEvents();
-      console.log("".concat(validPgmObjects.length, " aper\xE7us PGM g\xE9n\xE9r\xE9s"));
+      this.setupF4CPreviewEvents();
+      console.log("".concat(validF4CObjects.length, " aper\xE7us F4C g\xE9n\xE9r\xE9s"));
     } catch (error) {
-      console.error('Erreur lors de la génération des aperçus PGM:', error);
-      var _container = document.getElementById('pgm-files-list');
+      console.error('Erreur lors de la génération des aperçus F4C:', error);
+      var _container = document.getElementById('F4C-files-list');
       if (_container) {
-        _container.innerHTML = '<p class="error-text">Erreur lors de la génération des aperçus PGM.</p>';
+        _container.innerHTML = '<p class="error-text">Erreur lors de la génération des aperçus F4C.</p>';
       }
     }
   },
   /**
-   * Configure les événements pour les aperçus PGM
+   * Configure les événements pour les aperçus F4C
    */
-  setupPgmPreviewEvents: function setupPgmPreviewEvents() {
+  setupF4CPreviewEvents: function setupF4CPreviewEvents() {
     var _this2 = this;
     // Bouton télécharger tout
-    var downloadAllBtn = document.getElementById('download-all-pgm-btn');
+    var downloadAllBtn = document.getElementById('download-all-F4C-btn');
     if (downloadAllBtn) {
       downloadAllBtn.addEventListener('click', function () {
-        _this2.downloadAllPgm();
+        _this2.downloadAllF4C();
       });
     }
 
     // Boutons de téléchargement individuel
-    document.querySelectorAll('.download-pgm-btn').forEach(function (button) {
+    document.querySelectorAll('.download-F4C-btn').forEach(function (button) {
       button.addEventListener('click', function (e) {
-        var pgmIndex = parseInt(e.target.getAttribute('data-pgm-index'), 10);
-        _this2.downloadSinglePgm(pgmIndex);
+        var F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
+        _this2.downloadSingleF4C(F4CIndex);
       });
     });
 
     // Boutons d'informations
-    document.querySelectorAll('.info-pgm-btn').forEach(function (button) {
+    document.querySelectorAll('.info-F4C-btn').forEach(function (button) {
       button.addEventListener('click', function (e) {
-        var pgmIndex = parseInt(e.target.getAttribute('data-pgm-index'), 10);
-        _this2.showPgmInfo(pgmIndex);
+        var F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
+        _this2.showF4CInfo(F4CIndex);
       });
     });
   },
   /**
-   * MODIFIÉ: Télécharge un fichier PGM individuel avec overlay de chargement
+   * MODIFIÉ: Télécharge un fichier F4C individuel avec overlay de chargement
    */
-  downloadSinglePgm: function downloadSinglePgm(pgmIndex) {
+  downloadSingleF4C: function downloadSingleF4C(F4CIndex) {
     try {
       // NOUVEAU: Afficher l'overlay de téléchargement
       UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
-      var pgmObjects = this.uiController.getCurrentPgmObjects();
-      if (!pgmObjects || !pgmObjects[pgmIndex]) {
+      var F4CObjects = this.uiController.getCurrentF4CObjects();
+      if (!F4CObjects || !F4CObjects[F4CIndex]) {
         UIUtils.hideSimpleLoadingOverlay();
-        this.showNotification('Objet PGM introuvable', 'error');
+        this.showNotification('Objet F4C introuvable', 'error');
         return;
       }
-      var pgmObject = pgmObjects[pgmIndex];
-      var pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
-      var fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
+      var F4CObject = F4CObjects[F4CIndex];
+      var F4CContent = this.F4CGenerator.generateF4CFromObject(F4CObject, this.dataManager);
+      var fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
 
       // Utiliser setTimeout pour permettre à l'overlay de s'afficher avant le téléchargement
       setTimeout(function () {
-        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+        UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
 
         // Masquer l'overlay après un court délai pour laisser le temps au popup de s'afficher
         setTimeout(function () {
@@ -8648,41 +8648,41 @@ var ResultsHandler = {
       }, 100);
     } catch (error) {
       UIUtils.hideSimpleLoadingOverlay();
-      console.error('Erreur lors du téléchargement PGM:', error);
+      console.error('Erreur lors du téléchargement F4C:', error);
       this.showNotification("Erreur lors du t\xE9l\xE9chargement: ".concat(error.message), 'error');
     }
   },
   /**
-   * Affiche les informations détaillées du PGM
+   * Affiche les informations détaillées du F4C
    */
-  showPgmInfo: function showPgmInfo(pgmIndex) {
+  showF4CInfo: function showF4CInfo(F4CIndex) {
     try {
       // Fermer le modal existant s'il y en a un
-      this.closePgmInfoModal();
-      var pgmObjects = this.uiController.getCurrentPgmObjects();
-      if (!pgmObjects || !pgmObjects[pgmIndex]) {
-        this.showNotification('Objet PGM introuvable', 'error');
+      this.closeF4CInfoModal();
+      var F4CObjects = this.uiController.getCurrentF4CObjects();
+      if (!F4CObjects || !F4CObjects[F4CIndex]) {
+        this.showNotification('Objet F4C introuvable', 'error');
         return;
       }
-      var pgmObject = pgmObjects[pgmIndex];
-      var fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
-      this.showPgmInfoModal(fileName, pgmObject);
+      var F4CObject = F4CObjects[F4CIndex];
+      var fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
+      this.showF4CInfoModal(fileName, F4CObject);
     } catch (error) {
-      console.error('Erreur lors de l\'affichage des infos PGM:', error);
+      console.error('Erreur lors de l\'affichage des infos F4C:', error);
       this.showNotification("Erreur lors de l'affichage: ".concat(error.message), 'error');
     }
   },
   /**
-   * Ferme le modal PGM s'il existe
+   * Ferme le modal F4C s'il existe
    */
-  closePgmInfoModal: function closePgmInfoModal() {
+  closeF4CInfoModal: function closeF4CInfoModal() {
     if (this.currentModal && this.currentModal.parentNode) {
       this.currentModal.parentNode.removeChild(this.currentModal);
       this.currentModal = null;
     }
 
-    // Nettoyer tous les modals PGM existants (au cas où)
-    var existingModals = document.querySelectorAll('.pgm-info-modal');
+    // Nettoyer tous les modals F4C existants (au cas où)
+    var existingModals = document.querySelectorAll('.F4C-info-modal');
     existingModals.forEach(function (modal) {
       if (modal.parentNode) {
         modal.parentNode.removeChild(modal);
@@ -8710,17 +8710,17 @@ var ResultsHandler = {
     return meters % 1 === 0 ? "".concat(meters, " m") : "".concat(meters.toFixed(2), " m");
   },
   /**
-   * Affiche une modal avec les informations du PGM
+   * Affiche une modal avec les informations du F4C
    */
-  showPgmInfoModal: function showPgmInfoModal(fileName, pgmObject) {
+  showF4CInfoModal: function showF4CInfoModal(fileName, F4CObject) {
     var _this3 = this;
-    // Adapter au nouveau format PGM
-    var profile = pgmObject.profile;
-    var orientation = pgmObject.orientation;
-    var length = pgmObject.length;
-    var pieces = pgmObject.pieces || [];
-    var b021 = pgmObject.B021 || 'N/A';
-    var b035 = pgmObject.B035 || '0';
+    // Adapter au nouveau format F4C
+    var profile = F4CObject.profile;
+    var orientation = F4CObject.orientation;
+    var length = F4CObject.length;
+    var pieces = F4CObject.pieces || [];
+    var b021 = F4CObject.B021 || 'N/A';
+    var b035 = F4CObject.B035 || '0';
 
     // Calculer la chute et l'efficacité
     var totalPiecesLength = pieces.reduce(function (sum, piece) {
@@ -8731,8 +8731,8 @@ var ResultsHandler = {
 
     // Créer la modal en utilisant les classes existantes
     var modal = document.createElement('div');
-    modal.className = 'modal pgm-info-modal';
-    modal.innerHTML = "\n      <div class=\"modal-content pgm-modal-content\">\n        <div class=\"modal-header\">\n          <h3>D\xE9tails du PGM: ".concat(fileName, "</h3>\n          <button class=\"close-modal\" title=\"Fermer\">&times;</button>\n        </div>\n        \n        <div class=\"modal-body pgm-modal-body\">\n          <!-- En-t\xEAte simplifi\xE9 -->\n          <div class=\"pgm-header-grid\">\n            <div class=\"pgm-header-item\">\n              <div class=\"pgm-header-label\">Profil</div>\n              <div class=\"pgm-header-value\">").concat(profile, "</div>\n            </div>\n            <div class=\"pgm-header-item\">\n              <div class=\"pgm-header-label\">Orientation</div>\n              <div class=\"pgm-header-value\">").concat(this.formatOrientation(orientation), "</div>\n            </div>\n            <div class=\"pgm-header-item\">\n              <div class=\"pgm-header-label\">Longueur</div>\n              <div class=\"pgm-header-value\">").concat(this.formatLengthInMeters(length), "</div>\n            </div>\n          </div>\n          \n          <!-- Informations de performance -->\n          <div class=\"pgm-performance-info\">\n            <span class=\"pgm-performance-item\">\n              Chute&nbsp;: <span class=\"pgm-performance-value\">").concat(waste, " cm</span>\n            </span>\n            <span class=\"pgm-performance-item\">\n              Efficacit\xE9&nbsp;: <span class=\"pgm-performance-value\">").concat(efficiency, "%</span>\n            </span>\n          </div>\n          \n          <!-- Param\xE8tres BODY -->\n          <div class=\"pgm-section\">\n            <h4 class=\"pgm-section-title\">Param\xE8tres BODY:</h4>\n            <div class=\"pgm-params-grid\">\n              <span class=\"pgm-param-tag\">B021: ").concat(b021, "</span>\n              <span class=\"pgm-param-tag\">B035: ").concat(b035, "</span>\n            </div>\n          </div>\n          \n          <!-- Barres \xE0 d\xE9couper -->\n          <div class=\"pgm-section\">\n            <h4 class=\"pgm-section-title\">Barres \xE0 d\xE9couper (").concat(pieces.length, "):</h4>\n            \n            <div class=\"pgm-pieces-list\">\n              ").concat(pieces.map(function (piece, index) {
+    modal.className = 'modal F4C-info-modal';
+    modal.innerHTML = "\n      <div class=\"modal-content F4C-modal-content\">\n        <div class=\"modal-header\">\n          <h3>D\xE9tails du F4C: ".concat(fileName, "</h3>\n          <button class=\"close-modal\" title=\"Fermer\">&times;</button>\n        </div>\n        \n        <div class=\"modal-body F4C-modal-body\">\n          <!-- En-t\xEAte simplifi\xE9 -->\n          <div class=\"F4C-header-grid\">\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Profil</div>\n              <div class=\"F4C-header-value\">").concat(profile, "</div>\n            </div>\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Orientation</div>\n              <div class=\"F4C-header-value\">").concat(this.formatOrientation(orientation), "</div>\n            </div>\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Longueur</div>\n              <div class=\"F4C-header-value\">").concat(this.formatLengthInMeters(length), "</div>\n            </div>\n          </div>\n          \n          <!-- Informations de performance -->\n          <div class=\"F4C-performance-info\">\n            <span class=\"F4C-performance-item\">\n              Chute&nbsp;: <span class=\"F4C-performance-value\">").concat(waste, " cm</span>\n            </span>\n            <span class=\"F4C-performance-item\">\n              Efficacit\xE9&nbsp;: <span class=\"F4C-performance-value\">").concat(efficiency, "%</span>\n            </span>\n          </div>\n          \n          <!-- Param\xE8tres BODY -->\n          <div class=\"F4C-section\">\n            <h4 class=\"F4C-section-title\">Param\xE8tres BODY:</h4>\n            <div class=\"F4C-params-grid\">\n              <span class=\"F4C-param-tag\">B021: ").concat(b021, "</span>\n              <span class=\"F4C-param-tag\">B035: ").concat(b035, "</span>\n            </div>\n          </div>\n          \n          <!-- Barres \xE0 d\xE9couper -->\n          <div class=\"F4C-section\">\n            <h4 class=\"F4C-section-title\">Barres \xE0 d\xE9couper (").concat(pieces.length, "):</h4>\n            \n            <div class=\"F4C-pieces-list\">\n              ").concat(pieces.map(function (piece, index) {
       // Accès direct aux propriétés de la pièce
       var f4c = piece.f4cData || {};
 
@@ -8743,7 +8743,7 @@ var ResultsHandler = {
       var s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
       var s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
       var s058 = f4c.S058 || piece.S058 || '';
-      return "\n                  <div class=\"pgm-piece-item\">\n                    <!-- Index align\xE9 \xE0 droite -->\n                    <div class=\"pgm-piece-index\">#".concat(index + 1, "</div>\n                    \n                    <!-- Nom de la pi\xE8ce -->\n                    <div class=\"pgm-piece-name\">\n                      ").concat(piece.nom || "Pi\xE8ce ".concat(index + 1, " - ").concat(piece.length, "cm"), "\n                    </div>\n                    \n                    <!-- Codes F4C -->\n                    <div class=\"pgm-f4c-grid\">\n                      <span class=\"pgm-f4c-tag\">S051: ").concat(s051, "</span>\n                      <span class=\"pgm-f4c-tag\">S052: ").concat(s052, "</span>\n                      <span class=\"pgm-f4c-tag\">S053: ").concat(s053, "</span>\n                      <span class=\"pgm-f4c-tag\">S054: ").concat(s054, "</span>\n                      <span class=\"pgm-f4c-tag\">S055: ").concat(s055, "</span>\n                      <span class=\"pgm-f4c-tag\">S058: ").concat(s058, "</span>\n                    </div>\n                  </div>\n                ");
+      return "\n                  <div class=\"F4C-piece-item\">\n                    <!-- Index align\xE9 \xE0 droite -->\n                    <div class=\"F4C-piece-index\">#".concat(index + 1, "</div>\n                    \n                    <!-- Nom de la pi\xE8ce -->\n                    <div class=\"F4C-piece-name\">\n                      ").concat(piece.nom || "Pi\xE8ce ".concat(index + 1, " - ").concat(piece.length, "cm"), "\n                    </div>\n                    \n                    <!-- Codes F4C -->\n                    <div class=\"F4C-f4c-grid\">\n                      <span class=\"F4C-f4c-tag\">S051: ").concat(s051, "</span>\n                      <span class=\"F4C-f4c-tag\">S052: ").concat(s052, "</span>\n                      <span class=\"F4C-f4c-tag\">S053: ").concat(s053, "</span>\n                      <span class=\"F4C-f4c-tag\">S054: ").concat(s054, "</span>\n                      <span class=\"F4C-f4c-tag\">S055: ").concat(s055, "</span>\n                      <span class=\"F4C-f4c-tag\">S058: ").concat(s058, "</span>\n                    </div>\n                  </div>\n                ");
     }).join(''), "\n            </div>\n          </div>\n        </div>\n        \n        <div class=\"modal-footer\">\n          <button class=\"btn btn-secondary close-modal\">Fermer</button>\n          <button class=\"btn btn-primary modal-download\">\n            <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n            T\xE9l\xE9charger\n          </button>\n        </div>\n      </div>\n    ");
 
     // Stocker la référence du modal
@@ -8755,21 +8755,21 @@ var ResultsHandler = {
     // Gérer les événements de fermeture
     modal.querySelectorAll('.close-modal').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        _this3.closePgmInfoModal();
+        _this3.closeF4CInfoModal();
       });
     });
 
     // Fermer en cliquant sur l'overlay (background du modal)
     modal.addEventListener('click', function (e) {
       if (e.target === modal) {
-        _this3.closePgmInfoModal();
+        _this3.closeF4CInfoModal();
       }
     });
 
     // Fermer avec la touche Escape
     var _handleEscape = function handleEscape(e) {
       if (e.key === 'Escape') {
-        _this3.closePgmInfoModal();
+        _this3.closeF4CInfoModal();
         document.removeEventListener('keydown', _handleEscape);
       }
     };
@@ -8783,12 +8783,12 @@ var ResultsHandler = {
 
         // Utiliser setTimeout pour permettre à l'overlay de s'afficher
         setTimeout(function () {
-          var pgmContent = _this3.pgmGenerator.generatePgmFromObject(pgmObject, _this3.dataManager);
-          UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+          var F4CContent = _this3.F4CGenerator.generateF4CFromObject(F4CObject, _this3.dataManager);
+          UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
 
           // Fermer le modal et masquer l'overlay après un délai
           setTimeout(function () {
-            _this3.closePgmInfoModal();
+            _this3.closeF4CInfoModal();
             UIUtils.hideSimpleLoadingOverlay();
           }, 500);
         }, 100);
@@ -8800,22 +8800,22 @@ var ResultsHandler = {
     });
   },
   /**
-   * MODIFIÉ: Télécharge tous les fichiers PGM dans un ZIP avec overlay de chargement
+   * MODIFIÉ: Télécharge tous les fichiers F4C dans un ZIP avec overlay de chargement
    */
-  downloadAllPgm: function () {
-    var _downloadAllPgm = results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee2() {
+  downloadAllF4C: function () {
+    var _downloadAllF4C = results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee2() {
       var _this4 = this;
       var _t2;
       return results_handler_regenerator().w(function (_context2) {
         while (1) switch (_context2.n) {
           case 0:
             _context2.p = 0;
-            console.log('🔽 Début du téléchargement des PGM...');
-            if (this.uiController.currentPgmObjects) {
+            console.log('🔽 Début du téléchargement des F4C...');
+            if (this.uiController.currentF4CObjects) {
               _context2.n = 1;
               break;
             }
-            throw new Error('Aucun objet PGM disponible');
+            throw new Error('Aucun objet F4C disponible');
           case 1:
             // NOUVEAU: Afficher l'overlay de téléchargement
             UIUtils.showSimpleLoadingOverlay('Génération du fichier ZIP...');
@@ -8828,7 +8828,7 @@ var ResultsHandler = {
                   case 0:
                     _context.p = 0;
                     _context.n = 1;
-                    return PgmGenerator.generateAllPgmFromObjects(_this4.uiController.currentPgmObjects, _this4.uiController.dataManager);
+                    return F4CGenerator.generateAllF4CFromObjects(_this4.uiController.currentF4CObjects, _this4.uiController.dataManager);
                   case 1:
                     result = _context.v;
                     // CORRECTION: Vérifier que result a la bonne structure
@@ -8847,7 +8847,7 @@ var ResultsHandler = {
                     _context.p = 2;
                     _t = _context.v;
                     UIUtils.hideSimpleLoadingOverlay();
-                    console.error('❌ Erreur téléchargement PGM:', _t);
+                    console.error('❌ Erreur téléchargement F4C:', _t);
 
                     // CORRECTION: Utiliser this.showNotification ou NotificationService
                     if (_this4.showNotification) {
@@ -8866,7 +8866,7 @@ var ResultsHandler = {
             _context2.p = 2;
             _t2 = _context2.v;
             UIUtils.hideSimpleLoadingOverlay();
-            console.error('❌ Erreur téléchargement PGM:', _t2);
+            console.error('❌ Erreur téléchargement F4C:', _t2);
 
             // CORRECTION: Utiliser this.showNotification ou NotificationService
             if (this.showNotification) {
@@ -8879,10 +8879,10 @@ var ResultsHandler = {
         }
       }, _callee2, this, [[0, 2]]);
     }));
-    function downloadAllPgm() {
-      return _downloadAllPgm.apply(this, arguments);
+    function downloadAllF4C() {
+      return _downloadAllF4C.apply(this, arguments);
     }
-    return downloadAllPgm;
+    return downloadAllF4C;
   }()
 };
 ;// ./src/js/ui-controller.js
@@ -8924,8 +8924,8 @@ var UIController = (_UIController = {
   dataManager: null,
   algorithmService: null,
   importManager: null,
-  pgmGenerator: null,
-  pgmManager: null,
+  F4CGenerator: null,
+  F4CManager: null,
   // Gestionnaires UI
   importHandler: null,
   editHandler: null,
@@ -8933,7 +8933,7 @@ var UIController = (_UIController = {
   notificationService: null,
   // État de l'application
   currentResults: null,
-  currentPgmObjects: null,
+  currentF4CObjects: null,
   // NOUVEAU: Sauvegarde de l'état original des données
   originalDataState: null,
   /**
@@ -9227,8 +9227,8 @@ var UIController = (_UIController = {
   this.dataManager = DataManager;
   this.algorithmService = AlgorithmService; // Plus besoin d'init car import direct
   this.importManager = ImportManager;
-  this.pgmGenerator = PgmGenerator;
-  this.pgmManager = PgmManager;
+  this.F4CGenerator = F4CGenerator;
+  this.F4CManager = F4CManager;
   console.log('📋 Services principaux initialisés');
 }), "initializeUIHandlers", function () {
   var _initializeUIHandlers = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee2() {
@@ -9262,7 +9262,7 @@ var UIController = (_UIController = {
           });
           this.resultsHandler = ResultsHandler;
           this.resultsHandler.init({
-            pgmGenerator: this.pgmGenerator,
+            F4CGenerator: this.F4CGenerator,
             dataManager: this.dataManager,
             uiController: this,
             showNotification: function showNotification(msg, type) {
@@ -9358,8 +9358,8 @@ var UIController = (_UIController = {
   } catch (error) {
     console.error('❌ Erreur lors de la mise à jour des compteurs:', error);
   }
-}), ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(_UIController, "getCurrentPgmObjects", function getCurrentPgmObjects() {
-  return this.currentPgmObjects;
+}), ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(ui_controller_defineProperty(_UIController, "getCurrentF4CObjects", function getCurrentF4CObjects() {
+  return this.currentF4CObjects;
 }), "showSection", function showSection(sectionName) {
   // MODIFIÉ: Restaurer les données originales quand on retourne à l'édition
   if (sectionName === 'data-section') {
@@ -9760,9 +9760,9 @@ var UIController = (_UIController = {
           finalResults = _context3.v;
           this.currentResults = finalResults;
 
-          // === 6. GÉNÉRATION DES PGM ===
+          // === 6. GÉNÉRATION DES F4C ===
           _context3.n = 7;
-          return this.runPgmGenerationStep();
+          return this.runF4CGenerationStep();
         case 7:
           _context3.n = 8;
           return new Promise(function (resolve) {
@@ -9811,7 +9811,7 @@ var UIController = (_UIController = {
 
   // Étapes finales
   stepsContainer.appendChild(this.createStepDiv('step-compare', stepNum++, 'Comparaison et sélection'));
-  stepsContainer.appendChild(this.createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM'));
+  stepsContainer.appendChild(this.createStepDiv('step-F4C', stepNum++, 'Génération des fichiers F4C'));
   console.log("\uD83C\uDFAF ".concat(stepNum - 1, " \xE9tapes g\xE9n\xE9r\xE9es pour ").concat(models.length, " mod\xE8les"));
 }), "activateStep", function () {
   var _activateStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee4(stepId, message) {
@@ -10010,45 +10010,45 @@ var UIController = (_UIController = {
     return _runFinalComparison.apply(this, arguments);
   }
   return runFinalComparison;
-}()), "runPgmGenerationStep", function () {
-  var _runPgmGenerationStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee8() {
-    var stepPgmId, _t6;
+}()), "runF4CGenerationStep", function () {
+  var _runF4CGenerationStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee8() {
+    var stepF4CId, _t6;
     return ui_controller_regenerator().w(function (_context8) {
       while (1) switch (_context8.n) {
         case 0:
-          stepPgmId = 'step-pgm'; // ACTIVER l'étape PGM
+          stepF4CId = 'step-F4C'; // ACTIVER l'étape F4C
           _context8.n = 1;
-          return this.activateStep(stepPgmId, 'Génération des fichiers PGM...');
+          return this.activateStep(stepF4CId, 'Génération des fichiers F4C...');
         case 1:
           _context8.p = 1;
-          // Génération réelle des PGM
-          this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
+          // Génération réelle des F4C
+          this.currentF4CObjects = this.F4CManager.generateF4CObjects(this.currentResults);
           ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
-          this.resultsHandler.generatePgmPreviews();
+          this.resultsHandler.generateF4CPreviews();
 
-          // COMPLÉTER l'étape PGM
+          // COMPLÉTER l'étape F4C
           _context8.n = 2;
-          return this.completeStep(stepPgmId, 'Fichiers PGM générés');
+          return this.completeStep(stepF4CId, 'Fichiers F4C générés');
         case 2:
           _context8.n = 5;
           break;
         case 3:
           _context8.p = 3;
           _t6 = _context8.v;
-          console.error('❌ Erreur lors de la génération PGM:', _t6);
+          console.error('❌ Erreur lors de la génération F4C:', _t6);
           _context8.n = 4;
-          return this.completeStep(stepPgmId, 'Erreur génération PGM');
+          return this.completeStep(stepF4CId, 'Erreur génération F4C');
         case 4:
-          this.showNotification('Erreur lors de la génération des aperçus PGM', 'warning');
+          this.showNotification('Erreur lors de la génération des aperçus F4C', 'warning');
         case 5:
           return _context8.a(2);
       }
     }, _callee8, this, [[1, 3]]);
   }));
-  function runPgmGenerationStep() {
-    return _runPgmGenerationStep.apply(this, arguments);
+  function runF4CGenerationStep() {
+    return _runF4CGenerationStep.apply(this, arguments);
   }
-  return runPgmGenerationStep;
+  return runF4CGenerationStep;
 }()), "createStepDiv", function createStepDiv(id, icon, label) {
   var div = document.createElement('div');
   div.className = 'loading-step';
@@ -10146,7 +10146,7 @@ var UIController = (_UIController = {
 
     // Réinitialiser les résultats actuels
     this.currentResults = null;
-    this.currentPgmObjects = null;
+    this.currentF4CObjects = null;
 
     // Nettoyer l'interface des résultats
     var globalSummaryContainer = document.getElementById('global-summary-container');
@@ -10157,9 +10157,9 @@ var UIController = (_UIController = {
     if (modelDetailsContainer) {
       modelDetailsContainer.innerHTML = '';
     }
-    var pgmFilesContainer = document.getElementById('pgm-files-list');
-    if (pgmFilesContainer) {
-      pgmFilesContainer.innerHTML = '';
+    var F4CFilesContainer = document.getElementById('F4C-files-list');
+    if (F4CFilesContainer) {
+      F4CFilesContainer.innerHTML = '';
     }
 
     // Masquer la section résultats et afficher la section données

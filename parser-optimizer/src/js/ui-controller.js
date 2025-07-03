@@ -1,8 +1,8 @@
 import { DataManager } from './data-manager.js';
 import { AlgorithmService } from './algorithm-service.js';
 import { ImportManager } from './import-manager.js';
-import { PgmGenerator } from './pgm-generator.js';
-import { PgmManager } from './pgm-manager.js';
+import { F4CGenerator } from './F4C-generator.js';
+import { F4CManager } from './F4C-manager.js';
 import { ResultsRenderer } from './results-renderer.js'; // Assure-toi que l'import existe
 
 // Importer les gestionnaires UI
@@ -20,8 +20,8 @@ export const UIController = {
   dataManager: null,
   algorithmService: null,
   importManager: null,
-  pgmGenerator: null,
-  pgmManager: null,
+  F4CGenerator: null,
+  F4CManager: null,
   
   // Gestionnaires UI
   importHandler: null,
@@ -31,7 +31,7 @@ export const UIController = {
   
   // État de l'application
   currentResults: null,
-  currentPgmObjects: null,
+  currentF4CObjects: null,
   
   // NOUVEAU: Sauvegarde de l'état original des données
   originalDataState: null,
@@ -355,8 +355,8 @@ export const UIController = {
     this.dataManager = DataManager;
     this.algorithmService = AlgorithmService; // Plus besoin d'init car import direct
     this.importManager = ImportManager;
-    this.pgmGenerator = PgmGenerator;
-    this.pgmManager = PgmManager;
+    this.F4CGenerator = F4CGenerator;
+    this.F4CManager = F4CManager;
     
     console.log('📋 Services principaux initialisés');
   },
@@ -384,7 +384,7 @@ export const UIController = {
       
       this.resultsHandler = ResultsHandler;
       this.resultsHandler.init({
-        pgmGenerator: this.pgmGenerator,
+        F4CGenerator: this.F4CGenerator,
         dataManager: this.dataManager,
         uiController: this,
         showNotification: (msg, type) => this.showNotification(msg, type)
@@ -471,10 +471,10 @@ export const UIController = {
   },
 
   /**
-   * Méthode pour obtenir les objets PGM actuels
+   * Méthode pour obtenir les objets F4C actuels
    */
-  getCurrentPgmObjects: function() {
-    return this.currentPgmObjects;
+  getCurrentF4CObjects: function() {
+    return this.currentF4CObjects;
   },
 
   /**
@@ -854,8 +854,8 @@ export const UIController = {
       const finalResults = await this.runFinalComparison(allResults);
       this.currentResults = finalResults;
 
-      // === 6. GÉNÉRATION DES PGM ===
-      await this.runPgmGenerationStep();
+      // === 6. GÉNÉRATION DES F4C ===
+      await this.runF4CGenerationStep();
 
       // === 7. AFFICHAGE DES RÉSULTATS ===
       await new Promise(resolve => setTimeout(resolve, 400));
@@ -906,7 +906,7 @@ export const UIController = {
       this.createStepDiv('step-compare', stepNum++, 'Comparaison et sélection')
     );
     stepsContainer.appendChild(
-      this.createStepDiv('step-pgm', stepNum++, 'Génération des fichiers PGM')
+      this.createStepDiv('step-F4C', stepNum++, 'Génération des fichiers F4C')
     );
     
     console.log(`🎯 ${stepNum - 1} étapes générées pour ${models.length} modèles`);
@@ -1050,27 +1050,27 @@ export const UIController = {
   },
 
   /**
-   * AMÉLIORÉ: Exécute l'étape de génération PGM
+   * AMÉLIORÉ: Exécute l'étape de génération F4C
    */
-  runPgmGenerationStep: async function() {
-    const stepPgmId = 'step-pgm';
+  runF4CGenerationStep: async function() {
+    const stepF4CId = 'step-F4C';
     
-    // ACTIVER l'étape PGM
-    await this.activateStep(stepPgmId, 'Génération des fichiers PGM...');
+    // ACTIVER l'étape F4C
+    await this.activateStep(stepF4CId, 'Génération des fichiers F4C...');
     
     try {
-      // Génération réelle des PGM
-      this.currentPgmObjects = this.pgmManager.generatePgmObjects(this.currentResults);
+      // Génération réelle des F4C
+      this.currentF4CObjects = this.F4CManager.generateF4CObjects(this.currentResults);
       ResultsRenderer.renderResults(this.currentResults, this.algorithmService);
-      this.resultsHandler.generatePgmPreviews();
+      this.resultsHandler.generateF4CPreviews();
       
-      // COMPLÉTER l'étape PGM
-      await this.completeStep(stepPgmId, 'Fichiers PGM générés');
+      // COMPLÉTER l'étape F4C
+      await this.completeStep(stepF4CId, 'Fichiers F4C générés');
       
     } catch (error) {
-      console.error('❌ Erreur lors de la génération PGM:', error);
-      await this.completeStep(stepPgmId, 'Erreur génération PGM');
-      this.showNotification('Erreur lors de la génération des aperçus PGM', 'warning');
+      console.error('❌ Erreur lors de la génération F4C:', error);
+      await this.completeStep(stepF4CId, 'Erreur génération F4C');
+      this.showNotification('Erreur lors de la génération des aperçus F4C', 'warning');
     }
   },
 
@@ -1177,7 +1177,7 @@ export const UIController = {
       
       // Réinitialiser les résultats actuels
       this.currentResults = null;
-      this.currentPgmObjects = null;
+      this.currentF4CObjects = null;
       
       // Nettoyer l'interface des résultats
       const globalSummaryContainer = document.getElementById('global-summary-container');
@@ -1190,9 +1190,9 @@ export const UIController = {
         modelDetailsContainer.innerHTML = '';
       }
       
-      const pgmFilesContainer = document.getElementById('pgm-files-list');
-      if (pgmFilesContainer) {
-        pgmFilesContainer.innerHTML = '';
+      const F4CFilesContainer = document.getElementById('F4C-files-list');
+      if (F4CFilesContainer) {
+        F4CFilesContainer.innerHTML = '';
       }
       
       // Masquer la section résultats et afficher la section données

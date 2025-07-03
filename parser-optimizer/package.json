@@ -16,8 +16,8 @@
     "copy-executables": "mkdir -p ../windows-executable && cp electron-dist/*.exe ../windows-executable/ 2>/dev/null || true"
   },
   "build": {
-    "appId": "com.cms.pgmgenerator",
-    "productName": "CMS-pgm-generator",
+    "appId": "com.cms.F4Cgenerator",
+    "productName": "CMS-F4C-generator",
     "directories": {
       "output": "electron-dist"
     },
@@ -40,24 +40,24 @@
       "icon": "electron/icon.ico",
       "requestedExecutionLevel": "asInvoker",
       "verifyUpdateCodeSignature": false,
-      "artifactName": "CMS-pgm-generator-setup.exe"
+      "artifactName": "CMS-F4C-generator-setup.exe"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "CMS PGM Generator",
-      "artifactName": "CMS-pgm-generator-setup.exe"
+      "shortcutName": "CMS F4C Generator",
+      "artifactName": "CMS-F4C-generator-setup.exe"
     },
     "portable": {
-      "artifactName": "CMS-pgm-generator-portable.exe"
+      "artifactName": "CMS-F4C-generator-portable.exe"
     }
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "CMS PGM Generator - Optimisation de découpe",
+  "description": "CMS F4C Generator - Optimisation de découpe",
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",

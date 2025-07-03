@@ -13,8 +13,8 @@ import { AlgorithmService } from './algorithm-service.js';
 import { ResultsRenderer } from './results-renderer.js';
 import { Parser } from './parser.js';
 import { ImportManager } from './import-manager.js';
-import { PgmGenerator } from './pgm-generator.js';
-import { PgmManager } from './pgm-manager.js';
+import { F4CGenerator } from './F4C-generator.js';
+import { F4CManager } from './F4C-manager.js';
 
 // Importer les algorithmes
 import { solveGreedyFFD } from './algorithms/First-Fit-Decreasing.js';
@@ -67,8 +67,8 @@ if (process.env.NODE_ENV === 'development') {
   window.DEBUG = {
     DataManager,
     AlgorithmService,
-    PgmManager,
-    PgmGenerator, // Ajouter le PGM-Generator pour le debug
+    F4CManager,
+    F4CGenerator, // Ajouter le F4C-Generator pour le debug
     UIController
   };
 }

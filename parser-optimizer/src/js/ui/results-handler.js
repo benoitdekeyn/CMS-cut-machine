@@ -1,14 +1,14 @@
 /**
  * Gestionnaire de la section résultats
- * Gère le rendu des résultats et la génération des fichiers PGM
+ * Gère le rendu des résultats et la génération des fichiers F4C
  */
 import { UIUtils } from './utils.js';
 import { NotificationService } from './notification-service.js';
-import { PgmGenerator } from '../pgm-generator.js';
+import { F4CGenerator } from '../F4C-generator.js';
 
 export const ResultsHandler = {
   // Dépendances
-  pgmGenerator: null,
+  F4CGenerator: null,
   dataManager: null,
   uiController: null,
   
@@ -22,73 +22,73 @@ export const ResultsHandler = {
    * Initialise le gestionnaire de résultats
    */
   init: function(options) {
-    this.pgmGenerator = options.pgmGenerator;
+    this.F4CGenerator = options.F4CGenerator;
     this.dataManager = options.dataManager;
     this.uiController = options.uiController;
     this.showNotification = options.showNotification;
   },
   
   /**
-   * Génère les aperçus des fichiers PGM à partir des objets PGM
+   * Génère les aperçus des fichiers F4C à partir des objets F4C
    */
-  generatePgmPreviews: function() {
+  generateF4CPreviews: function() {
     try {
-      const container = document.getElementById('pgm-files-list');
+      const container = document.getElementById('F4C-files-list');
       if (!container) {
-        console.warn('Container pgm-files-list non trouvé');
+        console.warn('Container F4C-files-list non trouvé');
         return;
       }
       
-      const pgmObjects = this.uiController.getCurrentPgmObjects();
+      const F4CObjects = this.uiController.getCurrentF4CObjects();
       
-      if (!pgmObjects || pgmObjects.length === 0) {
-        container.innerHTML = '<p class="info-text">Aucun fichier PGM à générer.</p>';
+      if (!F4CObjects || F4CObjects.length === 0) {
+        container.innerHTML = '<p class="info-text">Aucun fichier F4C à générer.</p>';
         return;
       }
       
-      // Filtrer les objets PGM valides
-      const validPgmObjects = pgmObjects.filter(pgmObject => {
-        if (!pgmObject) {
-          console.warn('Objet PGM undefined trouvé');
+      // Filtrer les objets F4C valides
+      const validF4CObjects = F4CObjects.filter(F4CObject => {
+        if (!F4CObject) {
+          console.warn('Objet F4C undefined trouvé');
           return false;
         }
-        if (!pgmObject.profile) {
-          console.warn('Objet PGM sans profile:', pgmObject);
+        if (!F4CObject.profile) {
+          console.warn('Objet F4C sans profile:', F4CObject);
           return false;
         }
         return true;
       });
       
-      if (validPgmObjects.length === 0) {
-        container.innerHTML = '<p class="error-text">Aucun objet PGM valide trouvé.</p>';
+      if (validF4CObjects.length === 0) {
+        container.innerHTML = '<p class="error-text">Aucun objet F4C valide trouvé.</p>';
         return;
       }
       
-      let html = `<div class="pgm-preview-header">
-        <h3>Fichiers PGM à générer</h3>
-        <button id="download-all-pgm-btn" class="btn btn-primary">
+      let html = `<div class="F4C-preview-header">
+        <h3>Fichiers F4C à générer</h3>
+        <button id="download-all-F4C-btn" class="btn btn-primary">
           <img src="assets/download.svg" alt="" class="btn-icon">
-          Télécharger tous les PGM (ZIP)
+          Télécharger tous les F4C (ZIP)
         </button>
       </div>`;
       
-      // Générer l'aperçu pour chaque objet PGM valide
-      validPgmObjects.forEach((pgmObject, index) => {
+      // Générer l'aperçu pour chaque objet F4C valide
+      validF4CObjects.forEach((F4CObject, index) => {
         try {
-          const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
+          const fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
           
           html += `
-            <div class="pgm-file-item" data-pgm-index="${index}">
-              <div class="pgm-file-header">
-                <span class="pgm-file-name">${fileName}</span>
-                <div class="pgm-file-actions">
-                  <button class="btn btn-sm btn-outline info-pgm-btn" 
-                          data-pgm-index="${index}">
+            <div class="F4C-file-item" data-F4C-index="${index}">
+              <div class="F4C-file-header">
+                <span class="F4C-file-name">${fileName}</span>
+                <div class="F4C-file-actions">
+                  <button class="btn btn-sm btn-outline info-F4C-btn" 
+                          data-F4C-index="${index}">
                     <img src="assets/info.svg" alt="" class="btn-icon">
                     Détails
                   </button>
-                  <button class="btn btn-sm btn-primary download-pgm-btn" 
-                          data-pgm-index="${index}">
+                  <button class="btn btn-sm btn-primary download-F4C-btn" 
+                          data-F4C-index="${index}">
                     <img src="assets/download.svg" alt="" class="btn-icon">
                     Télécharger
                   </button>
@@ -97,12 +97,12 @@ export const ResultsHandler = {
             </div>
           `;
         } catch (error) {
-          console.error('Erreur lors de la génération du nom de fichier PGM:', error, pgmObject);
+          console.error('Erreur lors de la génération du nom de fichier F4C:', error, F4CObject);
           html += `
-            <div class="pgm-file-item error">
-              <div class="pgm-file-header">
-                <span class="pgm-file-name">Erreur - PGM ${index + 1}</span>
-                <div class="pgm-file-actions">
+            <div class="F4C-file-item error">
+              <div class="F4C-file-header">
+                <span class="F4C-file-name">Erreur - F4C ${index + 1}</span>
+                <div class="F4C-file-actions">
                   <span class="error-text">Erreur</span>
                 </div>
               </div>
@@ -114,71 +114,71 @@ export const ResultsHandler = {
       container.innerHTML = html;
       
       // Configurer les événements
-      this.setupPgmPreviewEvents();
+      this.setupF4CPreviewEvents();
       
-      console.log(`${validPgmObjects.length} aperçus PGM générés`);
+      console.log(`${validF4CObjects.length} aperçus F4C générés`);
       
     } catch (error) {
-      console.error('Erreur lors de la génération des aperçus PGM:', error);
-      const container = document.getElementById('pgm-files-list');
+      console.error('Erreur lors de la génération des aperçus F4C:', error);
+      const container = document.getElementById('F4C-files-list');
       if (container) {
-        container.innerHTML = '<p class="error-text">Erreur lors de la génération des aperçus PGM.</p>';
+        container.innerHTML = '<p class="error-text">Erreur lors de la génération des aperçus F4C.</p>';
       }
     }
   },
   
   /**
-   * Configure les événements pour les aperçus PGM
+   * Configure les événements pour les aperçus F4C
    */
-  setupPgmPreviewEvents: function() {
+  setupF4CPreviewEvents: function() {
     // Bouton télécharger tout
-    const downloadAllBtn = document.getElementById('download-all-pgm-btn');
+    const downloadAllBtn = document.getElementById('download-all-F4C-btn');
     if (downloadAllBtn) {
       downloadAllBtn.addEventListener('click', () => {
-        this.downloadAllPgm();
+        this.downloadAllF4C();
       });
     }
     
     // Boutons de téléchargement individuel
-    document.querySelectorAll('.download-pgm-btn').forEach(button => {
+    document.querySelectorAll('.download-F4C-btn').forEach(button => {
       button.addEventListener('click', (e) => {
-        const pgmIndex = parseInt(e.target.getAttribute('data-pgm-index'), 10);
-        this.downloadSinglePgm(pgmIndex);
+        const F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
+        this.downloadSingleF4C(F4CIndex);
       });
     });
     
     // Boutons d'informations
-    document.querySelectorAll('.info-pgm-btn').forEach(button => {
+    document.querySelectorAll('.info-F4C-btn').forEach(button => {
       button.addEventListener('click', (e) => {
-        const pgmIndex = parseInt(e.target.getAttribute('data-pgm-index'), 10);
-        this.showPgmInfo(pgmIndex);
+        const F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
+        this.showF4CInfo(F4CIndex);
       });
     });
   },
   
   /**
-   * MODIFIÉ: Télécharge un fichier PGM individuel avec overlay de chargement
+   * MODIFIÉ: Télécharge un fichier F4C individuel avec overlay de chargement
    */
-  downloadSinglePgm: function(pgmIndex) {
+  downloadSingleF4C: function(F4CIndex) {
     try {
       // NOUVEAU: Afficher l'overlay de téléchargement
       UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
       
-      const pgmObjects = this.uiController.getCurrentPgmObjects();
+      const F4CObjects = this.uiController.getCurrentF4CObjects();
       
-      if (!pgmObjects || !pgmObjects[pgmIndex]) {
+      if (!F4CObjects || !F4CObjects[F4CIndex]) {
         UIUtils.hideSimpleLoadingOverlay();
-        this.showNotification('Objet PGM introuvable', 'error');
+        this.showNotification('Objet F4C introuvable', 'error');
         return;
       }
       
-      const pgmObject = pgmObjects[pgmIndex];
-      const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
-      const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
+      const F4CObject = F4CObjects[F4CIndex];
+      const F4CContent = this.F4CGenerator.generateF4CFromObject(F4CObject, this.dataManager);
+      const fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
       
       // Utiliser setTimeout pour permettre à l'overlay de s'afficher avant le téléchargement
       setTimeout(() => {
-        UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+        UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
         
         // Masquer l'overlay après un court délai pour laisser le temps au popup de s'afficher
         setTimeout(() => {
@@ -188,48 +188,48 @@ export const ResultsHandler = {
       
     } catch (error) {
       UIUtils.hideSimpleLoadingOverlay();
-      console.error('Erreur lors du téléchargement PGM:', error);
+      console.error('Erreur lors du téléchargement F4C:', error);
       this.showNotification(`Erreur lors du téléchargement: ${error.message}`, 'error');
     }
   },
   
   /**
-   * Affiche les informations détaillées du PGM
+   * Affiche les informations détaillées du F4C
    */
-  showPgmInfo: function(pgmIndex) {
+  showF4CInfo: function(F4CIndex) {
     try {
       // Fermer le modal existant s'il y en a un
-      this.closePgmInfoModal();
+      this.closeF4CInfoModal();
       
-      const pgmObjects = this.uiController.getCurrentPgmObjects();
+      const F4CObjects = this.uiController.getCurrentF4CObjects();
       
-      if (!pgmObjects || !pgmObjects[pgmIndex]) {
-        this.showNotification('Objet PGM introuvable', 'error');
+      if (!F4CObjects || !F4CObjects[F4CIndex]) {
+        this.showNotification('Objet F4C introuvable', 'error');
         return;
       }
       
-      const pgmObject = pgmObjects[pgmIndex];
-      const fileName = this.pgmGenerator.generatePgmFileName(pgmObject);
+      const F4CObject = F4CObjects[F4CIndex];
+      const fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
       
-      this.showPgmInfoModal(fileName, pgmObject);
+      this.showF4CInfoModal(fileName, F4CObject);
       
     } catch (error) {
-      console.error('Erreur lors de l\'affichage des infos PGM:', error);
+      console.error('Erreur lors de l\'affichage des infos F4C:', error);
       this.showNotification(`Erreur lors de l'affichage: ${error.message}`, 'error');
     }
   },
   
   /**
-   * Ferme le modal PGM s'il existe
+   * Ferme le modal F4C s'il existe
    */
-  closePgmInfoModal: function() {
+  closeF4CInfoModal: function() {
     if (this.currentModal && this.currentModal.parentNode) {
       this.currentModal.parentNode.removeChild(this.currentModal);
       this.currentModal = null;
     }
     
-    // Nettoyer tous les modals PGM existants (au cas où)
-    const existingModals = document.querySelectorAll('.pgm-info-modal');
+    // Nettoyer tous les modals F4C existants (au cas où)
+    const existingModals = document.querySelectorAll('.F4C-info-modal');
     existingModals.forEach(modal => {
       if (modal.parentNode) {
         modal.parentNode.removeChild(modal);
@@ -260,16 +260,16 @@ export const ResultsHandler = {
   },
 
   /**
-   * Affiche une modal avec les informations du PGM
+   * Affiche une modal avec les informations du F4C
    */
-  showPgmInfoModal: function(fileName, pgmObject) {
-    // Adapter au nouveau format PGM
-    const profile = pgmObject.profile;
-    const orientation = pgmObject.orientation;
-    const length = pgmObject.length;
-    const pieces = pgmObject.pieces || [];
-    const b021 = pgmObject.B021 || 'N/A';
-    const b035 = pgmObject.B035 || '0';
+  showF4CInfoModal: function(fileName, F4CObject) {
+    // Adapter au nouveau format F4C
+    const profile = F4CObject.profile;
+    const orientation = F4CObject.orientation;
+    const length = F4CObject.length;
+    const pieces = F4CObject.pieces || [];
+    const b021 = F4CObject.B021 || 'N/A';
+    const b035 = F4CObject.B035 || '0';
     
     // Calculer la chute et l'efficacité
     const totalPiecesLength = pieces.reduce((sum, piece) => sum + piece.length, 0);
@@ -278,55 +278,55 @@ export const ResultsHandler = {
     
     // Créer la modal en utilisant les classes existantes
     const modal = document.createElement('div');
-    modal.className = 'modal pgm-info-modal';
+    modal.className = 'modal F4C-info-modal';
     modal.innerHTML = `
-      <div class="modal-content pgm-modal-content">
+      <div class="modal-content F4C-modal-content">
         <div class="modal-header">
-          <h3>Détails du PGM: ${fileName}</h3>
+          <h3>Détails du F4C: ${fileName}</h3>
           <button class="close-modal" title="Fermer">&times;</button>
         </div>
         
-        <div class="modal-body pgm-modal-body">
+        <div class="modal-body F4C-modal-body">
           <!-- En-tête simplifié -->
-          <div class="pgm-header-grid">
-            <div class="pgm-header-item">
-              <div class="pgm-header-label">Profil</div>
-              <div class="pgm-header-value">${profile}</div>
+          <div class="F4C-header-grid">
+            <div class="F4C-header-item">
+              <div class="F4C-header-label">Profil</div>
+              <div class="F4C-header-value">${profile}</div>
             </div>
-            <div class="pgm-header-item">
-              <div class="pgm-header-label">Orientation</div>
-              <div class="pgm-header-value">${this.formatOrientation(orientation)}</div>
+            <div class="F4C-header-item">
+              <div class="F4C-header-label">Orientation</div>
+              <div class="F4C-header-value">${this.formatOrientation(orientation)}</div>
             </div>
-            <div class="pgm-header-item">
-              <div class="pgm-header-label">Longueur</div>
-              <div class="pgm-header-value">${this.formatLengthInMeters(length)}</div>
+            <div class="F4C-header-item">
+              <div class="F4C-header-label">Longueur</div>
+              <div class="F4C-header-value">${this.formatLengthInMeters(length)}</div>
             </div>
           </div>
           
           <!-- Informations de performance -->
-          <div class="pgm-performance-info">
-            <span class="pgm-performance-item">
-              Chute&nbsp;: <span class="pgm-performance-value">${waste} cm</span>
+          <div class="F4C-performance-info">
+            <span class="F4C-performance-item">
+              Chute&nbsp;: <span class="F4C-performance-value">${waste} cm</span>
             </span>
-            <span class="pgm-performance-item">
-              Efficacité&nbsp;: <span class="pgm-performance-value">${efficiency}%</span>
+            <span class="F4C-performance-item">
+              Efficacité&nbsp;: <span class="F4C-performance-value">${efficiency}%</span>
             </span>
           </div>
           
           <!-- Paramètres BODY -->
-          <div class="pgm-section">
-            <h4 class="pgm-section-title">Paramètres BODY:</h4>
-            <div class="pgm-params-grid">
-              <span class="pgm-param-tag">B021: ${b021}</span>
-              <span class="pgm-param-tag">B035: ${b035}</span>
+          <div class="F4C-section">
+            <h4 class="F4C-section-title">Paramètres BODY:</h4>
+            <div class="F4C-params-grid">
+              <span class="F4C-param-tag">B021: ${b021}</span>
+              <span class="F4C-param-tag">B035: ${b035}</span>
             </div>
           </div>
           
           <!-- Barres à découper -->
-          <div class="pgm-section">
-            <h4 class="pgm-section-title">Barres à découper (${pieces.length}):</h4>
+          <div class="F4C-section">
+            <h4 class="F4C-section-title">Barres à découper (${pieces.length}):</h4>
             
-            <div class="pgm-pieces-list">
+            <div class="F4C-pieces-list">
               ${pieces.map((piece, index) => {
                 // Accès direct aux propriétés de la pièce
                 const f4c = piece.f4cData || {};
@@ -340,23 +340,23 @@ export const ResultsHandler = {
                 const s058 = f4c.S058 || piece.S058 || '';
                 
                 return `
-                  <div class="pgm-piece-item">
+                  <div class="F4C-piece-item">
                     <!-- Index aligné à droite -->
-                    <div class="pgm-piece-index">#${index + 1}</div>
+                    <div class="F4C-piece-index">#${index + 1}</div>
                     
                     <!-- Nom de la pièce -->
-                    <div class="pgm-piece-name">
+                    <div class="F4C-piece-name">
                       ${piece.nom || `Pièce ${index + 1} - ${piece.length}cm`}
                     </div>
                     
                     <!-- Codes F4C -->
-                    <div class="pgm-f4c-grid">
-                      <span class="pgm-f4c-tag">S051: ${s051}</span>
-                      <span class="pgm-f4c-tag">S052: ${s052}</span>
-                      <span class="pgm-f4c-tag">S053: ${s053}</span>
-                      <span class="pgm-f4c-tag">S054: ${s054}</span>
-                      <span class="pgm-f4c-tag">S055: ${s055}</span>
-                      <span class="pgm-f4c-tag">S058: ${s058}</span>
+                    <div class="F4C-f4c-grid">
+                      <span class="F4C-f4c-tag">S051: ${s051}</span>
+                      <span class="F4C-f4c-tag">S052: ${s052}</span>
+                      <span class="F4C-f4c-tag">S053: ${s053}</span>
+                      <span class="F4C-f4c-tag">S054: ${s054}</span>
+                      <span class="F4C-f4c-tag">S055: ${s055}</span>
+                      <span class="F4C-f4c-tag">S058: ${s058}</span>
                     </div>
                   </div>
                 `;
@@ -384,21 +384,21 @@ export const ResultsHandler = {
     // Gérer les événements de fermeture
     modal.querySelectorAll('.close-modal').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.closePgmInfoModal();
+        this.closeF4CInfoModal();
       });
     });
     
     // Fermer en cliquant sur l'overlay (background du modal)
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        this.closePgmInfoModal();
+        this.closeF4CInfoModal();
       }
     });
     
     // Fermer avec la touche Escape
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
-        this.closePgmInfoModal();
+        this.closeF4CInfoModal();
         document.removeEventListener('keydown', handleEscape);
       }
     };
@@ -412,12 +412,12 @@ export const ResultsHandler = {
         
         // Utiliser setTimeout pour permettre à l'overlay de s'afficher
         setTimeout(() => {
-          const pgmContent = this.pgmGenerator.generatePgmFromObject(pgmObject, this.dataManager);
-          UIUtils.downloadFile(pgmContent, fileName, 'text/plain');
+          const F4CContent = this.F4CGenerator.generateF4CFromObject(F4CObject, this.dataManager);
+          UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
           
           // Fermer le modal et masquer l'overlay après un délai
           setTimeout(() => {
-            this.closePgmInfoModal();
+            this.closeF4CInfoModal();
             UIUtils.hideSimpleLoadingOverlay();
           }, 500);
         }, 100);
@@ -431,14 +431,14 @@ export const ResultsHandler = {
   },
   
   /**
-   * MODIFIÉ: Télécharge tous les fichiers PGM dans un ZIP avec overlay de chargement
+   * MODIFIÉ: Télécharge tous les fichiers F4C dans un ZIP avec overlay de chargement
    */
-  downloadAllPgm: async function() {
+  downloadAllF4C: async function() {
     try {
-      console.log('🔽 Début du téléchargement des PGM...');
+      console.log('🔽 Début du téléchargement des F4C...');
       
-      if (!this.uiController.currentPgmObjects) {
-        throw new Error('Aucun objet PGM disponible');
+      if (!this.uiController.currentF4CObjects) {
+        throw new Error('Aucun objet F4C disponible');
       }
       
       // NOUVEAU: Afficher l'overlay de téléchargement
@@ -447,9 +447,9 @@ export const ResultsHandler = {
       // Utiliser setTimeout pour permettre à l'overlay de s'afficher
       setTimeout(async () => {
         try {
-          // CORRECTION: Utiliser PgmGenerator directement (pas this.pgmGenerator)
-          const result = await PgmGenerator.generateAllPgmFromObjects(
-            this.uiController.currentPgmObjects, 
+          // CORRECTION: Utiliser F4CGenerator directement (pas this.F4CGenerator)
+          const result = await F4CGenerator.generateAllF4CFromObjects(
+            this.uiController.currentF4CObjects, 
             this.uiController.dataManager
           );
           
@@ -466,7 +466,7 @@ export const ResultsHandler = {
           
         } catch (error) {
           UIUtils.hideSimpleLoadingOverlay();
-          console.error('❌ Erreur téléchargement PGM:', error);
+          console.error('❌ Erreur téléchargement F4C:', error);
           
           // CORRECTION: Utiliser this.showNotification ou NotificationService
           if (this.showNotification) {
@@ -479,7 +479,7 @@ export const ResultsHandler = {
       
     } catch (error) {
       UIUtils.hideSimpleLoadingOverlay();
-      console.error('❌ Erreur téléchargement PGM:', error);
+      console.error('❌ Erreur téléchargement F4C:', error);
       
       // CORRECTION: Utiliser this.showNotification ou NotificationService
       if (this.showNotification) {

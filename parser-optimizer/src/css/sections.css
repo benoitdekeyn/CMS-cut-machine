@@ -646,9 +646,9 @@
 }
 
 /* ===============================
-   FICHIERS PGM - DESIGN PREMIUM
+   FICHIERS F4C - DESIGN PREMIUM
    =============================== */
-.pgm-file-item {
+.F4C-file-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -658,22 +658,22 @@
   background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
 }
 
-.pgm-file-item:hover {
+.F4C-file-item:hover {
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
 }
 
-.pgm-file-item:last-child {
+.F4C-file-item:last-child {
   border-bottom: none;
 }
 
-.pgm-file-header {
+.F4C-file-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
-.pgm-file-name {
+.F4C-file-name {
   font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
   font-weight: 600;
   min-width: 200px;
@@ -681,12 +681,12 @@
   font-size: 0.9rem;
 }
 
-.pgm-file-actions {
+.F4C-file-actions {
   display: flex;
   gap: 0.75rem;
 }
 
-.pgm-preview-header {
+.F4C-preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1246,7 +1246,7 @@ body.panel-open {
 }
 
 /* Focus visible amélioré */
-.pgm-file-item:focus-visible,
+.F4C-file-item:focus-visible,
 .cut-scheme:focus-visible,
 .model-card:focus-visible {
   outline: 2px solid var(--primary);

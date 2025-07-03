@@ -150,7 +150,7 @@ export const ImportManager = {
         1: parsedData.angle_1 || 90,
         2: parsedData.angle_2 || 90
       },
-      // Propriétés F4C pour la génération PGM
+      // Propriétés F4C pour la génération F4C
       f4cData: {
         B021: parsedData.B021 || '',
         B035: parsedData.B035 || '',

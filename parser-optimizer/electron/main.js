@@ -24,7 +24,7 @@ function createWindow() {
     show: false, // Ne pas afficher immédiatement
     titleBarStyle: 'default',
     autoHideMenuBar: false,
-    title: 'CMS PGM Generator' // MODIFIÉ: Nouveau titre
+    title: 'CMS F4C Generator' // MODIFIÉ: Nouveau titre
   });
 
   // Charger l'application
@@ -123,12 +123,12 @@ function createMenu() {
       label: 'Aide',
       submenu: [
         {
-          label: 'À propos de CMS PGM Generator', // MODIFIÉ
+          label: 'À propos de CMS F4C Generator', // MODIFIÉ
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
               title: 'À propos',
-              message: 'CMS PGM Generator', // MODIFIÉ
+              message: 'CMS F4C Generator', // MODIFIÉ
               detail: 'Optimisation intelligente des découpes de profilés\nVersion 1.0.0',
               buttons: ['OK']
             });

@@ -1563,7 +1563,7 @@ body.panel-open {
     grid-template-columns: 1fr;
   }
   
-  .pgm-preview-header {
+  .F4C-preview-header {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
@@ -2047,22 +2047,22 @@ body.panel-open {
 }
 
 /* ===============================
-   MODAL PGM - STYLES ADAPTÉS AU DARK MODE
+   MODAL F4C - STYLES ADAPTÉS AU DARK MODE
    =============================== */
 
-/* Modal spécifique pour les informations PGM */
-.pgm-info-modal .pgm-modal-content {
+/* Modal spécifique pour les informations F4C */
+.F4C-info-modal .F4C-modal-content {
   max-width: 700px;
   max-height: 85vh;
 }
 
-.pgm-modal-body {
+.F4C-modal-body {
   max-height: 70vh;
   overflow-y: auto;
 }
 
 /* En-tête avec informations principales */
-.pgm-header-grid {
+.F4C-header-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
@@ -2073,11 +2073,11 @@ body.panel-open {
   border: 1px solid var(--border-color);
 }
 
-.pgm-header-item {
+.F4C-header-item {
   text-align: center;
 }
 
-.pgm-header-label {
+.F4C-header-label {
   font-weight: 500;
   color: var(--text-secondary);
   margin-bottom: 0.5rem;
@@ -2086,14 +2086,14 @@ body.panel-open {
   letter-spacing: 0.025em;
 }
 
-.pgm-header-value {
+.F4C-header-value {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1rem;
 }
 
 /* Informations de performance */
-.pgm-performance-info {
+.F4C-performance-info {
   display: flex;
   justify-content: flex-end;
   gap: 1.5rem;
@@ -2101,22 +2101,22 @@ body.panel-open {
   flex-wrap: wrap;
 }
 
-.pgm-performance-item {
+.F4C-performance-item {
   color: var(--text-tertiary);
   font-size: 0.95em;
 }
 
-.pgm-performance-value {
+.F4C-performance-value {
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 /* Sections de la modal */
-.pgm-section {
+.F4C-section {
   margin-bottom: 2rem;
 }
 
-.pgm-section-title {
+.F4C-section-title {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   font-weight: 600;
@@ -2124,13 +2124,13 @@ body.panel-open {
 }
 
 /* Grille des paramètres BODY */
-.pgm-params-grid {
+.F4C-params-grid {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
-.pgm-param-tag {
+.F4C-param-tag {
   background: var(--bg-primary);
   padding: 0.375rem 0.625rem;
   border-radius: var(--radius);
@@ -2142,19 +2142,19 @@ body.panel-open {
   transition: all var(--transition);
 }
 
-.pgm-param-tag:hover {
+.F4C-param-tag:hover {
   border-color: var(--border-hover);
   background: var(--bg-hover);
 }
 
 /* Liste des pièces */
-.pgm-pieces-list {
+.F4C-pieces-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.pgm-piece-item {
+.F4C-piece-item {
   padding: 1rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
@@ -2163,13 +2163,13 @@ body.panel-open {
   transition: all var(--transition);
 }
 
-.pgm-piece-item:hover {
+.F4C-piece-item:hover {
   border-color: var(--border-hover);
   background: var(--bg-hover);
 }
 
 /* Index de la pièce */
-.pgm-piece-index {
+.F4C-piece-index {
   position: absolute;
   top: 0.5rem;
   right: 1rem;
@@ -2183,7 +2183,7 @@ body.panel-open {
 }
 
 /* Nom de la pièce */
-.pgm-piece-name {
+.F4C-piece-name {
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 0.75rem;
@@ -2192,13 +2192,13 @@ body.panel-open {
 }
 
 /* Grille des codes F4C */
-.pgm-f4c-grid {
+.F4C-f4c-grid {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.pgm-f4c-tag {
+.F4C-f4c-tag {
   background: var(--bg-primary);
   padding: 0.375rem 0.625rem;
   border-radius: var(--radius);
@@ -2210,110 +2210,110 @@ body.panel-open {
   transition: all var(--transition);
 }
 
-.pgm-f4c-tag:hover {
+.F4C-f4c-tag:hover {
   border-color: var(--border-hover);
   background: var(--bg-hover);
 }
 
-/* Responsive pour la modal PGM */
+/* Responsive pour la modal F4C */
 @media (max-width: 768px) {
-  .pgm-header-grid {
+  .F4C-header-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
     text-align: left;
   }
   
-  .pgm-header-item {
+  .F4C-header-item {
     text-align: left;
     padding: 0.75rem;
     background: var(--bg-tertiary);
     border-radius: var(--radius-sm);
   }
   
-  .pgm-performance-info {
+  .F4C-performance-info {
     justify-content: flex-start;
     gap: 1rem;
   }
   
-  .pgm-params-grid,
-  .pgm-f4c-grid {
+  .F4C-params-grid,
+  .F4C-f4c-grid {
     gap: 0.375rem;
   }
   
-  .pgm-param-tag,
-  .pgm-f4c-tag {
+  .F4C-param-tag,
+  .F4C-f4c-tag {
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
   }
   
-  .pgm-piece-item {
+  .F4C-piece-item {
     padding: 0.75rem;
   }
   
-  .pgm-piece-name {
+  .F4C-piece-name {
     padding-right: 2.5rem;
     font-size: 0.9rem;
   }
   
-  .pgm-piece-index {
+  .F4C-piece-index {
     font-size: 0.7rem;
     padding: 0.2rem 0.4rem;
   }
 }
 
 @media (max-width: 480px) {
-  .pgm-info-modal .pgm-modal-content {
+  .F4C-info-modal .F4C-modal-content {
     max-width: 95vw;
     margin: 1rem;
   }
   
-  .pgm-header-grid {
+  .F4C-header-grid {
     padding: 0.75rem;
     gap: 0.5rem;
   }
   
-  .pgm-f4c-grid {
+  .F4C-f4c-grid {
     flex-direction: column;
     gap: 0.25rem;
   }
   
-  .pgm-f4c-tag {
+  .F4C-f4c-tag {
     text-align: center;
   }
 }
 
 /* Mode sombre - ajustements spécifiques */
 @media (prefers-color-scheme: dark) {
-  .pgm-param-tag,
-  .pgm-f4c-tag {
+  .F4C-param-tag,
+  .F4C-f4c-tag {
     background: var(--bg-secondary);
     border-color: var(--border-color);
     color: var(--text-primary);
   }
   
-  .pgm-param-tag:hover,
-  .pgm-f4c-tag:hover {
+  .F4C-param-tag:hover,
+  .F4C-f4c-tag:hover {
     background: var(--bg-tertiary);
     border-color: var(--border-hover);
   }
   
-  .pgm-piece-item {
+  .F4C-piece-item {
     background: var(--bg-secondary);
     border-color: var(--border-color);
   }
   
-  .pgm-piece-item:hover {
+  .F4C-piece-item:hover {
     background: var(--bg-tertiary);
     border-color: var(--border-hover);
   }
   
-  .pgm-header-grid {
+  .F4C-header-grid {
     background: var(--bg-tertiary);
     border-color: var(--border-color);
   }
   
   @media (max-width: 768px) {
-    .pgm-header-item {
+    .F4C-header-item {
       background: var(--bg-secondary);
     }
   }
@@ -3117,9 +3117,9 @@ body.panel-open {
 }
 
 /* ===============================
-   FICHIERS PGM - DESIGN PREMIUM
+   FICHIERS F4C - DESIGN PREMIUM
    =============================== */
-.pgm-file-item {
+.F4C-file-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3129,22 +3129,22 @@ body.panel-open {
   background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
 }
 
-.pgm-file-item:hover {
+.F4C-file-item:hover {
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
 }
 
-.pgm-file-item:last-child {
+.F4C-file-item:last-child {
   border-bottom: none;
 }
 
-.pgm-file-header {
+.F4C-file-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
-.pgm-file-name {
+.F4C-file-name {
   font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
   font-weight: 600;
   min-width: 200px;
@@ -3152,12 +3152,12 @@ body.panel-open {
   font-size: 0.9rem;
 }
 
-.pgm-file-actions {
+.F4C-file-actions {
   display: flex;
   gap: 0.75rem;
 }
 
-.pgm-preview-header {
+.F4C-preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -3717,7 +3717,7 @@ body.panel-open {
 }
 
 /* Focus visible amélioré */
-.pgm-file-item:focus-visible,
+.F4C-file-item:focus-visible,
 .cut-scheme:focus-visible,
 .model-card:focus-visible {
   outline: 2px solid var(--primary);
