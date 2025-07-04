@@ -5706,17 +5706,17 @@ var ImportManager = {
     };
   }
 };
-;// ./src/js/F4C-generator.js
-function F4C_generator_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return F4C_generator_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (F4C_generator_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, F4C_generator_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, F4C_generator_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), F4C_generator_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", F4C_generator_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), F4C_generator_regeneratorDefine2(u), F4C_generator_regeneratorDefine2(u, o, "Generator"), F4C_generator_regeneratorDefine2(u, n, function () { return this; }), F4C_generator_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (F4C_generator_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function F4C_generator_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } F4C_generator_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { F4C_generator_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, F4C_generator_regeneratorDefine2(e, r, n, t); }
-function F4C_generator_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function F4C_generator_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { F4C_generator_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { F4C_generator_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function F4C_generator_slicedToArray(r, e) { return F4C_generator_arrayWithHoles(r) || F4C_generator_iterableToArrayLimit(r, e) || F4C_generator_unsupportedIterableToArray(r, e) || F4C_generator_nonIterableRest(); }
-function F4C_generator_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function F4C_generator_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return F4C_generator_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? F4C_generator_arrayLikeToArray(r, a) : void 0; } }
-function F4C_generator_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function F4C_generator_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function F4C_generator_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+;// ./src/js/f4c-generator.js
+function f4c_generator_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return f4c_generator_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (f4c_generator_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, f4c_generator_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, f4c_generator_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), f4c_generator_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", f4c_generator_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), f4c_generator_regeneratorDefine2(u), f4c_generator_regeneratorDefine2(u, o, "Generator"), f4c_generator_regeneratorDefine2(u, n, function () { return this; }), f4c_generator_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (f4c_generator_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function f4c_generator_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } f4c_generator_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { f4c_generator_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, f4c_generator_regeneratorDefine2(e, r, n, t); }
+function f4c_generator_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function f4c_generator_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { f4c_generator_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { f4c_generator_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function f4c_generator_slicedToArray(r, e) { return f4c_generator_arrayWithHoles(r) || f4c_generator_iterableToArrayLimit(r, e) || f4c_generator_unsupportedIterableToArray(r, e) || f4c_generator_nonIterableRest(); }
+function f4c_generator_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function f4c_generator_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return f4c_generator_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? f4c_generator_arrayLikeToArray(r, a) : void 0; } }
+function f4c_generator_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function f4c_generator_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function f4c_generator_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 /**
  * Générateur de fichiers F4C à partir des objets F4C
  */
@@ -5936,7 +5936,7 @@ var F4CGenerator = {
     // Construire la chaîne BODY
     var bodyParts = [];
     for (var _i = 0, _Object$entries = Object.entries(bodyTemplate); _i < _Object$entries.length; _i++) {
-      var _Object$entries$_i = F4C_generator_slicedToArray(_Object$entries[_i], 2),
+      var _Object$entries$_i = f4c_generator_slicedToArray(_Object$entries[_i], 2),
         key = _Object$entries$_i[0],
         value = _Object$entries$_i[1];
       bodyParts.push("".concat(key, "=\"").concat(value, "\""));
@@ -6025,7 +6025,7 @@ var F4CGenerator = {
     // Construire la chaîne STEP
     var stepParts = [];
     for (var _i2 = 0, _Object$entries2 = Object.entries(stepTemplate); _i2 < _Object$entries2.length; _i2++) {
-      var _Object$entries2$_i = F4C_generator_slicedToArray(_Object$entries2[_i2], 2),
+      var _Object$entries2$_i = f4c_generator_slicedToArray(_Object$entries2[_i2], 2),
         key = _Object$entries2$_i[0],
         value = _Object$entries2$_i[1];
       stepParts.push("".concat(key, "=\"").concat(value, "\""));
@@ -6075,9 +6075,9 @@ var F4CGenerator = {
    * @returns {Promise<{blob: Blob, fileName: string}>} - Blob et nom du fichier ZIP
    */
   generateAllF4CFromObjects: function () {
-    var _generateAllF4CFromObjects = F4C_generator_asyncToGenerator(/*#__PURE__*/F4C_generator_regenerator().m(function _callee(F4CObjects, dataManager) {
+    var _generateAllF4CFromObjects = f4c_generator_asyncToGenerator(/*#__PURE__*/f4c_generator_regenerator().m(function _callee(F4CObjects, dataManager) {
       var zip, fileNames, i, F4CObject, F4CContent, fileName, counter, uniqueFileName, nameParts, errorFileName, errorContent, summary, zipFileName, blob, _t;
-      return F4C_generator_regenerator().w(function (_context) {
+      return f4c_generator_regenerator().w(function (_context) {
         while (1) switch (_context.n) {
           case 0:
             console.log("\uD83C\uDFD7\uFE0F G\xE9n\xE9ration de ".concat(F4CObjects.length, " fichiers F4C..."));
@@ -6202,7 +6202,7 @@ var F4CGenerator = {
     summary += "STATISTIQUES PAR PROFIL:\n";
     summary += "------------------------\n";
     for (var _i3 = 0, _Object$entries3 = Object.entries(profileStats); _i3 < _Object$entries3.length; _i3++) {
-      var _Object$entries3$_i = F4C_generator_slicedToArray(_Object$entries3[_i3], 2),
+      var _Object$entries3$_i = f4c_generator_slicedToArray(_Object$entries3[_i3], 2),
         profile = _Object$entries3$_i[0],
         stats = _Object$entries3$_i[1];
       var efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
@@ -6256,24 +6256,24 @@ var F4CGenerator = {
     return summary;
   }
 };
-;// ./src/js/F4C-manager.js
-function F4C_manager_typeof(o) { "@babel/helpers - typeof"; return F4C_manager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, F4C_manager_typeof(o); }
-function F4C_manager_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function F4C_manager_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? F4C_manager_ownKeys(Object(t), !0).forEach(function (r) { F4C_manager_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : F4C_manager_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function F4C_manager_defineProperty(e, r, t) { return (r = F4C_manager_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function F4C_manager_toPropertyKey(t) { var i = F4C_manager_toPrimitive(t, "string"); return "symbol" == F4C_manager_typeof(i) ? i : i + ""; }
-function F4C_manager_toPrimitive(t, r) { if ("object" != F4C_manager_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != F4C_manager_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function F4C_manager_toConsumableArray(r) { return F4C_manager_arrayWithoutHoles(r) || F4C_manager_iterableToArray(r) || F4C_manager_unsupportedIterableToArray(r) || F4C_manager_nonIterableSpread(); }
-function F4C_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function F4C_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function F4C_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return F4C_manager_arrayLikeToArray(r); }
-function F4C_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = F4C_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function F4C_manager_slicedToArray(r, e) { return F4C_manager_arrayWithHoles(r) || F4C_manager_iterableToArrayLimit(r, e) || F4C_manager_unsupportedIterableToArray(r, e) || F4C_manager_nonIterableRest(); }
-function F4C_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function F4C_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return F4C_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? F4C_manager_arrayLikeToArray(r, a) : void 0; } }
-function F4C_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function F4C_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function F4C_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+;// ./src/js/f4c-manager.js
+function f4c_manager_typeof(o) { "@babel/helpers - typeof"; return f4c_manager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, f4c_manager_typeof(o); }
+function f4c_manager_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function f4c_manager_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? f4c_manager_ownKeys(Object(t), !0).forEach(function (r) { f4c_manager_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : f4c_manager_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function f4c_manager_defineProperty(e, r, t) { return (r = f4c_manager_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function f4c_manager_toPropertyKey(t) { var i = f4c_manager_toPrimitive(t, "string"); return "symbol" == f4c_manager_typeof(i) ? i : i + ""; }
+function f4c_manager_toPrimitive(t, r) { if ("object" != f4c_manager_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != f4c_manager_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function f4c_manager_toConsumableArray(r) { return f4c_manager_arrayWithoutHoles(r) || f4c_manager_iterableToArray(r) || f4c_manager_unsupportedIterableToArray(r) || f4c_manager_nonIterableSpread(); }
+function f4c_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function f4c_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function f4c_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return f4c_manager_arrayLikeToArray(r); }
+function f4c_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = f4c_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function f4c_manager_slicedToArray(r, e) { return f4c_manager_arrayWithHoles(r) || f4c_manager_iterableToArrayLimit(r, e) || f4c_manager_unsupportedIterableToArray(r, e) || f4c_manager_nonIterableRest(); }
+function f4c_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function f4c_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return f4c_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? f4c_manager_arrayLikeToArray(r, a) : void 0; } }
+function f4c_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function f4c_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function f4c_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 /**
  * F4C Manager - Gère la création d'objets F4C à partir des schémas de coupe
  * Chaque objet F4C représente une barre mère à découper avec les références des pièces
@@ -6303,7 +6303,7 @@ var F4CManager = {
     for (var _i = 0, _modelNames = modelNames; _i < _modelNames.length; _i++) {
       var modelName = _modelNames[_i];
       var _modelName$split = modelName.split('_'),
-        _modelName$split2 = F4C_manager_slicedToArray(_modelName$split, 2),
+        _modelName$split2 = f4c_manager_slicedToArray(_modelName$split, 2),
         profile = _modelName$split2[0],
         orientation = _modelName$split2[1];
       var pool = this.createNewPool();
@@ -6311,7 +6311,7 @@ var F4CManager = {
       pool.orientation = orientation;
       var modelData = modelResults[modelName];
       if (modelData.layouts && Array.isArray(modelData.layouts)) {
-        var _iterator = F4C_manager_createForOfIteratorHelper(modelData.layouts),
+        var _iterator = f4c_manager_createForOfIteratorHelper(modelData.layouts),
           _step;
         try {
           for (_iterator.s(); !(_step = _iterator.n()).done;) {
@@ -6343,16 +6343,16 @@ var F4CManager = {
   createF4CFromPools: function createF4CFromPools(pools) {
     console.log('Création des F4C à partir des pools...');
     var F4CList = [];
-    var _iterator2 = F4C_manager_createForOfIteratorHelper(pools),
+    var _iterator2 = f4c_manager_createForOfIteratorHelper(pools),
       _step2;
     try {
       for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         var pool = _step2.value;
         // Créer une copie des pièces disponibles pour cette pool
-        var availablePieces = F4C_manager_toConsumableArray(pool.pieces);
+        var availablePieces = f4c_manager_toConsumableArray(pool.pieces);
 
         // Pour chaque layout, créer un F4C
-        var _iterator3 = F4C_manager_createForOfIteratorHelper(pool.layouts),
+        var _iterator3 = f4c_manager_createForOfIteratorHelper(pool.layouts),
           _step3;
         try {
           for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
@@ -6369,7 +6369,7 @@ var F4CManager = {
             };
 
             // Assigner les pièces aux cuts du layout
-            var _iterator4 = F4C_manager_createForOfIteratorHelper(layout.cuts),
+            var _iterator4 = f4c_manager_createForOfIteratorHelper(layout.cuts),
               _step4;
             try {
               var _loop = function _loop() {
@@ -6381,7 +6381,7 @@ var F4CManager = {
                 if (pieceIndex !== -1) {
                   // Assigner cette pièce au F4C
                   var assignedPiece = availablePieces[pieceIndex];
-                  F4C.pieces.push(F4C_manager_objectSpread({}, assignedPiece)); // Copie de la pièce
+                  F4C.pieces.push(f4c_manager_objectSpread({}, assignedPiece)); // Copie de la pièce
 
                   // Si c'est la première pièce, définir B035 et B021
                   if (F4C.pieces.length === 1 && assignedPiece.f4cData) {
@@ -6488,13 +6488,13 @@ var F4CManager = {
 
     // Générer le résumé textuel
     var profileSummary = Object.entries(report.byProfile).map(function (_ref) {
-      var _ref2 = F4C_manager_slicedToArray(_ref, 2),
+      var _ref2 = f4c_manager_slicedToArray(_ref, 2),
         profile = _ref2[0],
         data = _ref2[1];
       return "".concat(profile, ": ").concat(data.count, " F4C(s), ").concat(data.pieces, " pi\xE8ce(s)");
     }).join(' | ');
     var orientationSummary = Object.entries(report.byOrientation).map(function (_ref3) {
-      var _ref4 = F4C_manager_slicedToArray(_ref3, 2),
+      var _ref4 = f4c_manager_slicedToArray(_ref3, 2),
         orientation = _ref4[0],
         data = _ref4[1];
       return "".concat(orientation, ": ").concat(data.count, " F4C(s), ").concat(data.pieces, " pi\xE8ce(s)");
@@ -10391,9 +10391,6 @@ var Parser = {
     } else if (barre.orientation === 'debout') {
       if (barre.angle_1 < 0) {
         position_AK_S051 = [2, 1, 2]; // AK o(1;2)
-        S058 = 1;
-      } else if (barre.angle_1 == 0 && barre.angle_2 < 0) {
-        position_AK_S051 = [2, 1, 3]; // AK o(1;3)
         S058 = 1;
       } else {
         position_AK_S051 = [2, 1, 4]; // AK o(1;4)

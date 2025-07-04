@@ -177,9 +177,6 @@ export const Parser = {
       if (barre.angle_1 < 0) {
         position_AK_S051 = [2, 1, 2]; // AK o(1;2)
         S058 = 1;
-      } else if (barre.angle_1 == 0 && barre.angle_2 < 0) {
-        position_AK_S051 = [2, 1, 3]; // AK o(1;3)
-        S058 = 1;
       } else {
         position_AK_S051 = [2, 1, 4]; // AK o(1;4)
         S058 = 2;

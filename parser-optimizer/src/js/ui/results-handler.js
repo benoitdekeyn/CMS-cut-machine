@@ -4,7 +4,7 @@
  */
 import { UIUtils } from './utils.js';
 import { NotificationService } from './notification-service.js';
-import { F4CGenerator } from '../F4C-generator.js';
+import { F4CGenerator } from '../f4c-generator.js';
 
 export const ResultsHandler = {
   // Dépendances
