@@ -6,25 +6,11 @@ import JSZip from 'jszip';
 export const F4CGenerator = {
   /**
    * MODIFIÉ: Formate une longueur en mètres avec décimales précises (POINT comme séparateur pour les noms de fichiers)
-   * @param {number} lengthInCm - Longueur en centimètres
+   * @param {number} lengthInMm - Longueur en centimètres
    * @param {boolean} useComma - Si true, utilise la virgule, sinon le point
    * @returns {string} - Longueur formatée en mètres
    */
-  formatLengthInMeters: function(lengthInCm, useComma = false) {
-    const meters = lengthInCm / 100;
-    
-    // Si c'est un nombre entier, pas de décimales
-    if (meters % 1 === 0) {
-      return meters.toString();
-    }
-    
-    // Sinon, formatage avec jusqu'à 3 décimales en supprimant les zéros inutiles
-    const formatted = meters.toFixed(3);
-    const cleanFormatted = parseFloat(formatted).toString();
-    
-    // Utiliser virgule ou point selon le paramètre
-    return useComma ? cleanFormatted.replace('.', ',') : cleanFormatted;
-  },
+  
 
   /**
    * NOUVEAU: Formate une date au format AAAA-MM-JJ_HH-mm pour les noms de fichiers
@@ -71,12 +57,10 @@ export const F4CGenerator = {
    */
   generateF4CFileName: function(F4CObject) {
     const profil = F4CObject.profile;
-    const longueurCm = F4CObject.length;
+    const longueurMm = F4CObject.length;
     const orientation = F4CObject.orientation;
     const pieces = F4CObject.pieces || [];
 
-    // Longueur en mètres avec POINT décimal pour les noms de fichiers
-    const longueurMetres = this.formatLengthInMeters(longueurCm, false);
 
     // Noms des barres (toutes, sans limite)
     const nomsPieces = pieces.map(piece => {
@@ -91,7 +75,7 @@ export const F4CGenerator = {
     });
 
     // Assembler le nom avec longueur précise (point décimal)
-    let nomFichier = `${profil}_${longueurMetres}m_${orientation}__${nomsPieces.join('-')}.F4C`;
+    let nomFichier = `${profil}_${longueurMm}mm_${orientation}__${nomsPieces.join('-')}.F4C`;
 
     // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
     nomFichier = nomFichier.replace(/[<>:"/\\|?*]/g, '_');
@@ -340,7 +324,7 @@ export const F4CGenerator = {
         } else if (piece.nom && piece.nom.trim() !== '') {
           barName = piece.nom.trim();
         } else if (piece.profile && piece.length) {
-          barName = `${piece.profile}_${piece.length}cm`;
+          barName = `${piece.profile}_${piece.length} mm`;
         } else {
           barName = 'barre_inconnue';
         }
@@ -486,14 +470,13 @@ export const F4CGenerator = {
     summary += `------------------------\n`;
     for (const [profile, stats] of Object.entries(profileStats)) {
       const efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
-      const totalLengthMeters = this.formatLengthInMeters(stats.totalLength, true);
       const totalWasteCm = Math.round(stats.totalWaste);
 
       summary += `${profile}:\n`;
       summary += `  - ${stats.count} barres mères\n`;
       summary += `  - ${stats.totalPieces} pièces à découper\n`;
-      summary += `  - ${totalLengthMeters} m de barres\n`;
-      summary += `  - ${totalWasteCm} cm de chutes\n`;
+      summary += `  - ${stats.totalLength} mm de barres\n`;
+      summary += `  - ${totalWasteCm} mm de chutes\n`;
       summary += `  - Efficacité: ${efficiency}%\n\n`;
     }
 
@@ -508,14 +491,13 @@ export const F4CGenerator = {
       summary += `║ F4C ${F4CIndex + 1}: ${fileName}\n`;
       summary += `╚${'═'.repeat(80)}\n\n`;
 
-      const motherBarLengthMeters = this.formatLengthInMeters(F4C.length, true);
       const totalPiecesLength = F4C.pieces.reduce((sum, piece) => sum + piece.length, 0);
       const waste = F4C.length - totalPiecesLength;
 
       summary += `Profil: ${F4C.profile}\n`;
       summary += `Orientation: ${F4C.orientation}\n`;
-      summary += `Longueur: ${motherBarLengthMeters} m\n`;
-      summary += `Chute: ${waste} cm\n`;
+      summary += `Longueur: ${F4C.length} mm\n`;
+      summary += `Chute: ${waste} mm\n`;
 
       // Efficacité
       const efficiency = F4C.length > 0 ? Math.round((totalPiecesLength / F4C.length) * 100) : 0;
@@ -528,13 +510,13 @@ export const F4CGenerator = {
         F4C.pieces.forEach((piece, pieceIndex) => {
           const pieceName = piece.nom && piece.nom.trim() !== '' 
             ? piece.nom 
-            : `${piece.profile}_${piece.length}cm`;
+            : `${piece.profile}_${piece.length} mm`;
           const angle1 = piece.angles?.[1] || 90;
           const angle2 = piece.angles?.[2] || 90;
           const angleInfo = (angle1 !== 90 || angle2 !== 90) 
             ? ` - Angles: ${angle1}°/${angle2}°`
             : '';
-          summary += `  ${(pieceIndex + 1).toString().padStart(2, ' ')}. ${pieceName} - ${piece.length} cm${angleInfo}\n`;
+          summary += `  ${(pieceIndex + 1).toString().padStart(2, ' ')}. ${pieceName} - ${piece.length} mm${angleInfo}\n`;
         });
       } else {
         summary += `  Aucune pièce à découper\n`;

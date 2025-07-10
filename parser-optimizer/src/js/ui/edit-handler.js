@@ -1,3 +1,5 @@
+import { UIUtils } from './utils.js';
+
 /**
  * Gestionnaire de la section d'édition (SANS ID)
  */
@@ -38,28 +40,19 @@ export const EditHandler = {
   },
   
   /**
-   * NOUVEAU: Convertit des centimètres en mètres pour l'affichage
-   */
-  formatLengthForDisplay: function(lengthInCm) {
-    const meters = lengthInCm / 100;
-    // Afficher avec le minimum de décimales nécessaires, virgule comme séparateur
-    return meters % 1 === 0 ? meters.toString() : meters.toString().replace('.', ',');
-  },
-  
-  /**
-   * NOUVEAU: Convertit une valeur en mètres (avec virgule ou point) vers des centimètres
+   * NOUVEAU: Convertit une valeur en milimètres (avec virgule ou point)
    */
   parseLengthFromDisplay: function(displayValue) {
     if (!displayValue || displayValue.trim() === '') return null;
     
     // Remplacer la virgule par un point pour la conversion
     const normalizedValue = displayValue.replace(',', '.');
-    const meters = parseFloat(normalizedValue);
+    const milimeters = parseFloat(normalizedValue);
     
-    if (isNaN(meters) || meters <= 0) return null;
+    if (isNaN(milimeters) || milimeters <= 0) return null;
     
     // Convertir en centimètres et arrondir
-    return Math.round(meters * 100);
+    return Math.round(milimeters);
   },
   
   /**
@@ -80,7 +73,7 @@ export const EditHandler = {
       if (value !== '') {
         const parsed = this.parseLengthFromDisplay(value);
         if (parsed !== null) {
-          e.target.value = this.formatLengthForDisplay(parsed);
+          e.target.value = UIUtils.formatLenght(parsed);
         }
       }
     });
@@ -233,7 +226,7 @@ export const EditHandler = {
           <td>${piece.nom || '-'}</td>
           <td>${piece.profile}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
-          <td>${Math.round(piece.length)} cm</td>
+          <td>${Math.round(piece.length)} mm</td>
           <td>${parseFloat(piece.angles?.[1] || 90).toFixed(2)}°</td>
           <td>${parseFloat(piece.angles?.[2] || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
@@ -336,11 +329,11 @@ export const EditHandler = {
     // Générer les lignes du tableau avec longueurs en mètres
     for (const bar of sortedBars) {
       const barKey = this.dataManager.generateMotherBarKey(bar);
-      const lengthInMeters = this.formatLengthForDisplay(bar.length);
+      const lengthInMilimeters = UIUtils.formatLenght(bar.length);
       html += `
         <tr data-key="${barKey}">
           <td>${bar.profile}</td>
-          <td>${lengthInMeters} m</td>
+          <td>${lengthInMilimeters} mm</td>
           <td>${bar.quantity}</td>
           <td>
             <div class="action-buttons">
@@ -457,7 +450,7 @@ export const EditHandler = {
           <input type="number" id="piece-quantity" min="1" max="10000" value="${item.quantity}">
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur (cm) ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
+          <label for="piece-length">Longueur (mm) ${this.lockOptions.lockPieceLengths ? '(verrouillée)' : ''} :</label>
           <input type="number" id="piece-length" min="1" max="100000" value="${item.length}" ${lengthDisabled}>
           ${this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : ''}
         </div>
@@ -506,7 +499,7 @@ export const EditHandler = {
           <input type="number" id="piece-quantity" min="1" max="10000" value="1">
         </div>
         <div class="form-group">
-          <label for="piece-length">Longueur (cm) :</label>
+          <label for="piece-length">Longueur (mm) :</label>
           <input type="number" id="piece-length" min="1" max="100000" placeholder="ex: 300">
         </div>
         <div class="form-group">
@@ -660,8 +653,8 @@ export const EditHandler = {
       
       title.textContent = `Éditer la barre mère ${item.profile}`;
       
-      // Convertir la longueur en mètres pour l'affichage
-      const lengthInMeters = this.formatLengthForDisplay(item.length);
+      // Convertir la longueur en milimètres pour l'affichage
+      const lengthInMilimeters = UIUtils.formatLenght(item.length);
       
       // Générer le formulaire d'édition
       form.innerHTML = `
@@ -672,9 +665,9 @@ export const EditHandler = {
           </select>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur (m) :</label>
-          <input type="text" id="stock-length" value="${lengthInMeters}" placeholder="ex : 12 ou 3,5">
-          <small class="form-help">Saisissez la longueur en mètres</small>
+          <label for="stock-length">Longueur (mm) :</label>
+          <input type="text" id="stock-length" value="${lengthInMilimeters}" placeholder="ex : 12000">
+          <small class="form-help">Saisissez la longueur en milimètres</small>
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -696,8 +689,8 @@ export const EditHandler = {
         </div>
         <div class="form-group">
           <label for="stock-length">Longueur (m) :</label>
-          <input type="text" id="stock-length" placeholder="ex : 12 ou 3,5">
-          <small class="form-help">Saisissez la longueur en mètres</small>
+          <input type="text" id="stock-length" placeholder="ex : 12000">
+          <small class="form-help">Saisissez la longueur en milimètres</small>
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -877,12 +870,12 @@ export const EditHandler = {
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
       // Convertir la longueur de mètres vers centimètres
-      const lengthInCm = this.parseLengthFromDisplay(lengthInput);
+      const lengthInMm = this.parseLengthFromDisplay(lengthInput);
       
       // Préparer les données à valider
       const motherBarData = {
         profile: profileValue,
-        length: lengthInCm,
+        length: lengthInMm,
         quantity
       };
       
@@ -893,7 +886,7 @@ export const EditHandler = {
         return;
       }
       
-      if (profileValue && lengthInCm && quantity) {
+      if (profileValue && lengthInMm && quantity) {
         if (mode === 'edit') {
           const bar = this.dataManager.getMotherBarByKey(key);
           
@@ -903,7 +896,7 @@ export const EditHandler = {
           
           const updatedMotherBar = {
             profile: profileValue,
-            length: lengthInCm,
+            length: lengthInMm,
             quantity
           };
           
@@ -912,7 +905,7 @@ export const EditHandler = {
         } else {
           const barData = {
             profile: profileValue,
-            length: lengthInCm,
+            length: lengthInMm,
             quantity,
             type: 'mother'
           };
@@ -971,9 +964,9 @@ export const EditHandler = {
     if (!data.length || isNaN(data.length) || data.length <= 0) {
       errors.push('Longueur invalide');
     } else if (data.length > 100000) {
-      errors.push('Longueur trop grande (max 100 000 cm)');
-    } else if (data.length < 1) {
-      errors.push('Longueur minimale 1 cm');
+      errors.push('Longueur trop grande (max 100 m)');
+    } else if (data.length < 100) {
+      errors.push('Longueur minimale 10 cm');
     }
     
     if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
@@ -1015,8 +1008,8 @@ export const EditHandler = {
     if (!data.length || isNaN(data.length) || data.length <= 0) {
       errors.push('Longueur invalide');
     } else if (data.length > 100000) {
-      errors.push('Longueur trop grande (max 100 000 cm)');
-    } else if (data.length < 10) {
+      errors.push('Longueur trop grande (max 100 m)');
+    } else if (data.length < 100) {
       errors.push('Longueur minimale 10 cm');
     }
     
@@ -1079,8 +1072,8 @@ export const EditHandler = {
       
       title.textContent = `Éditer la barre mère ${item.profile}`;
       
-      // Convertir la longueur en mètres pour l'affichage
-      const lengthInMeters = this.formatLengthForDisplay(item.length);
+      // Convertir la longueur en milimètres pour l'affichage
+      const lengthInMilimeters = UIUtils.formatLenght(item.length);
       
       // Générer le formulaire d'édition
       form.innerHTML = `
@@ -1091,9 +1084,9 @@ export const EditHandler = {
           </select>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur (m) :</label>
-          <input type="text" id="stock-length" value="${lengthInMeters}" placeholder="ex : 12 ou 3,5">
-          <small class="form-help">Saisissez la longueur en mètres</small>
+          <label for="stock-length">Longueur (mm) :</label>
+          <input type="text" id="stock-length" value="${lengthInMilimeters}" placeholder="ex : 12000">
+          <small class="form-help">Saisissez la longueur en milimètres</small>
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -1114,9 +1107,9 @@ export const EditHandler = {
           <small class="form-help">Sélectionnez un profil existant ou saisissez-en un nouveau</small>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur (m) :</label>
-          <input type="text" id="stock-length" placeholder="ex : 12 ou 3,5">
-          <small class="form-help">Saisissez la longueur en mètres</small>
+          <label for="stock-length">Longueur (mm) :</label>
+          <input type="text" id="stock-length" placeholder="ex : 12000">
+          <small class="form-help">Saisissez la longueur en milimètres</small>
         </div>
         <div class="form-group">
           <label for="stock-quantity">Quantité :</label>
@@ -1296,12 +1289,12 @@ export const EditHandler = {
       const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
       
       // Convertir la longueur de mètres vers centimètres
-      const lengthInCm = this.parseLengthFromDisplay(lengthInput);
+      const lengthInMm = this.parseLengthFromDisplay(lengthInput);
       
       // Préparer les données à valider
       const motherBarData = {
         profile: profileValue,
-        length: lengthInCm,
+        length: lengthInMm,
         quantity
       };
       
@@ -1312,7 +1305,7 @@ export const EditHandler = {
         return;
       }
       
-      if (profileValue && lengthInCm && quantity) {
+      if (profileValue && lengthInMm && quantity) {
         if (mode === 'edit') {
           const bar = this.dataManager.getMotherBarByKey(key);
           
@@ -1322,7 +1315,7 @@ export const EditHandler = {
           
           const updatedMotherBar = {
             profile: profileValue,
-            length: lengthInCm,
+            length: lengthInMm,
             quantity
           };
           
@@ -1331,7 +1324,7 @@ export const EditHandler = {
         } else {
           const barData = {
             profile: profileValue,
-            length: lengthInCm,
+            length: lengthInMm,
             quantity,
             type: 'mother'
           };

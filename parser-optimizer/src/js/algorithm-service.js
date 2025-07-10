@@ -448,14 +448,14 @@ export const AlgorithmService = {
       if (producedQty < demandedQty) {
         return {
           valid: false,
-          error: `Pièces manquantes: ${demandedQty - producedQty} pièce(s) de ${length}cm non produites. \nEssayez avec plus de barres mères.`
+          error: `Pièces manquantes: ${demandedQty - producedQty} pièce(s) de ${length}mm non produites. \nEssayez avec plus de barres mères.`
         };
       }
       
       if (producedQty > demandedQty) {
         return {
           valid: false,
-          error: `Pièces en excès: ${producedQty - demandedQty} pièce(s) de ${length}cm en trop. \nVérifiez les quantités de barres mères.`
+          error: `Pièces en excès: ${producedQty - demandedQty} pièce(s) de ${length}mm en trop. \nVérifiez les quantités de barres mères.`
         };
       }
     }
@@ -465,7 +465,7 @@ export const AlgorithmService = {
       if (!demanded.has(length)) {
         return {
           valid: false,
-          error: `Pièces non demandées: ${producedQty} pièce(s) de ${length}cm produites sans demande. \nVérifiez la configuration.`
+          error: `Pièces non demandées: ${producedQty} pièce(s) de ${length}mm produites sans demande. \nVérifiez la configuration.`
         };
       }
     }
@@ -531,7 +531,7 @@ export const AlgorithmService = {
         
         if (usedQty > availableQty) {
           const deficit = usedQty - availableQty;
-          const error = `Stock insuffisant pour ${profile}: ${deficit} barre(s) de ${length}cm manquante(s) (demandé: ${usedQty}, disponible: ${availableQty}). \n\nAjoutez plus de barres mères.`;
+          const error = `Stock insuffisant pour ${profile}: ${deficit} barre(s) de ${length}mm manquante(s) (demandé: ${usedQty}, disponible: ${availableQty}). \n\nAjoutez plus de barres mères.`;
           errors.push(error);
           
           // Identifier les modèles affectés

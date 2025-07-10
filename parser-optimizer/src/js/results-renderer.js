@@ -31,18 +31,18 @@ export const ResultsRenderer = {
   /**
    * NOUVEAU: Formate une longueur en centimètres vers mètres avec décimales intelligentes
    */
-  formatLengthInMeters: function(lengthInCm) {
-    const meters = lengthInCm / 100;
+  formatLengthInMeters: function(lengthInMm) {
+    const meters = lengthInMm / 1000;
     
     // Si c'est un nombre entier, pas de décimales
     if (meters % 1 === 0) {
-      return `${meters}m`;
+      return `${meters}`;
     }
     
     // Sinon, formatage avec jusqu'à 3 décimales en supprimant les zéros inutiles
     const formatted = meters.toFixed(3);
     const cleanFormatted = parseFloat(formatted).toString();
-    return `${cleanFormatted}m`;
+    return `${cleanFormatted}`;
   },
 
   /**
@@ -106,7 +106,7 @@ export const ResultsRenderer = {
           </div>
           <div class="stat-card-compact">
             <div class="stat-label-compact">Chutes</div>
-            <div class="stat-value-compact">${Math.round(stats.totalWaste)} cm</div>
+            <div class="stat-value-compact">${Math.round(stats.totalWaste)} mm</div>
           </div>
           <div class="stat-card-compact">
             <div class="stat-label-compact">Barres mères</div>
@@ -114,7 +114,7 @@ export const ResultsRenderer = {
           </div>
           <div class="stat-card-compact">
             <div class="stat-label-compact">Longueur totale</div>
-            <div class="stat-value-compact">${this.formatLengthInMeters(stats.totalBarLength)}</div>
+            <div class="stat-value-compact">${stats.totalBarLength} mm</div>
           </div>
         </div>
       </div>
@@ -209,7 +209,7 @@ export const ResultsRenderer = {
             </div>
             <div class="model-stat">
               <div class="stat-label">Chutes</div>
-              <div class="stat-value">${Math.round(stats.wasteLength)} cm</div>
+              <div class="stat-value">${Math.round(stats.wasteLength)} mm</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Barres mères</div>
@@ -217,7 +217,7 @@ export const ResultsRenderer = {
             </div>
             <div class="model-stat">
               <div class="stat-label">Longueur totale</div>
-              <div class="stat-value">${this.formatLengthInMeters(stats.totalLength)}</div>
+              <div class="stat-value">${stats.totalLength} mm</div>
             </div>
           </div>
           <div class="cut-schemes">
@@ -283,7 +283,7 @@ export const ResultsRenderer = {
     // Generate the text representation of cuts
     let cutsHtml = '';
     pattern.cuts.forEach(cut => {
-      cutsHtml += `<span class="cut-count">${cut.count}×</span>${cut.length} cm `;
+      cutsHtml += `<span class="cut-count">${cut.count}×</span>${cut.length} mm `;
     });
     
     // Generate visual representation of the cuts
@@ -295,7 +295,7 @@ export const ResultsRenderer = {
       visualBarHtml += `
         <div class="cut-piece ${lastPieceClass}" 
              style="width: ${piece.percentage}%" 
-             title="${piece.length} cm">
+             title="${piece.length} mm">
           ${showText ? piece.length : ''}
         </div>
       `;
@@ -308,7 +308,7 @@ export const ResultsRenderer = {
       visualBarHtml += `
         <div class="waste-piece" 
              style="width: ${pattern.wastePercentage}%" 
-             title="Chute: ${pattern.waste} cm">
+             title="Chute: ${pattern.waste} mm">
           ${showWasteText ? pattern.waste : ''}
         </div>
       `;
@@ -318,13 +318,13 @@ export const ResultsRenderer = {
       <div class="cut-scheme">
         <div class="cut-scheme-header">
           <strong>${pattern.count}× Schéma #${index + 1}</strong>
-          <span>Barre mère <span class="bar-length-badge">${this.formatLengthInMeters(pattern.barLength)}</span></span>
+          <span>Barre mère <span class="bar-length-badge">${pattern.barLength} mm</span></span>
         </div>
         <div class="cut-pieces">
           Pièces: ${cutsHtml}
         </div>
         <div class="waste">
-          Chute: <span class="waste-value">${pattern.waste} cm</span>
+          Chute: <span class="waste-value">${pattern.waste} mm</span>
         </div>
         <div class="cut-bar">
           ${visualBarHtml}

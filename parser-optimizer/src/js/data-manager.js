@@ -38,7 +38,7 @@ export const DataManager = {
     const nom = piece.nom || '';
     
     // Utiliser nom si disponible, sinon profil+longueur
-    const nameKey = nom.trim() !== '' ? nom : `${profile}_${length}cm`;
+    const nameKey = nom.trim() !== '' ? nom : `${profile}_${length}mm`;
     
     return `${profile}|${orientation}|${length}|${angle1}|${angle2}|${nameKey}`;
   },

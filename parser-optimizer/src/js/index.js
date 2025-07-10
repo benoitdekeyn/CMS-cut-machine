@@ -7,6 +7,7 @@ import '../css/sections.css';
 import '../css/spinner.css';
 
 // Importer tous les modules nécessaires
+import { UIUtils} from './ui/utils.js';
 import { DataManager } from './data-manager.js';
 import { UIController } from './ui-controller.js';
 import { AlgorithmService } from './algorithm-service.js';

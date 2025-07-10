@@ -639,7 +639,7 @@ export const UIController = {
         // Formater les coupes
         const cutsDisplay = Object.entries(cutCounts)
           .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Trier par longueur décroissante
-          .map(([length, count]) => `${count}×${length}cm`)
+          .map(([length, count]) => `${count}×${length}mm`)
           .join(' + ');
         
         // Calculer l'efficacité
@@ -647,8 +647,8 @@ export const UIController = {
         const efficiency = barLength > 0 ? ((usedLength / barLength) * 100).toFixed(1) : 0;
         
         console.log(`  Schéma #${index + 1}: ${count}× répétition(s)`);
-        console.log(`    └─ Barre ${barLength}cm: ${cutsDisplay}`);
-        console.log(`    └─ Chute: ${waste}cm | Efficacité: ${efficiency}%`);
+        console.log(`    └─ Barre ${barLength}mm: ${cutsDisplay}`);
+        console.log(`    └─ Chute: ${waste}mm | Efficacité: ${efficiency}%`);
       });
       
       // Statistiques du modèle
@@ -659,7 +659,7 @@ export const UIController = {
       
       console.log(`\n  📊 Résumé ${modelKey}:`);
       console.log(`    • ${totalBars} barres mères utilisées`);
-      console.log(`    • ${totalWaste}cm de chutes au total`);
+      console.log(`    • ${totalWaste}mm de chutes au total`);
       console.log(`    • ${globalEfficiency}% d'efficacité globale`);
     }
     
@@ -1109,7 +1109,7 @@ export const UIController = {
     for (const profile in data.pieces) {
       for (const piece of data.pieces[profile]) {
         totalPieces += piece.quantity;
-        pieceDetails.push(`${profile}: ${piece.quantity}×${piece.length}cm`);
+        pieceDetails.push(`${profile}: ${piece.quantity}×${piece.length}mm`);
       }
     }
     
@@ -1130,7 +1130,7 @@ export const UIController = {
     for (const profile in data.motherBars) {
       for (const bar of data.motherBars[profile]) {
         totalMotherBars += bar.quantity;
-        motherDetails.push(`${profile}: ${bar.quantity}×${bar.length}cm`);
+        motherDetails.push(`${profile}: ${bar.quantity}×${bar.length}mm`);
       }
     }
     

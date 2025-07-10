@@ -114,8 +114,8 @@ function solveModelWithAdvancedILP(stockBars, demandPieces, model, progressCallb
         count: count
     }));
 
-    console.log(`    📏 Pièces demandées: ${requiredCuts.map(c => `${c.count}×${c.size}cm`).join(', ')}`);
-    console.log(`    📦 Stock disponible: ${stockSizes.map(s => `${s.quantity}×${s.size}cm`).join(', ')}`);
+    console.log(`    📏 Pièces demandées: ${requiredCuts.map(c => `${c.count}×${c.size}mm`).join(', ')}`);
+    console.log(`    📦 Stock disponible: ${stockSizes.map(s => `${s.quantity}×${s.size}mm`).join(', ')}`);
 
     // Vérification de faisabilité
     const totalDemandLength = requiredCuts.reduce((sum, cut) => sum + (cut.size * cut.count), 0);
@@ -193,7 +193,7 @@ function convertILPSolutionToResult(ilpSolution, model) {
     const totalBarLength = layouts.reduce((sum, layout) => sum + (layout.originalLength * layout.count), 0);
     const utilizationRate = totalBarLength > 0 ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(3) : 0;
     
-    console.log(`    📊 Résultat final: ${totalUsedBars} barres, ${totalWaste}cm de chutes, efficacité ${utilizationRate}%`);
+    console.log(`    📊 Résultat final: ${totalUsedBars} barres, ${totalWaste}mm de chutes, efficacité ${utilizationRate}%`);
     
     return {
         layouts: layouts,
@@ -215,7 +215,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
     console.log(`    🔄 Génération optimisée des patterns (objectif: maximiser l'efficacité)...`);
     
     const waysOfCuttingStocks = stockSizes.map(({ size, cost, quantity }) => {
-        console.log(`      📏 Analyse barre ${size}cm:`);
+        console.log(`      📏 Analyse barre ${size}mm:`);
         
         const waysOfCutting = generateOptimizedPatterns(size, cutSizes, bladeSize, 100);
         
@@ -237,9 +237,9 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
                 cutCounts[cut] = (cutCounts[cut] || 0) + 1;
             });
             const cutStr = Object.entries(cutCounts)
-                .map(([cut, count]) => `${count}×${cut}cm`)
+                .map(([cut, count]) => `${count}×${cut}mm`)
                 .join(' + ') || 'Barre vide';
-            console.log(`          ${index + 1}. ${cutStr} (${pattern.efficiency}% efficacité, ${pattern.waste}cm chute)`);
+            console.log(`          ${index + 1}. ${cutStr} (${pattern.efficiency}% efficacité, ${pattern.waste}mm chute)`);
         });
         
         // CHANGEMENT MAJEUR: Format ILP pour maximiser l'efficacité
@@ -319,7 +319,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
  * NOUVELLE FONCTION: Génération optimisée des patterns avec élagage intelligent
  */
 function generateOptimizedPatterns(barSize, cuts, bladeSize, maxPatterns = 100) {
-    console.log(`        🎯 Génération optimisée pour barre ${barSize}cm (max ${maxPatterns} patterns)`);
+    console.log(`        🎯 Génération optimisée pour barre ${barSize}mm (max ${maxPatterns} patterns)`);
     
     const patterns = [];
     const seen = new Set();
@@ -422,7 +422,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     const constraints = {};
     requiredCuts.forEach(({ size, count }) => {
         constraints[`cut${size}`] = { equal: count };
-        console.log(`      📐 Contrainte: exactement ${count} pièces de ${size}cm`);
+        console.log(`      📐 Contrainte: exactement ${count} pièces de ${size}mm`);
     });
 
     console.log(`    📊 Modèle: ${Object.keys(cuttingPatterns.variables).length} variables, ${Object.keys(constraints).length} contraintes`);
@@ -485,7 +485,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     }
     
     // NOUVEAU: Afficher les métriques d'efficacité optimisées
-    console.log(`    ✅ Solution optimale trouvée: chute totale minimisée = ${solution.result}cm`);
+    console.log(`    ✅ Solution optimale trouvée: chute totale minimisée = ${solution.result}mm`);
     
     // Calculer les métriques globales d'efficacité
     let totalWasteOptimized = 0;
@@ -510,8 +510,8 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     const globalEfficiency = totalMotherBarLengthUsed > 0 ? 
         (totalUsefulLength / totalMotherBarLengthUsed * 100).toFixed(3) : 0;
     
-    console.log(`    📊 Efficacité globale optimisée: ${globalEfficiency}% (${totalUsefulLength}cm utile / ${totalMotherBarLengthUsed}cm total)`);
-    console.log(`    🗑️ Chute totale optimisée: ${totalWasteOptimized}cm`);
+    console.log(`    📊 Efficacité globale optimisée: ${globalEfficiency}% (${totalUsefulLength}mm utile / ${totalMotherBarLengthUsed}mm total)`);
+    console.log(`    🗑️ Chute totale optimisée: ${totalWasteOptimized}mm`);
     
     // Vérification des contraintes (inchangé)
     console.log(`    🔍 Vérification des contraintes:`);
@@ -525,10 +525,10 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
                 }
             }
         }
-        console.log(`      ✓ ${size}cm: ${totalProduced}/${count} pièces (${totalProduced >= count ? 'OK' : 'MANQUE'})`);
+        console.log(`      ✓ ${size}mm: ${totalProduced}/${count} pièces (${totalProduced >= count ? 'OK' : 'MANQUE'})`);
         
         if (totalProduced < count) {
-            throw new Error(`Solution incomplète: ${totalProduced}/${count} pièces de ${size}cm`);
+            throw new Error(`Solution incomplète: ${totalProduced}/${count} pièces de ${size}mm`);
         }
     }
     
@@ -552,7 +552,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
                 const waste = pattern.stockSize - usedLength;
                 const efficiency = (usedLength / pattern.stockSize * 100).toFixed(1);
                 
-                console.log(`      • ${quantity}× barre ${pattern.stockSize}cm: [${cuts.join(', ')}] (${efficiency}% efficacité, ${waste}cm chute)`);
+                console.log(`      • ${quantity}× barre ${pattern.stockSize}mm: [${cuts.join(', ')}] (${efficiency}% efficacité, ${waste}mm chute)`);
                 totalBars += quantity;
             }
         }

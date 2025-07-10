@@ -171,5 +171,21 @@ export const UIUtils = {
     if (!orientation) return '';
     const formatted = orientation.replace('a-plat', 'À plat').replace('debout', 'Debout');
     return formatted;
+  },
+
+  /**
+   * Formate les longueurs en mmm pour qu'il y ait des espaces entre 3 chiffres
+   */
+  formatLenght: function(lengthInMm){
+    const lengthString = lengthInMm.toString();
+    let formatedLengthString = "";
+    for (let i = 0; i < lengthString.length; i--){
+      formatedLengthString = lengthString[i] + formatedLengthString;
+      if (i%3==0) {
+        formatedLengthString = " " + formatedLengthString;
+      }
+      console.log(i, lengthString[i], formatedLengthString)
+    }
+    return formatedLengthString;
   }
 };

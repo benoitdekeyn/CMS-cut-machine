@@ -77,7 +77,7 @@ export function solveGreedyFFD(motherBars, pieces) {
         }
 
         if (!placed) {
-            console.warn(`⚠️ Impossible de placer la pièce de ${pieceLength}cm`);
+            console.warn(`⚠️ Impossible de placer la pièce de ${pieceLength}mm`);
         }
     }
 

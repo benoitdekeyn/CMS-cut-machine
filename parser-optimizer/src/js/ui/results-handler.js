@@ -252,14 +252,6 @@ export const ResultsHandler = {
   },
 
   /**
-   * Formate la longueur en mètres
-   */
-  formatLengthInMeters: function(lengthInCm) {
-    const meters = lengthInCm / 100;
-    return meters % 1 === 0 ? `${meters} m` : `${meters.toFixed(2)} m`;
-  },
-
-  /**
    * Affiche une modal avec les informations du F4C
    */
   showF4CInfoModal: function(fileName, F4CObject) {
@@ -299,14 +291,14 @@ export const ResultsHandler = {
             </div>
             <div class="F4C-header-item">
               <div class="F4C-header-label">Longueur</div>
-              <div class="F4C-header-value">${this.formatLengthInMeters(length)}</div>
+              <div class="F4C-header-value">${length} mm</div>
             </div>
           </div>
           
           <!-- Informations de performance -->
           <div class="F4C-performance-info">
             <span class="F4C-performance-item">
-              Chute&nbsp;: <span class="F4C-performance-value">${waste} cm</span>
+              Chute&nbsp;: <span class="F4C-performance-value">${waste} mm</span>
             </span>
             <span class="F4C-performance-item">
               Efficacité&nbsp;: <span class="F4C-performance-value">${efficiency}%</span>
@@ -346,7 +338,7 @@ export const ResultsHandler = {
                     
                     <!-- Nom de la pièce -->
                     <div class="F4C-piece-name">
-                      ${piece.nom || `Pièce ${index + 1} - ${piece.length}cm`}
+                      ${piece.nom || `Pièce ${index + 1} - ${piece.length}mm`}
                     </div>
                     
                     <!-- Codes F4C -->
