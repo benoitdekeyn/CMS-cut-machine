@@ -37,6 +37,64 @@ export const EditHandler = {
     // Créer les panneaux latéraux s'ils n'existent pas
     this.createPiecePanel();
     this.createStockPanel();
+    
+    // Initialiser le bouton reset
+    this.initResetButton();
+  },
+
+  /**
+   * NOUVEAU: Initialise le bouton de reset des barres filles
+   */
+  initResetButton: function() {
+    const resetBtn = document.getElementById('reset-pieces-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        this.resetAllPieces();
+      });
+    }
+  },
+
+  /**
+   * NOUVEAU: Supprime toutes les barres filles
+   */
+  resetAllPieces: function() {
+    const data = this.dataManager.getData();
+    
+    // Compter le nombre total de barres filles
+    let totalPieces = 0;
+    for (const profile in data.pieces) {
+      totalPieces += data.pieces[profile].length;
+    }
+    
+    if (totalPieces === 0) {
+      this.showNotification('Aucune barre à découper à supprimer', 'info');
+      return;
+    }
+    
+    
+    // Supprimer toutes les barres filles une par une
+    let deletedCount = 0;
+    for (const profile in data.pieces) {
+      const pieces = [...data.pieces[profile]]; // Copie pour éviter les modifications pendant l'itération
+      pieces.forEach(piece => {
+        const key = this.dataManager.generatePieceKey(piece);
+        if (this.dataManager.deletePiece(key)) {
+          deletedCount++;
+        }
+      });
+    }
+    
+    // Rafraîchir l'affichage
+    this.renderPiecesTable();
+    this.updateAllProfileSelects();
+    
+    // Notification de succès
+    this.showNotification(`${deletedCount} barre${deletedCount > 1 ? 's' : ''} à découper supprimée${deletedCount > 1 ? 's' : ''}`, 'success');
+    
+    // Rafraîchir l'affichage global si nécessaire
+    if (this.refreshDataDisplay) {
+      this.refreshDataDisplay();
+    }
   },
   
   /**
@@ -688,7 +746,7 @@ export const EditHandler = {
           <small class="form-help">Sélectionnez un profil existant ou saisissez-en un nouveau</small>
         </div>
         <div class="form-group">
-          <label for="stock-length">Longueur (m) :</label>
+          <label for="stock-length">Longueur (mm) :</label>
           <input type="text" id="stock-length" placeholder="ex : 12000">
           <small class="form-help">Saisissez la longueur en milimètres</small>
         </div>
