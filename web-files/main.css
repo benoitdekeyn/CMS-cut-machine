@@ -920,6 +920,44 @@ body.panel-open {
   color: var(--text-primary);
 }
 
+/* NOUVEAU: Boutons reset dans le header du panel */
+.panel-header #reset-pieces-btn,
+.panel-header #reset-mother-bars-btn {
+  background: var(--gradient-danger);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+  opacity: 0.9;
+}
+
+.panel-header #reset-pieces-btn:hover,
+.panel-header #reset-mother-bars-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  opacity: 1;
+}
+
+.panel-header #reset-pieces-btn:active,
+.panel-header #reset-mother-bars-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-header #reset-pieces-btn .btn-icon,
+.panel-header #reset-mother-bars-btn .btn-icon {
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(1);
+}
+
 .panel-content {
   padding: var(--space-lg);
 }

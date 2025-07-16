@@ -3944,15 +3944,229 @@ __webpack_require__.d(__webpack_exports__, {
   R: () => (/* binding */ algorithms)
 });
 
-;// ./src/js/data-manager.js
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+;// ./src/js/ui/utils.js
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+/**
+ * Utilitaires pour l'interface utilisateur
+ */
+var UIUtils = {
+  /**
+   * Affiche l'overlay de chargement avec étapes (pour l'optimisation)
+   */
+  showLoadingOverlay: function showLoadingOverlay() {
+    var overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      this.resetLoadingSteps();
+    }
+  },
+  /**
+   * Masque l'overlay de chargement (pour l'optimisation)
+   */
+  hideLoadingOverlay: function hideLoadingOverlay() {
+    var overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
+      this.resetLoadingSteps();
+    }
+  },
+  /**
+   * NOUVEAU: Affiche le simple overlay de chargement (pour l'upload)
+   */
+  showSimpleLoadingOverlay: function showSimpleLoadingOverlay() {
+    var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Traitement des fichiers en cours...';
+    var overlay = document.getElementById('simple-loading-overlay');
+    if (overlay) {
+      var textElement = overlay.querySelector('.simple-loading-text');
+      if (textElement) {
+        textElement.textContent = message;
+      }
+      overlay.classList.remove('hidden');
+    }
+  },
+  /**
+   * NOUVEAU: Masque le simple overlay de chargement (pour l'upload)
+   */
+  hideSimpleLoadingOverlay: function hideSimpleLoadingOverlay() {
+    var overlay = document.getElementById('simple-loading-overlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
+    }
+  },
+  /**
+   * Met à jour le progrès et l'étape active
+   */
+  updateLoadingProgress: function updateLoadingProgress(stepId) {
+    var percentage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var completed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    // Mettre à jour le pourcentage si fourni
+    if (percentage !== null) {
+      var progressText = document.getElementById('progress-percentage');
+      var progressFill = document.getElementById('progress-fill');
+      if (progressText) {
+        progressText.textContent = "".concat(Math.round(percentage), "%");
+      }
+      if (progressFill) {
+        progressFill.style.width = "".concat(percentage, "%");
+      }
+    }
+
+    // Mettre à jour l'étape active
+    if (stepId) {
+      // Réinitialiser toutes les étapes
+      document.querySelectorAll('.loading-step').forEach(function (step) {
+        step.classList.remove('active');
+      });
+
+      // Marquer les étapes précédentes comme complétées
+      var currentStep = document.getElementById(stepId);
+      if (currentStep) {
+        var steps = document.querySelectorAll('.loading-step');
+        var currentIndex = Array.from(steps).indexOf(currentStep);
+        steps.forEach(function (step, index) {
+          if (index < currentIndex) {
+            step.classList.add('completed');
+            step.classList.remove('active');
+          } else if (index === currentIndex) {
+            step.classList.add('active');
+            step.classList.remove('completed');
+            if (completed) {
+              step.classList.add('completed');
+              step.classList.remove('active');
+            }
+          } else {
+            step.classList.remove('active', 'completed');
+          }
+        });
+      }
+    }
+  },
+  /**
+   * Remet à zéro les étapes de chargement
+   */
+  resetLoadingSteps: function resetLoadingSteps() {
+    document.querySelectorAll('.loading-step').forEach(function (step) {
+      step.classList.remove('active', 'completed');
+    });
+    var progressText = document.getElementById('progress-percentage');
+    var progressFill = document.getElementById('progress-fill');
+    if (progressText) {
+      progressText.textContent = '0%';
+    }
+    if (progressFill) {
+      progressFill.style.width = '0%';
+    }
+  },
+  /**
+   * Télécharge un fichier
+   */
+  downloadFile: function downloadFile(content, filename, type) {
+    var blob = content instanceof Blob ? content : new Blob([content], {
+      type: type
+    });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+  /**
+   * Affiche le texte de l'étape courante dans le loading overlay (mode dynamique)
+   * @param {string} stepText - Texte à afficher (ex: "ILP pour le modèle 2/3")
+   */
+  setLoadingStepText: function setLoadingStepText(stepText) {
+    var subtitle = document.querySelector('#loading-overlay .loading-subtitle');
+    if (subtitle) {
+      subtitle.textContent = stepText;
+    }
+  },
+  /**
+   * Cache la barre de progression et les étapes (mode dynamique)
+   */
+  hideLoadingProgressBar: function hideLoadingProgressBar() {
+    var progress = document.querySelector('#loading-overlay .loading-progress');
+    var steps = document.querySelector('#loading-overlay .loading-steps');
+    if (progress) progress.style.display = 'none';
+    if (steps) steps.style.display = 'none';
+  },
+  /**
+   * Réaffiche la barre de progression et les étapes (pour la fin ou le reset)
+   */
+  showLoadingProgressBar: function showLoadingProgressBar() {
+    var progress = document.querySelector('#loading-overlay .loading-progress');
+    var steps = document.querySelector('#loading-overlay .loading-steps');
+    if (progress) progress.style.display = '';
+    if (steps) steps.style.display = '';
+  },
+  /**
+   * Transforme "debout" en "Debout" et "a-plat" en "À plat"
+   */
+  formatOrientation: function formatOrientation(orientation) {
+    if (!orientation) return '';
+    var formatted = orientation.replace('a-plat', 'À plat').replace('debout', 'Debout');
+    return formatted;
+  },
+  /**
+   * Formate les longueurs en mm pour qu'il y ait des espaces tous les 3 chiffres (en partant de la droite)
+   */
+  formatLenght: function formatLenght(lengthInMm) {
+    if (!lengthInMm && lengthInMm !== 0) return '';
+    var lengthString = lengthInMm.toString();
+    var formatedLengthString = "";
+
+    // Parcourir la chaîne de droite à gauche pour ajouter des espaces tous les 3 chiffres
+    for (var i = lengthString.length - 1; i >= 0; i--) {
+      formatedLengthString = lengthString[i] + formatedLengthString;
+
+      // Ajouter un espace tous les 3 chiffres (mais pas au début)
+      var positionFromRight = lengthString.length - i;
+      if (positionFromRight % 3 === 0 && i > 0) {
+        formatedLengthString = " " + formatedLengthString;
+      }
+    }
+    return formatedLengthString;
+  },
+  /**
+   * Nettoie les espaces d'un objet de données de formulaire
+   * @param {Object} data - Objet contenant les données du formulaire
+   * @returns {Object} - Objet avec les valeurs nettoyées
+   */
+  trimFormData: function trimFormData(data) {
+    var trimmedData = {};
+    for (var _i = 0, _Object$entries = Object.entries(data); _i < _Object$entries.length; _i++) {
+      var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+        key = _Object$entries$_i[0],
+        value = _Object$entries$_i[1];
+      if (typeof value === 'string') {
+        trimmedData[key] = value.trim();
+      } else {
+        trimmedData[key] = value;
+      }
+    }
+    return trimmedData;
+  }
+};
+;// ./src/js/data-manager.js
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function data_manager_slicedToArray(r, e) { return data_manager_arrayWithHoles(r) || data_manager_iterableToArrayLimit(r, e) || data_manager_unsupportedIterableToArray(r, e) || data_manager_nonIterableRest(); }
+function data_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function data_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function data_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || data_manager_unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return data_manager_arrayLikeToArray(r); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = data_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function data_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return data_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? data_manager_arrayLikeToArray(r, a) : void 0; } }
+function data_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
@@ -3968,6 +4182,8 @@ var DataManager = {
     // Barres filles groupées par profil
     motherBars: {} // Barres mères groupées par profil
   },
+  // Clé pour le localStorage
+  STORAGE_KEY: 'cms-mother-bars-stock',
   /**
    * Initialise les données
    */
@@ -3976,6 +4192,9 @@ var DataManager = {
       pieces: {},
       motherBars: {}
     };
+
+    // NOUVEAU: Charger automatiquement les barres mères sauvegardées
+    this.loadMotherBarsFromStorage();
     return this.data;
   },
   /**
@@ -3997,7 +4216,7 @@ var DataManager = {
     var nom = piece.nom || '';
 
     // Utiliser nom si disponible, sinon profil+longueur
-    var nameKey = nom.trim() !== '' ? nom : "".concat(profile, "_").concat(length, "cm");
+    var nameKey = nom.trim() !== '' ? nom : "".concat(profile, "_").concat(length, "mm");
     return "".concat(profile, "|").concat(orientation, "|").concat(length, "|").concat(angle1, "|").concat(angle2, "|").concat(nameKey);
   },
   /**
@@ -4113,13 +4332,20 @@ var DataManager = {
       this.data.motherBars[profile][existingIndex].quantity += bar.quantity || 1;
     } else {
       // Ajouter la nouvelle barre (sans nom pour les barres mères)
-      var motherBar = _objectSpread({}, bar);
-      delete motherBar.nom; // Supprimer la propriété nom
+      var motherBar = {
+        profile: bar.profile,
+        length: bar.length,
+        quantity: bar.quantity || 1,
+        type: bar.type || 'mere'
+      };
       this.data.motherBars[profile].push(motherBar);
     }
 
     // Trier automatiquement après ajout
     this._sortBarsCollection(this.data.motherBars[profile]);
+
+    // NOUVEAU: Sauvegarder automatiquement après modification
+    this.saveMotherBarsToStorage();
     return key;
   },
   /**
@@ -4159,6 +4385,9 @@ var DataManager = {
         if (this.data.motherBars[profile].length === 0) {
           delete this.data.motherBars[profile];
         }
+
+        // Sauvegarder les barres mères restantes dans le localStorage
+        this.saveMotherBarsToStorage();
         return true;
       }
     }
@@ -4242,6 +4471,9 @@ var DataManager = {
 
         // Trier automatiquement après ajout
         this._sortBarsCollection(this.data.motherBars[newProfile]);
+
+        // NOUVEAU: Sauvegarder automatiquement après modification
+        this.saveMotherBarsToStorage();
         return this.generateMotherBarKey(updatedBar);
       }
     }
@@ -4292,13 +4524,68 @@ var DataManager = {
     return null;
   },
   /**
-   * Valide les données avant optimisation
+   * NOUVEAU: Obtient les capacités des barres mères par profil
+   * @returns {Object} Structure {profile: [{length: X, quantity: Y}, ...]}
+   */
+  getMotherBarCapabilities: function getMotherBarCapabilities() {
+    var capabilities = {};
+    for (var profile in this.data.motherBars) {
+      capabilities[profile] = this.data.motherBars[profile].map(function (bar) {
+        return {
+          length: bar.length,
+          quantity: bar.quantity
+        };
+      });
+    }
+    return capabilities;
+  },
+  /**
+   * NOUVEAU: Vérifie si une pièce peut être découpée avec les barres mères disponibles
+   * @param {Object} piece - Pièce à vérifier {profile, length, quantity}
+   * @returns {Object} {compatible: boolean, reason: string, suggestions: []}
+   */
+  checkPieceCompatibility: function checkPieceCompatibility(piece) {
+    var motherBarsForProfile = this.data.motherBars[piece.profile];
+    if (!motherBarsForProfile || motherBarsForProfile.length === 0) {
+      return {
+        compatible: false,
+        reason: 'profil_manquant',
+        message: "Aucune barre m\xE8re disponible pour le profil ".concat(piece.profile),
+        suggestions: ["Ajoutez des barres m\xE8res de profil ".concat(piece.profile)]
+      };
+    }
+    var compatibleBars = motherBarsForProfile.filter(function (bar) {
+      return bar.length >= piece.length;
+    });
+    if (compatibleBars.length === 0) {
+      var maxLength = Math.max.apply(Math, _toConsumableArray(motherBarsForProfile.map(function (bar) {
+        return bar.length;
+      })));
+      return {
+        compatible: false,
+        reason: 'longueur_insuffisante',
+        message: "Aucune barre m\xE8re de ".concat(piece.profile, " assez longue (max: ").concat(maxLength, "mm, besoin: ").concat(piece.length, "mm)"),
+        maxAvailableLength: maxLength,
+        deficit: piece.length - maxLength,
+        suggestions: ["Ajoutez des barres m\xE8res de ".concat(piece.profile, " d'au moins ").concat(piece.length, "mm"), "R\xE9duisez la longueur de la pi\xE8ce \xE0 maximum ".concat(maxLength, "mm")]
+      };
+    }
+    return {
+      compatible: true,
+      reason: 'compatible',
+      message: "".concat(compatibleBars.length, " barre(s) m\xE8re(s) compatible(s) trouv\xE9e(s)"),
+      compatibleBars: compatibleBars.length
+    };
+  },
+  /**
+   * Valide les données avant optimisation - VERSION AMÉLIORÉE
    */
   validateData: function validateData() {
     var data = this.getData();
 
     // Vérifier qu'il y a des pièces à découper
     var totalPieces = 0;
+    var allPieces = [];
     for (var profile in data.pieces) {
       var _iterator3 = _createForOfIteratorHelper(data.pieces[profile]),
         _step3;
@@ -4318,6 +4605,7 @@ var DataManager = {
             };
           }
           totalPieces += piece.quantity;
+          allPieces.push(piece);
         }
       } catch (err) {
         _iterator3.e(err);
@@ -4364,6 +4652,30 @@ var DataManager = {
       return {
         valid: false,
         message: 'Aucune barre mère disponible. Ajoutez des barres mères pour l\'optimisation.'
+      };
+    }
+
+    // NOUVEAU: Validation de compatibilité
+    var incompatibilities = [];
+    for (var _i = 0, _allPieces = allPieces; _i < _allPieces.length; _i++) {
+      var _piece = _allPieces[_i];
+      var compatibility = this.checkPieceCompatibility(_piece);
+      if (!compatibility.compatible) {
+        incompatibilities.push(_objectSpread({
+          piece: _piece.nom || "".concat(_piece.profile, "_").concat(_piece.length, "mm")
+        }, compatibility));
+      }
+    }
+    if (incompatibilities.length > 0) {
+      var firstIncompatibility = incompatibilities[0];
+      var message = "Incompatibilit\xE9 d\xE9tect\xE9e: ".concat(firstIncompatibility.message);
+      if (incompatibilities.length > 1) {
+        message += " (et ".concat(incompatibilities.length - 1, " autre(s) probl\xE8me(s))");
+      }
+      return {
+        valid: false,
+        message: message,
+        incompatibilities: incompatibilities
       };
     }
     return {
@@ -4452,7 +4764,7 @@ var DataManager = {
     // Convertir en tableau d'objets avec tri
     var modelArray = Array.from(models).map(function (modelKey) {
       var _modelKey$split = modelKey.split('_'),
-        _modelKey$split2 = _slicedToArray(_modelKey$split, 2),
+        _modelKey$split2 = data_manager_slicedToArray(_modelKey$split, 2),
         profile = _modelKey$split2[0],
         orientation = _modelKey$split2[1];
       return {
@@ -4486,16 +4798,2798 @@ var DataManager = {
       pieces: {},
       motherBars: {}
     };
+
+    // NOUVEAU: Nettoyer aussi le localStorage
+    this.clearStoredMotherBars();
     console.log('📝 Toutes les données ont été effacées');
     return this.data;
+  },
+  /**
+   * NOUVEAU: Sauvegarde les barres mères dans le localStorage
+   */
+  saveMotherBarsToStorage: function saveMotherBarsToStorage() {
+    try {
+      // Nettoyer les données avant la sérialisation pour éviter les propriétés undefined
+      var cleanMotherBars = this.cleanMotherBarsForStorage();
+      var motherBarsData = JSON.stringify(cleanMotherBars);
+
+      // Vérifier la taille des données (limite à 1MB)
+      var sizeInBytes = new Blob([motherBarsData]).size;
+      if (sizeInBytes > 1024 * 1024) {
+        // 1MB
+        console.warn('⚠️ Les données du stock sont trop volumineuses pour être sauvegardées');
+        return;
+      }
+      localStorage.setItem(this.STORAGE_KEY, motherBarsData);
+      console.log("\uD83D\uDCE6 Stock de barres m\xE8res sauvegard\xE9 (".concat((sizeInBytes / 1024).toFixed(1), " KB)"));
+    } catch (error) {
+      console.warn('⚠️ Impossible de sauvegarder le stock:', error);
+      // Si l'erreur est due à un quota dépassé, essayer de nettoyer
+      if (error.name === 'QuotaExceededError') {
+        console.warn('🚫 Quota localStorage dépassé, suppression de l\'ancien stock');
+        this.clearStoredMotherBars();
+      }
+    }
+  },
+  /**
+   * NOUVEAU: Nettoie les données des barres mères pour la sauvegarde
+   */
+  cleanMotherBarsForStorage: function cleanMotherBarsForStorage() {
+    var cleanBars = {};
+    for (var profile in this.data.motherBars) {
+      if (this.data.motherBars[profile] && Array.isArray(this.data.motherBars[profile])) {
+        cleanBars[profile] = this.data.motherBars[profile].map(function (bar) {
+          // Ne garder que les propriétés essentielles et définies
+          var cleanBar = {};
+          if (bar.profile !== undefined) cleanBar.profile = bar.profile;
+          if (bar.length !== undefined) cleanBar.length = bar.length;
+          if (bar.quantity !== undefined) cleanBar.quantity = bar.quantity;
+          if (bar.type !== undefined) cleanBar.type = bar.type;
+          if (bar.orientation !== undefined) cleanBar.orientation = bar.orientation;
+          return cleanBar;
+        }).filter(function (bar) {
+          return bar.profile && bar.length && bar.quantity;
+        }); // Filtrer les barres invalides
+      }
+    }
+    return cleanBars;
+  },
+  /**
+   * NOUVEAU: Charge les barres mères depuis le localStorage
+   */
+  loadMotherBarsFromStorage: function loadMotherBarsFromStorage() {
+    try {
+      var savedData = localStorage.getItem(this.STORAGE_KEY);
+      console.log('🔍 Données sauvegardées trouvées:', savedData ? 'Oui' : 'Non');
+      if (savedData) {
+        var motherBars = JSON.parse(savedData);
+        console.log('📋 Données parsées:', motherBars);
+
+        // Valider que les données sont dans le bon format
+        if (_typeof(motherBars) === 'object' && motherBars !== null) {
+          // Valider et nettoyer chaque profil et barre
+          var validatedBars = {};
+          var totalBars = 0;
+          for (var profile in motherBars) {
+            console.log("\uD83D\uDD0D Traitement du profil: ".concat(profile), motherBars[profile]);
+            if (Array.isArray(motherBars[profile])) {
+              var validBars = motherBars[profile].filter(function (bar) {
+                var isValid = bar && typeof bar.profile === 'string' && typeof bar.length === 'number' && bar.length > 0 && typeof bar.quantity === 'number' && bar.quantity > 0;
+                console.log("\uD83D\uDD0D Validation barre:", bar, 'Valide:', isValid);
+                return isValid;
+              }).map(function (bar) {
+                // Normaliser le type pour être compatible
+                return _objectSpread(_objectSpread({}, bar), {}, {
+                  type: bar.type === 'mother' ? 'mere' : bar.type || 'mere'
+                });
+              });
+              if (validBars.length > 0) {
+                validatedBars[profile] = validBars;
+                totalBars += validBars.length;
+                console.log("\u2705 ".concat(validBars.length, " barre(s) valid\xE9e(s) pour ").concat(profile));
+              }
+            }
+          }
+          if (totalBars > 0) {
+            this.data.motherBars = validatedBars;
+            console.log("\uD83D\uDCE6 ".concat(totalBars, " barre").concat(totalBars > 1 ? 's' : '', " m\xE8re").concat(totalBars > 1 ? 's' : '', " restaur\xE9e").concat(totalBars > 1 ? 's' : '', " depuis le localStorage"));
+            console.log('📋 Données finales chargées:', this.data.motherBars);
+            return true;
+          } else {
+            console.log('⚠️ Aucune barre valide trouvée après validation');
+          }
+        } else {
+          console.log('⚠️ Format de données invalide');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Impossible de charger le stock sauvegardé:', error);
+      // En cas d'erreur, nettoyer le localStorage corrompu
+      this.clearStoredMotherBars();
+    }
+    return false;
+  },
+  /**
+   * NOUVEAU: Efface le stock sauvegardé du localStorage
+   */
+  clearStoredMotherBars: function clearStoredMotherBars() {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      console.log('🗑️ Stock sauvegardé supprimé du localStorage');
+    } catch (error) {
+      console.warn('⚠️ Impossible de supprimer le stock sauvegardé:', error);
+    }
   }
+};
+;// ./src/js/ui/edit-validation.js
+/**
+ * Validation et utilitaires pour l'édition
+ */
+var EditValidation = {
+  /**
+   * Convertit une valeur en millimètres
+   */
+  parseLengthFromDisplay: function parseLengthFromDisplay(displayValue) {
+    if (!displayValue || displayValue.trim() === '') return null;
+    var cleanValue = displayValue.replace(/\s/g, '');
+    var normalizedValue = cleanValue.replace(',', '.');
+    var milimeters = parseFloat(normalizedValue);
+    if (isNaN(milimeters) || milimeters <= 0) return null;
+    return Math.round(milimeters);
+  },
+  /**
+   * Valide les données d'une barre fille
+   */
+  validatePieceData: function validatePieceData(data) {
+    var errors = [];
+    if (data.nom && data.nom.length > 50) {
+      errors.push('Nom trop long (max 50 caractères)');
+    }
+    if (!data.profile || data.profile.trim() === '') {
+      errors.push('Profil obligatoire');
+    } else if (data.profile.length > 20) {
+      errors.push('Profil trop long (max 20 caractères)');
+    }
+    if (!data.length || isNaN(data.length) || data.length <= 0) {
+      errors.push('Longueur invalide');
+    } else if (data.length > 100000) {
+      errors.push('Longueur trop grande (max 100 m)');
+    } else if (data.length < 100) {
+      errors.push('Longueur minimale 10 cm');
+    }
+    if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
+      errors.push('Quantité invalide');
+    } else if (!Number.isInteger(data.quantity)) {
+      errors.push('Quantité doit être un entier');
+    } else if (data.quantity > 10000) {
+      errors.push('Quantité trop élevée (max 10 000)');
+    }
+    if (data.angles) {
+      if (isNaN(data.angles[1]) || data.angles[1] < -360 || data.angles[1] > 360) {
+        errors.push('Angle 1 invalide (-360 à 360°)');
+      }
+      if (isNaN(data.angles[2]) || data.angles[2] < -360 || data.angles[2] > 360) {
+        errors.push('Angle 2 invalide (-360 à 360°)');
+      }
+    }
+    if (data.orientation && !['a-plat', 'debout'].includes(data.orientation)) {
+      errors.push('Orientation invalide');
+    }
+    return errors;
+  },
+  /**
+   * Valide les données d'une barre mère
+   */
+  validateMotherBarData: function validateMotherBarData(data) {
+    var errors = [];
+    if (!data.profile || data.profile.trim() === '') {
+      errors.push('Profil obligatoire');
+    } else if (data.profile.length > 20) {
+      errors.push('Profil trop long (max 20 caractères)');
+    }
+    if (!data.length || isNaN(data.length) || data.length <= 0) {
+      errors.push('Longueur invalide');
+    } else if (data.length > 100000) {
+      errors.push('Longueur trop grande (max 100 m)');
+    } else if (data.length < 100) {
+      errors.push('Longueur minimale 10 cm');
+    }
+    if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
+      errors.push('Quantité invalide');
+    } else if (!Number.isInteger(data.quantity)) {
+      errors.push('Quantité doit être un entier');
+    } else if (data.quantity > 1000000) {
+      errors.push('Quantité trop élevée (max 1 000 000)');
+    }
+    return errors;
+  }
+};
+;// ./src/js/ui/edit-panels.js
+function edit_panels_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = edit_panels_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function edit_panels_toConsumableArray(r) { return edit_panels_arrayWithoutHoles(r) || edit_panels_iterableToArray(r) || edit_panels_unsupportedIterableToArray(r) || edit_panels_nonIterableSpread(); }
+function edit_panels_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function edit_panels_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return edit_panels_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? edit_panels_arrayLikeToArray(r, a) : void 0; } }
+function edit_panels_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function edit_panels_arrayWithoutHoles(r) { if (Array.isArray(r)) return edit_panels_arrayLikeToArray(r); }
+function edit_panels_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+
+
+
+/**
+ * Gestionnaire des panneaux d'édition
+ */
+var EditPanels = {
+  controller: null,
+  /**
+   * Initialise le gestionnaire de panneaux
+   */
+  init: function init(controller) {
+    this.controller = controller;
+    this.createPiecePanel();
+    this.createStockPanel();
+  },
+  /**
+   * Convertit le code d'orientation en affichage lisible
+   */
+  formatOrientation: function formatOrientation(orientation) {
+    switch (orientation) {
+      case 'debout':
+        return 'Debout';
+      case 'a-plat':
+        return 'À plat';
+      default:
+        return orientation;
+    }
+  },
+  /**
+   * Trie les barres selon l'ordre : profil → orientation → longueur
+   */
+  sortBars: function sortBars(bars) {
+    return bars.sort(function (a, b) {
+      if (a.profile !== b.profile) {
+        return a.profile.localeCompare(b.profile);
+      }
+      if (a.orientation && b.orientation && a.orientation !== b.orientation) {
+        var orientationOrder = {
+          'a-plat': 0,
+          'debout': 1
+        };
+        var orderA = orientationOrder[a.orientation] !== undefined ? orientationOrder[a.orientation] : 2;
+        var orderB = orientationOrder[b.orientation] !== undefined ? orientationOrder[b.orientation] : 2;
+        return orderA - orderB;
+      }
+      return a.length - b.length;
+    });
+  },
+  /**
+   * Rend le tableau des barres filles avec tri automatique
+   */
+  renderPiecesTable: function renderPiecesTable() {
+    var _this = this;
+    var tableContainer = document.querySelector('#pieces-table');
+    var data = this.controller.dataManager.getData();
+    var allPieces = [];
+    for (var profile in data.pieces) {
+      allPieces.push.apply(allPieces, edit_panels_toConsumableArray(data.pieces[profile]));
+    }
+    var sortedPieces = this.sortBars(allPieces);
+    var html = "\n      <table class=\"data-table\">\n        <thead>\n          <tr>\n            <th>Nom</th>\n            <th>Profil</th>\n            <th>Orientation</th>\n            <th>Longueur</th>\n            <th>Angle 1</th>\n            <th>Angle 2</th>\n            <th>Quantit\xE9</th>\n            <th>Actions</th>\n          </tr>\n        </thead>\n        <tbody>\n    ";
+    var _iterator = edit_panels_createForOfIteratorHelper(sortedPieces),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var _piece$angles, _piece$angles2;
+        var piece = _step.value;
+        var pieceKey = this.controller.dataManager.generatePieceKey(piece);
+        html += "\n        <tr data-key=\"".concat(pieceKey, "\">\n          <td>").concat(piece.nom || '-', "</td>\n          <td>").concat(piece.profile, "</td>\n          <td>").concat(this.formatOrientation(piece.orientation || "non-définie"), "</td>\n          <td>").concat(UIUtils.formatLenght(piece.length), " mm</td>\n          <td>").concat(parseFloat(((_piece$angles = piece.angles) === null || _piece$angles === void 0 ? void 0 : _piece$angles[1]) || 90).toFixed(2), "\xB0</td>\n          <td>").concat(parseFloat(((_piece$angles2 = piece.angles) === null || _piece$angles2 === void 0 ? void 0 : _piece$angles2[2]) || 90).toFixed(2), "\xB0</td>\n          <td>").concat(piece.quantity, "</td>\n          <td>\n            <div class=\"action-buttons\">\n              <button class=\"btn-action btn-action-edit edit-piece-btn\" \n                      data-key=\"").concat(pieceKey, "\" \n                      title=\"\xC9diter\">\n                <img src=\"assets/edit.svg\" alt=\"\xC9diter\" class=\"btn-icon\">\n              </button>\n              <button class=\"btn-action btn-action-delete delete-piece-btn\" \n                      data-key=\"").concat(pieceKey, "\" \n                      title=\"Supprimer\">\n                <img src=\"assets/delete.svg\" alt=\"Supprimer\" class=\"btn-icon\">\n              </button>\n            </div>\n          </td>\n        </tr>\n      ");
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    if (!this.controller.lockOptions.lockPieceCreation) {
+      html += "\n        <tr class=\"add-row\">\n          <td colspan=\"8\">\n            <button id=\"add-piece-btn\" class=\"btn btn-sm btn-primary\">+ Ajouter une barre \xE0 d\xE9couper</button>\n          </td>\n        </tr>\n      ";
+    }
+    html += "</tbody></table>";
+    tableContainer.innerHTML = html;
+
+    // Configurer les gestionnaires d'événements
+    if (!this.controller.lockOptions.lockPieceCreation) {
+      var addBtn = document.getElementById('add-piece-btn');
+      if (addBtn) {
+        addBtn.addEventListener('click', function () {
+          _this.controller.openPiecePanel('create');
+        });
+      }
+    }
+    document.querySelectorAll('.edit-piece-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-key');
+        _this.controller.openPiecePanel('edit', key);
+      });
+    });
+    document.querySelectorAll('.delete-piece-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-key');
+        if (_this.controller.dataManager.deletePiece(key)) {
+          _this.renderPiecesTable();
+          _this.controller.updateAllProfileSelects();
+        } else {
+          _this.controller.showNotification('Erreur lors de la suppression', 'error');
+        }
+      });
+    });
+  },
+  /**
+   * Rend le tableau des barres mères avec tri automatique
+   */
+  renderStockBarsTable: function renderStockBarsTable() {
+    var _this2 = this;
+    var tableContainer = document.querySelector('#stock-bars-table');
+    var data = this.controller.dataManager.getData();
+    var allMotherBars = [];
+    for (var profile in data.motherBars) {
+      allMotherBars.push.apply(allMotherBars, edit_panels_toConsumableArray(data.motherBars[profile]));
+    }
+    var sortedBars = this.sortBars(allMotherBars);
+    var html = "\n      <table class=\"data-table\">\n        <thead>\n          <tr>\n            <th>Profil</th>\n            <th>Longueur</th>\n            <th>Quantit\xE9</th>\n            <th>Actions</th>\n          </tr>\n        </thead>\n        <tbody>\n    ";
+    var _iterator2 = edit_panels_createForOfIteratorHelper(sortedBars),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var bar = _step2.value;
+        var barKey = this.controller.dataManager.generateMotherBarKey(bar);
+        var lengthInMilimeters = UIUtils.formatLenght(bar.length);
+        html += "\n        <tr data-key=\"".concat(barKey, "\">\n          <td>").concat(bar.profile, "</td>\n          <td>").concat(lengthInMilimeters, " mm</td>\n          <td>").concat(bar.quantity, "</td>\n          <td>\n            <div class=\"action-buttons\">\n              <button class=\"btn-action btn-action-edit edit-stock-btn\" \n                      data-key=\"").concat(barKey, "\" \n                      title=\"\xC9diter\">\n                <img src=\"assets/edit.svg\" alt=\"\xC9diter\" class=\"btn-icon\">\n              </button>\n              <button class=\"btn-action btn-action-delete delete-stock-btn\" \n                      data-key=\"").concat(barKey, "\" \n                      title=\"Supprimer\">\n                <img src=\"assets/delete.svg\" alt=\"Supprimer\" class=\"btn-icon\">\n              </button>\n            </div>\n          </td>\n        </tr>\n      ");
+      }
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
+    }
+    html += "\n      <tr class=\"add-row\">\n        <td colspan=\"4\">\n          <button id=\"add-stock-btn\" class=\"btn btn-sm btn-primary\">+ Ajouter une barre m\xE8re</button>\n        </td>\n      </tr>\n    </tbody>\n    </table>\n    ";
+    tableContainer.innerHTML = html;
+    document.getElementById('add-stock-btn').addEventListener('click', function () {
+      _this2.controller.openStockPanel('create');
+    });
+    document.querySelectorAll('.edit-stock-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-key');
+        _this2.controller.openStockPanel('edit', key);
+      });
+    });
+    document.querySelectorAll('.delete-stock-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-key');
+        if (_this2.controller.dataManager.deleteMotherBar(key)) {
+          _this2.renderStockBarsTable();
+          _this2.controller.updateAllProfileSelects();
+        } else {
+          _this2.controller.showNotification('Erreur lors de la suppression', 'error');
+        }
+      });
+    });
+  },
+  /**
+   * Ouvre le panneau des barres filles
+   */
+  openPiecePanel: function openPiecePanel(mode) {
+    var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var panel = document.getElementById('piece-panel');
+    var form = panel.querySelector('.panel-form');
+    var title = panel.querySelector('.panel-title');
+    form.innerHTML = '';
+    if (mode === 'edit') {
+      var _item$angles, _item$angles2;
+      var item = this.controller.dataManager.getPieceByKey(key);
+      if (!item) return;
+      title.textContent = "\xC9diter la barre ".concat(item.nom || item.profile);
+      var lengthDisabled = this.controller.lockOptions.lockPieceLengths ? 'disabled' : '';
+      var angleDisabled = this.controller.lockOptions.lockPieceAngles ? 'disabled' : '';
+      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"piece-nom\">Nom :</label>\n          <input type=\"text\" id=\"piece-nom\" value=\"".concat(item.nom || '', "\" placeholder=\"Nom de la barre\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-profile\">Profil :</label>\n          <div class=\"profile-input-container\">\n            <select id=\"piece-profile-select\" class=\"profile-select\">\n              <option value=\"custom\">Saisie personnalis\xE9e</option>\n              ").concat(this.controller.getProfileOptions(item.profile), "\n            </select>\n            <input type=\"text\" id=\"piece-profile\" class=\"profile-input\" value=\"").concat(item.profile, "\" placeholder=\"ex: HEA100\">\n          </div>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-orientation\">Orientation :</label>\n          <select id=\"piece-orientation\">\n            <option value=\"a-plat\" ").concat(item.orientation === 'a-plat' ? 'selected' : '', ">\xC0 plat</option>\n            <option value=\"debout\" ").concat(item.orientation === 'debout' ? 'selected' : '', ">Debout</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"piece-quantity\" min=\"1\" max=\"10000\" value=\"").concat(item.quantity, "\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-length\">Longueur (mm) ").concat(this.controller.lockOptions.lockPieceLengths ? '(verrouillée)' : '', " :</label>\n          <input type=\"number\" id=\"piece-length\" min=\"1\" max=\"100000\" value=\"").concat(item.length, "\" ").concat(lengthDisabled, ">\n          ").concat(this.controller.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : '', "\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-1\">Angle 1 (\xB0) ").concat(this.controller.lockOptions.lockPieceAngles ? '(verrouillé)' : '', " :</label>\n          <input type=\"number\" id=\"piece-angle-1\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"").concat(parseFloat(((_item$angles = item.angles) === null || _item$angles === void 0 ? void 0 : _item$angles[1]) || 90).toFixed(2), "\" ").concat(angleDisabled, ">\n          ").concat(this.controller.lockOptions.lockPieceAngles ? '<small class="form-help">Les angles ne peuvent pas être modifiés pour les barres importées</small>' : '', "\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-2\">Angle 2 (\xB0) ").concat(this.controller.lockOptions.lockPieceAngles ? '(verrouillé)' : '', " :</label>\n          <input type=\"number\" id=\"piece-angle-2\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"").concat(parseFloat(((_item$angles2 = item.angles) === null || _item$angles2 === void 0 ? void 0 : _item$angles2[2]) || 90).toFixed(2), "\" ").concat(angleDisabled, ">\n        </div>\n      ");
+      this.initializeProfileSystem(item.profile);
+    } else {
+      title.textContent = 'Nouvelle barre à découper';
+      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"piece-nom\">Nom :</label>\n          <input type=\"text\" id=\"piece-nom\" placeholder=\"Nom de la barre (optionnel)\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-profile\">Profil :</label>\n          <div class=\"profile-input-container\">\n            <select id=\"piece-profile-select\" class=\"profile-select\">\n              <option value=\"custom\">Saisie personnalis\xE9e</option>\n              ".concat(this.controller.getProfileOptions(), "\n            </select>\n            <input type=\"text\" id=\"piece-profile\" class=\"profile-input\" placeholder=\"ex: HEA100\">\n          </div>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-orientation\">Orientation :</label>\n          <select id=\"piece-orientation\">\n            <option value=\"a-plat\">\xC0 plat</option>\n            <option value=\"debout\">Debout</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"piece-quantity\" min=\"1\" max=\"10000\" value=\"1\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-length\">Longueur (mm) :</label>\n          <input type=\"number\" id=\"piece-length\" min=\"1\" max=\"100000\" placeholder=\"ex: 300\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-1\">Angle 1 (\xB0) :</label>\n          <input type=\"number\" id=\"piece-angle-1\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"90.00\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-2\">Angle 2 (\xB0) :</label>\n          <input type=\"number\" id=\"piece-angle-2\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"90.00\">\n        </div>\n      ");
+      this.initializeProfileSystem();
+    }
+    this.setupFormKeyHandlers();
+    this.openPanel('piece-panel');
+  },
+  /**
+   * Ouvre le panneau des barres mères
+   */
+  openStockPanel: function openStockPanel(mode) {
+    var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var panel = document.getElementById('stock-panel');
+    var form = panel.querySelector('.panel-form');
+    var title = panel.querySelector('.panel-title');
+    form.innerHTML = '';
+    if (mode === 'edit') {
+      var item = this.controller.dataManager.getMotherBarByKey(key);
+      if (!item) return;
+      title.textContent = "\xC9diter la barre m\xE8re ".concat(item.profile);
+      var lengthInMilimeters = UIUtils.formatLenght(item.length);
+      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"stock-profile\">Profil :</label>\n          <div class=\"profile-input-container\">\n            <select id=\"stock-profile-select\" class=\"profile-select\">\n              <option value=\"custom\">Saisie personnalis\xE9e</option>\n              ".concat(this.controller.getProfileOptions(item.profile), "\n            </select>\n            <input type=\"text\" id=\"stock-profile\" class=\"profile-input\" value=\"").concat(item.profile, "\" placeholder=\"ex: HEA100\">\n          </div>\n          <small class=\"form-help\">S\xE9lectionnez un profil existant ou saisissez-en un nouveau</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-length\">Longueur (mm) :</label>\n          <input type=\"text\" id=\"stock-length\" value=\"").concat(lengthInMilimeters, "\" placeholder=\"ex : 12000\">\n          <small class=\"form-help\">Saisissez la longueur en milim\xE8tres</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"stock-quantity\" min=\"1\" max=\"1000000\" value=\"").concat(item.quantity, "\">\n          <small class=\"form-help\">Quantit\xE9 disponible (1000000 = illimit\xE9e)</small>\n        </div>\n      ");
+
+      // Initialiser le système de profil pour les barres mères
+      this.initializeStockProfileSystem(item.profile);
+    } else {
+      title.textContent = 'Nouvelle barre mère';
+      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"stock-profile\">Profil :</label>\n          <div class=\"profile-input-container\">\n            <select id=\"stock-profile-select\" class=\"profile-select\">\n              <option value=\"custom\">Saisie personnalis\xE9e</option>\n              ".concat(this.controller.getProfileOptions(), "\n            </select>\n            <input type=\"text\" id=\"stock-profile\" class=\"profile-input\" placeholder=\"ex: HEA100\">\n          </div>\n          <small class=\"form-help\">S\xE9lectionnez un profil existant ou saisissez-en un nouveau</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-length\">Longueur (mm) :</label>\n          <input type=\"text\" id=\"stock-length\" placeholder=\"ex : 12000\">\n          <small class=\"form-help\">Saisissez la longueur en milim\xE8tres</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"stock-quantity\" min=\"1\" max=\"1000000\" value=\"1000000\">\n          <small class=\"form-help\">Quantit\xE9 disponible (1000000 = illimit\xE9e)</small>\n        </div>\n      ");
+
+      // MODIFIÉ: Initialiser le système de profil avec le premier profil disponible
+      this.initializeStockProfileSystemForNew();
+    }
+    var lengthInput = document.getElementById('stock-length');
+    if (lengthInput) {
+      this.setupLengthInputHandlers(lengthInput);
+    }
+    this.setupFormKeyHandlers();
+    this.openPanel('stock-panel');
+
+    // MODIFIÉ: Focus sur le champ longueur pour les nouvelles barres mères
+    if (mode === 'create') {
+      setTimeout(function () {
+        var lengthField = document.getElementById('stock-length');
+        if (lengthField) {
+          lengthField.focus();
+          lengthField.select();
+          console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
+        }
+      }, 400);
+    }
+  },
+  /**
+   * Ferme le panneau d'édition actif
+   */
+  closePanel: function closePanel() {
+    var panels = ['piece-panel', 'stock-panel'];
+    var overlay = document.getElementById('panel-overlay');
+    panels.forEach(function (panelId) {
+      var panel = document.getElementById(panelId);
+      if (panel) panel.classList.remove('visible');
+    });
+    if (overlay) overlay.classList.remove('visible');
+    document.body.classList.remove('panel-open');
+    this.removeGlobalKeyHandlers();
+    this.controller.editingKey = null;
+    this.controller.editingType = null;
+    this.controller.editingMode = null;
+  },
+  /**
+   * Ouvre un panneau générique
+   */
+  openPanel: function openPanel(panelId) {
+    console.log('🔧 Ouverture du panneau:', panelId);
+    var panel = document.getElementById(panelId);
+    var overlay = document.getElementById('panel-overlay');
+    if (!panel) {
+      console.error('❌ Panneau non trouvé:', panelId);
+      return;
+    }
+    if (!overlay) {
+      console.error('❌ Overlay non trouvé');
+      return;
+    }
+    document.body.classList.add('panel-open');
+    console.log('🔒 Défilement de la page bloqué');
+    panel.classList.add('visible');
+    overlay.classList.add('visible');
+    console.log('👁️ Panneau et overlay affichés');
+
+    // MODIFIÉ: Ne pas faire de focus automatique ici, c'est géré dans openStockPanel
+    // Le focus sera fait spécifiquement pour chaque type de panneau
+  },
+  /**
+   * Initialise le système de profil avec dropdown et champ éditable
+   */
+  initializeProfileSystem: function initializeProfileSystem() {
+    var currentValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    var profileSelect = document.getElementById('piece-profile-select');
+    var profileInput = document.getElementById('piece-profile');
+    if (!profileSelect || !profileInput) return;
+    var isCustomMode = false;
+    if (currentValue && currentValue.trim() !== '') {
+      var matchingOption = Array.from(profileSelect.options).find(function (option) {
+        return option.value === currentValue && option.value !== 'custom';
+      });
+      if (matchingOption) {
+        profileSelect.value = currentValue;
+        profileInput.value = currentValue;
+        profileInput.readOnly = true;
+        isCustomMode = false;
+      } else {
+        profileSelect.value = 'custom';
+        profileInput.value = currentValue;
+        profileInput.readOnly = false;
+        isCustomMode = true;
+      }
+    } else {
+      profileSelect.value = 'custom';
+      profileInput.value = '';
+      profileInput.readOnly = false;
+      isCustomMode = true;
+    }
+    profileSelect.addEventListener('change', function () {
+      if (profileSelect.value === 'custom') {
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      } else {
+        profileInput.value = profileSelect.value;
+        profileInput.readOnly = true;
+      }
+    });
+    profileInput.addEventListener('click', function () {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      }
+    });
+    profileInput.addEventListener('input', function () {
+      if (!profileInput.readOnly) {
+        if (profileSelect.value !== 'custom') {
+          profileSelect.value = 'custom';
+        }
+      }
+    });
+    profileInput.addEventListener('focus', function () {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        setTimeout(function () {
+          profileInput.focus();
+          profileInput.select();
+        }, 0);
+      }
+    });
+    this.updateProfileInputStyles(profileInput, isCustomMode);
+  },
+  /**
+   * Met à jour les styles visuels du champ de profil
+   */
+  updateProfileInputStyles: function updateProfileInputStyles(profileInput, isCustomMode) {
+    if (isCustomMode) {
+      profileInput.classList.add('custom-mode');
+      profileInput.classList.remove('readonly-mode');
+    } else {
+      profileInput.classList.add('readonly-mode');
+      profileInput.classList.remove('custom-mode');
+    }
+  },
+  /**
+   * Initialise le système de profil pour les barres mères avec dropdown et champ éditable
+   */
+  initializeStockProfileSystem: function initializeStockProfileSystem() {
+    var _this3 = this;
+    var currentValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    var profileSelect = document.getElementById('stock-profile-select');
+    var profileInput = document.getElementById('stock-profile');
+    if (!profileSelect || !profileInput) return;
+    var isCustomMode = false;
+    if (currentValue && currentValue.trim() !== '') {
+      var matchingOption = Array.from(profileSelect.options).find(function (option) {
+        return option.value === currentValue && option.value !== 'custom';
+      });
+      if (matchingOption) {
+        profileSelect.value = currentValue;
+        profileInput.value = currentValue;
+        profileInput.readOnly = true;
+        isCustomMode = false;
+      } else {
+        profileSelect.value = 'custom';
+        profileInput.value = currentValue;
+        profileInput.readOnly = false;
+        isCustomMode = true;
+      }
+    } else {
+      profileSelect.value = 'custom';
+      profileInput.value = '';
+      profileInput.readOnly = false;
+      isCustomMode = true;
+    }
+    profileSelect.addEventListener('change', function () {
+      if (profileSelect.value === 'custom') {
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      } else {
+        profileInput.value = profileSelect.value;
+        profileInput.readOnly = true;
+      }
+
+      // Mettre à jour les styles
+      _this3.updateProfileInputStyles(profileInput, profileSelect.value === 'custom');
+    });
+    profileInput.addEventListener('click', function () {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+        _this3.updateProfileInputStyles(profileInput, true);
+      }
+    });
+    profileInput.addEventListener('input', function () {
+      if (!profileInput.readOnly) {
+        if (profileSelect.value !== 'custom') {
+          profileSelect.value = 'custom';
+        }
+      }
+    });
+    profileInput.addEventListener('focus', function () {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        setTimeout(function () {
+          profileInput.focus();
+          profileInput.select();
+        }, 0);
+        _this3.updateProfileInputStyles(profileInput, true);
+      }
+    });
+  },
+  /**
+   * NOUVEAU: Initialise le système de profil pour les nouvelles barres mères avec le premier profil disponible
+   */
+  initializeStockProfileSystemForNew: function initializeStockProfileSystemForNew() {
+    var _this4 = this;
+    var profileSelect = document.getElementById('stock-profile-select');
+    var profileInput = document.getElementById('stock-profile');
+    if (!profileSelect || !profileInput) return;
+
+    // Chercher le premier profil disponible (non "custom")
+    var firstAvailableProfile = Array.from(profileSelect.options).find(function (option) {
+      return option.value !== 'custom';
+    });
+    if (firstAvailableProfile) {
+      // Utiliser le premier profil disponible
+      profileSelect.value = firstAvailableProfile.value;
+      profileInput.value = firstAvailableProfile.value;
+      profileInput.readOnly = true;
+      this.updateProfileInputStyles(profileInput, false); // false = pas en mode custom
+    } else {
+      // Pas de profil disponible, utiliser le mode custom
+      profileSelect.value = 'custom';
+      profileInput.value = '';
+      profileInput.readOnly = false;
+      this.updateProfileInputStyles(profileInput, true); // true = mode custom
+    }
+
+    // Configurer les gestionnaires d'événements
+    profileSelect.addEventListener('change', function () {
+      if (profileSelect.value === 'custom') {
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      } else {
+        profileInput.value = profileSelect.value;
+        profileInput.readOnly = true;
+      }
+
+      // Mettre à jour les styles
+      _this4.updateProfileInputStyles(profileInput, profileSelect.value === 'custom');
+    });
+    profileInput.addEventListener('click', function () {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+        _this4.updateProfileInputStyles(profileInput, true);
+      }
+    });
+    profileInput.addEventListener('input', function () {
+      if (!profileInput.readOnly) {
+        if (profileSelect.value !== 'custom') {
+          profileSelect.value = 'custom';
+        }
+      }
+    });
+    profileInput.addEventListener('focus', function () {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        setTimeout(function () {
+          profileInput.focus();
+          profileInput.select();
+        }, 0);
+        _this4.updateProfileInputStyles(profileInput, true);
+      }
+    });
+  },
+  /**
+   * Configure les gestionnaires pour les champs de longueur
+   */
+  setupLengthInputHandlers: function setupLengthInputHandlers(inputElement) {
+    var _this5 = this;
+    inputElement.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        _this5.controller.saveItem();
+      }
+    });
+    inputElement.addEventListener('blur', function (e) {
+      var value = e.target.value.trim();
+      if (value !== '') {
+        var parsed = EditValidation.parseLengthFromDisplay(value);
+        if (parsed !== null) {
+          e.target.value = UIUtils.formatLenght(parsed);
+        }
+      }
+    });
+  },
+  /**
+   * Configure les gestionnaires pour tous les champs du formulaire
+   */
+  setupFormKeyHandlers: function setupFormKeyHandlers() {
+    var _this6 = this;
+    var form = document.querySelector('.panel-form');
+    if (!form) return;
+    var globalKeyHandler = function globalKeyHandler(e) {
+      if (e.key === 'Enter') {
+        var piecePanel = document.getElementById('piece-panel');
+        var stockPanel = document.getElementById('stock-panel');
+        var isPanelOpen = piecePanel && piecePanel.classList.contains('visible') || stockPanel && stockPanel.classList.contains('visible');
+        if (isPanelOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          _this6.controller.saveItem();
+        }
+      }
+    };
+    if (this._globalKeyHandler) {
+      document.removeEventListener('keydown', this._globalKeyHandler);
+    }
+    this._globalKeyHandler = globalKeyHandler;
+    document.addEventListener('keydown', this._globalKeyHandler);
+    form.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        _this6.controller.saveItem();
+      }
+    });
+  },
+  /**
+   * Supprime les gestionnaires d'événements globaux
+   */
+  removeGlobalKeyHandlers: function removeGlobalKeyHandlers() {
+    if (this._globalKeyHandler) {
+      document.removeEventListener('keydown', this._globalKeyHandler);
+      this._globalKeyHandler = null;
+    }
+  },
+  /**
+   * Crée le panneau des barres filles
+   */
+  createPiecePanel: function createPiecePanel() {
+    var _this7 = this;
+    if (document.getElementById('piece-panel')) return;
+    if (!document.getElementById('panel-overlay')) {
+      var overlay = document.createElement('div');
+      overlay.id = 'panel-overlay';
+      overlay.className = 'panel-overlay';
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          _this7.closePanel();
+        }
+      });
+      overlay.addEventListener('wheel', function (e) {
+        e.preventDefault();
+      }, {
+        passive: false
+      });
+      document.body.appendChild(overlay);
+    }
+    var panel = document.createElement('div');
+    panel.id = 'piece-panel';
+    panel.className = 'side-panel piece-panel';
+    panel.innerHTML = "\n      <div class=\"panel-header\">\n        <h3 class=\"panel-title\">Barre \xE0 d\xE9couper</h3>\n        <button class=\"panel-close\">&times;</button>\n      </div>\n      <div class=\"panel-form\">\n        <!-- Le contenu du formulaire sera g\xE9n\xE9r\xE9 dynamiquement -->\n      </div>\n      <div class=\"panel-actions\">\n        <button class=\"btn btn-secondary cancel-btn\">Annuler</button>\n        <button class=\"btn btn-primary save-btn\">Enregistrer</button>\n      </div>\n    ";
+    document.body.appendChild(panel);
+    panel.querySelector('.panel-close').addEventListener('click', function () {
+      return _this7.closePanel();
+    });
+    panel.querySelector('.cancel-btn').addEventListener('click', function () {
+      return _this7.closePanel();
+    });
+    panel.querySelector('.save-btn').addEventListener('click', function () {
+      return _this7.controller.saveItem();
+    });
+  },
+  /**
+   * Crée le panneau des barres mères
+   */
+  createStockPanel: function createStockPanel() {
+    var _this8 = this;
+    if (document.getElementById('stock-panel')) return;
+    if (!document.getElementById('panel-overlay')) {
+      var overlay = document.createElement('div');
+      overlay.id = 'panel-overlay';
+      overlay.className = 'panel-overlay';
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          _this8.closePanel();
+        }
+      });
+      overlay.addEventListener('wheel', function (e) {
+        e.preventDefault();
+      }, {
+        passive: false
+      });
+      document.body.appendChild(overlay);
+    }
+    var panel = document.createElement('div');
+    panel.id = 'stock-panel';
+    panel.className = 'side-panel stock-panel';
+    panel.innerHTML = "\n      <div class=\"panel-header\">\n        <h3 class=\"panel-title\">Barre m\xE8re</h3>\n        <button class=\"panel-close\">&times;</button>\n      </div>\n      <div class=\"panel-form\">\n        <!-- Le contenu du formulaire sera g\xE9n\xE9r\xE9 dynamiquement -->\n      </div>\n      <div class=\"panel-actions\">\n        <button class=\"btn btn-secondary cancel-btn\">Annuler</button>\n        <button class=\"btn btn-primary save-btn\">Enregistrer</button>\n      </div>\n    ";
+    document.body.appendChild(panel);
+    panel.querySelector('.panel-close').addEventListener('click', function () {
+      return _this8.closePanel();
+    });
+    panel.querySelector('.cancel-btn').addEventListener('click', function () {
+      return _this8.closePanel();
+    });
+    panel.querySelector('.save-btn').addEventListener('click', function () {
+      return _this8.controller.saveItem();
+    });
+  }
+};
+;// ./src/js/ui/edit-controller.js
+function edit_controller_typeof(o) { "@babel/helpers - typeof"; return edit_controller_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, edit_controller_typeof(o); }
+function edit_controller_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = edit_controller_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function edit_controller_toConsumableArray(r) { return edit_controller_arrayWithoutHoles(r) || edit_controller_iterableToArray(r) || edit_controller_unsupportedIterableToArray(r) || edit_controller_nonIterableSpread(); }
+function edit_controller_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function edit_controller_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return edit_controller_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? edit_controller_arrayLikeToArray(r, a) : void 0; } }
+function edit_controller_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function edit_controller_arrayWithoutHoles(r) { if (Array.isArray(r)) return edit_controller_arrayLikeToArray(r); }
+function edit_controller_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function edit_controller_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function edit_controller_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? edit_controller_ownKeys(Object(t), !0).forEach(function (r) { edit_controller_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : edit_controller_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function edit_controller_defineProperty(e, r, t) { return (r = edit_controller_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function edit_controller_toPropertyKey(t) { var i = edit_controller_toPrimitive(t, "string"); return "symbol" == edit_controller_typeof(i) ? i : i + ""; }
+function edit_controller_toPrimitive(t, r) { if ("object" != edit_controller_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != edit_controller_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+
+
+/**
+ * Contrôleur principal de l'édition (SANS ID)
+ */
+var EditController = {
+  // Dépendances
+  dataManager: null,
+  showNotification: null,
+  refreshDataDisplay: null,
+  // État interne
+  editingKey: null,
+  editingType: null,
+  editingMode: null,
+  // Options de verrouillage
+  lockOptions: {
+    lockPieceCreation: true,
+    lockPieceAngles: true,
+    lockPieceLengths: true
+  },
+  /**
+   * Initialise le contrôleur d'édition
+   */
+  init: function init(options) {
+    this.dataManager = options.dataManager;
+    this.showNotification = options.showNotification;
+    this.refreshDataDisplay = options.refreshDataDisplay;
+    if (options.lockOptions) {
+      this.lockOptions = edit_controller_objectSpread(edit_controller_objectSpread({}, this.lockOptions), options.lockOptions);
+    }
+
+    // Initialiser les panneaux
+    EditPanels.init(this);
+
+    // Initialiser les boutons de reset
+    this.initResetButton();
+    this.initResetMotherBarsButton();
+  },
+  /**
+   * Point d'entrée principal pour le rendu
+   */
+  renderSection: function renderSection() {
+    EditPanels.renderPiecesTable();
+    EditPanels.renderStockBarsTable();
+  },
+  /**
+   * Alias pour la rétrocompatibilité
+   */
+  refreshTables: function refreshTables() {
+    this.renderSection();
+  },
+  /**
+   * Initialise le bouton de reset des barres filles
+   */
+  initResetButton: function initResetButton() {
+    var _this = this;
+    var resetBtn = document.getElementById('reset-pieces-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        _this.resetAllPieces();
+      });
+    }
+  },
+  /**
+   * Supprime toutes les barres filles
+   */
+  resetAllPieces: function resetAllPieces() {
+    var _this2 = this;
+    var data = this.dataManager.getData();
+    var totalPieces = 0;
+    for (var profile in data.pieces) {
+      totalPieces += data.pieces[profile].length;
+    }
+    if (totalPieces === 0) {
+      this.showNotification('Aucune barre à découper à supprimer', 'info');
+      return;
+    }
+    var deletedCount = 0;
+    for (var _profile in data.pieces) {
+      var pieces = edit_controller_toConsumableArray(data.pieces[_profile]);
+      pieces.forEach(function (piece) {
+        var key = _this2.dataManager.generatePieceKey(piece);
+        if (_this2.dataManager.deletePiece(key)) {
+          deletedCount++;
+        }
+      });
+    }
+    EditPanels.renderPiecesTable();
+    this.updateAllProfileSelects();
+    this.showNotification("".concat(deletedCount, " barre").concat(deletedCount > 1 ? 's' : '', " \xE0 d\xE9couper supprim\xE9e").concat(deletedCount > 1 ? 's' : ''), 'success');
+    if (this.refreshDataDisplay) {
+      this.refreshDataDisplay();
+    }
+  },
+  /**
+   * Initialise le bouton de reset des barres mères
+   */
+  initResetMotherBarsButton: function initResetMotherBarsButton() {
+    var _this3 = this;
+    var resetBtn = document.getElementById('reset-mother-bars-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        return _this3.resetAllMotherBars();
+      });
+    }
+  },
+  /**
+   * Supprime toutes les barres mères avec confirmation
+   */
+  resetAllMotherBars: function resetAllMotherBars() {
+    var _this4 = this;
+    var data = this.dataManager.getData();
+    var totalMotherBars = 0;
+    for (var profile in data.motherBars) {
+      totalMotherBars += data.motherBars[profile].length;
+    }
+    if (totalMotherBars === 0) {
+      this.showNotification('Aucune barre mère à supprimer', 'info');
+      return;
+    }
+    var deletedCount = 0;
+    for (var _profile2 in data.motherBars) {
+      var motherBars = edit_controller_toConsumableArray(data.motherBars[_profile2]);
+      motherBars.forEach(function (motherBar) {
+        var key = _this4.dataManager.generateMotherBarKey(motherBar);
+        if (_this4.dataManager.deleteMotherBar(key)) {
+          deletedCount++;
+        }
+      });
+    }
+    this.dataManager.clearStoredMotherBars();
+    EditPanels.renderStockBarsTable();
+    this.updateAllProfileSelects();
+    this.showNotification("".concat(deletedCount, " barre").concat(deletedCount > 1 ? 's' : '', " m\xE8re").concat(deletedCount > 1 ? 's' : '', " supprim\xE9e").concat(deletedCount > 1 ? 's' : ''), 'success');
+    if (this.refreshDataDisplay) {
+      this.refreshDataDisplay();
+    }
+  },
+  /**
+   * Ouvre le panneau des barres filles
+   */
+  openPiecePanel: function openPiecePanel(mode) {
+    var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    if (mode === 'create' && this.lockOptions.lockPieceCreation) {
+      this.showNotification('La création de nouvelles barres filles est désactivée', 'warning');
+      return;
+    }
+    this.editingMode = mode;
+    this.editingKey = key;
+    this.editingType = 'piece';
+    EditPanels.openPiecePanel(mode, key);
+  },
+  /**
+   * Ouvre le panneau des barres mères
+   */
+  openStockPanel: function openStockPanel(mode) {
+    var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    this.editingMode = mode;
+    this.editingKey = key;
+    this.editingType = 'stock';
+    EditPanels.openStockPanel(mode, key);
+  },
+  /**
+   * Enregistre les modifications ou crée un nouvel élément
+   */
+  saveItem: function saveItem() {
+    var type = this.editingType;
+    var key = this.editingKey;
+    var mode = this.editingMode;
+    if (!type) return;
+    var success = false;
+    var updatedProfile = false;
+    if (type === 'piece') {
+      var formData = UIUtils.trimFormData({
+        nom: document.getElementById('piece-nom').value,
+        profile: document.getElementById('piece-profile').value,
+        quantity: document.getElementById('piece-quantity').value,
+        orientation: document.getElementById('piece-orientation').value
+      });
+      var nom = formData.nom;
+      var profileValue = formData.profile;
+      var quantity = parseInt(formData.quantity, 10);
+      var orientation = formData.orientation;
+      var length = null;
+      var angle1 = 90,
+        angle2 = 90;
+      if (!this.lockOptions.lockPieceLengths) {
+        var lengthInput = document.getElementById('piece-length').value.trim();
+        length = parseInt(lengthInput, 10);
+      } else if (mode === 'edit') {
+        var item = this.dataManager.getPieceByKey(key);
+        length = item ? item.length : null;
+      }
+      if (!this.lockOptions.lockPieceAngles) {
+        var angle1Input = document.getElementById('piece-angle-1').value.trim();
+        var angle2Input = document.getElementById('piece-angle-2').value.trim();
+        angle1 = parseFloat(angle1Input);
+        angle2 = parseFloat(angle2Input);
+      } else if (mode === 'edit') {
+        var _item$angles, _item$angles2;
+        var _item = this.dataManager.getPieceByKey(key);
+        angle1 = _item ? ((_item$angles = _item.angles) === null || _item$angles === void 0 ? void 0 : _item$angles[1]) || 90 : 90;
+        angle2 = _item ? ((_item$angles2 = _item.angles) === null || _item$angles2 === void 0 ? void 0 : _item$angles2[2]) || 90 : 90;
+      }
+      var pieceData = {
+        nom: nom,
+        profile: profileValue,
+        length: length,
+        quantity: quantity,
+        orientation: orientation,
+        angles: {
+          1: angle1,
+          2: angle2
+        }
+      };
+      var errors = EditValidation.validatePieceData(pieceData);
+      if (errors.length > 0) {
+        this.showNotification(errors[0], 'error');
+        return;
+      }
+      if (profileValue && length && quantity) {
+        if (mode === 'edit') {
+          var piece = this.dataManager.getPieceByKey(key);
+          if (piece && piece.profile !== profileValue) {
+            updatedProfile = true;
+          }
+          var updatedPiece = {
+            nom: nom,
+            profile: profileValue,
+            length: length,
+            quantity: quantity,
+            orientation: orientation,
+            angles: {
+              1: angle1,
+              2: angle2
+            }
+          };
+          var newKey = this.dataManager.updatePiece(key, updatedPiece);
+          success = newKey !== null;
+        } else {
+          var _pieceData = {
+            nom: nom,
+            profile: profileValue,
+            length: length,
+            quantity: quantity,
+            orientation: orientation,
+            angles: {
+              1: angle1,
+              2: angle2
+            },
+            type: 'fille'
+          };
+          var addedKeys = this.dataManager.addBars([_pieceData]);
+          if (addedKeys.length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
+        }
+        if (success) {
+          EditPanels.renderPiecesTable();
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          if (mode === 'edit') {
+            this.showNotification("Barre modifi\xE9e", 'success');
+          }
+        }
+      }
+    } else if (type === 'stock') {
+      // MODIFIÉ: Récupérer la valeur depuis le champ input au lieu du select
+      var _formData = UIUtils.trimFormData({
+        profile: document.getElementById('stock-profile').value,
+        length: document.getElementById('stock-length').value,
+        quantity: document.getElementById('stock-quantity').value
+      });
+      var _profileValue = _formData.profile;
+      var _lengthInput = _formData.length;
+      var _quantity = parseInt(_formData.quantity, 10);
+      var lengthInMm = EditValidation.parseLengthFromDisplay(_lengthInput);
+      var motherBarData = {
+        profile: _profileValue,
+        length: lengthInMm,
+        quantity: _quantity
+      };
+      var _errors = EditValidation.validateMotherBarData(motherBarData);
+      if (_errors.length > 0) {
+        this.showNotification(_errors[0], 'error');
+        return;
+      }
+      if (_profileValue && lengthInMm && _quantity) {
+        if (mode === 'edit') {
+          var bar = this.dataManager.getMotherBarByKey(key);
+          if (bar && bar.profile !== _profileValue) {
+            updatedProfile = true;
+          }
+          var updatedMotherBar = {
+            profile: _profileValue,
+            length: lengthInMm,
+            quantity: _quantity
+          };
+          var _newKey = this.dataManager.updateMotherBar(key, updatedMotherBar);
+          success = _newKey !== null;
+        } else {
+          var barData = {
+            profile: _profileValue,
+            length: lengthInMm,
+            quantity: _quantity,
+            type: 'mother'
+          };
+          var _addedKeys = this.dataManager.addBars([barData]);
+          if (_addedKeys.length > 0) {
+            success = true;
+            updatedProfile = true;
+          }
+        }
+        if (success) {
+          EditPanels.renderStockBarsTable();
+          if (updatedProfile) {
+            this.updateAllProfileSelects();
+          }
+          if (this.refreshDataDisplay) {
+            this.refreshDataDisplay();
+          }
+          if (mode === 'edit') {
+            this.showNotification("Barre m\xE8re modifi\xE9e", 'success');
+          }
+        }
+      }
+    }
+    if (success) {
+      EditPanels.closePanel();
+    } else {
+      this.showNotification('Erreur lors de l\'enregistrement', 'error');
+    }
+  },
+  /**
+   * Met à jour toutes les listes déroulantes de profils
+   */
+  updateAllProfileSelects: function updateAllProfileSelects() {
+    // Mettre à jour le select des barres mères
+    var stockProfileSelect = document.getElementById('stock-profile-select');
+    if (stockProfileSelect) {
+      var currentValue = stockProfileSelect.value;
+      var customOption = '<option value="custom">Saisie personnalisée</option>';
+      stockProfileSelect.innerHTML = customOption + this.getProfileOptions(currentValue === 'custom' ? '' : currentValue);
+    }
+
+    // Mettre à jour le select des barres filles
+    var pieceProfileSelect = document.getElementById('piece-profile-select');
+    if (pieceProfileSelect) {
+      var _currentValue = pieceProfileSelect.value;
+      var _customOption = '<option value="custom">Saisie personnalisée</option>';
+      pieceProfileSelect.innerHTML = _customOption + this.getProfileOptions(_currentValue === 'custom' ? '' : _currentValue);
+    }
+  },
+  /**
+   * Obtient la liste des options de profil pour les selects
+   */
+  getProfileOptions: function getProfileOptions(currentValue) {
+    var data = this.dataManager.getData();
+    var profiles = new Set();
+    for (var profile in data.pieces) {
+      profiles.add(profile);
+    }
+    for (var _profile3 in data.motherBars) {
+      profiles.add(_profile3);
+    }
+    var optionsHtml = '';
+    var _iterator = edit_controller_createForOfIteratorHelper(profiles),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var _profile4 = _step.value;
+        var selected = _profile4 === currentValue ? 'selected' : '';
+        optionsHtml += "<option value=\"".concat(_profile4, "\" ").concat(selected, ">").concat(_profile4, "</option>");
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    return optionsHtml;
+  }
+};
+;// ./src/js/ui/import-handler.js
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Gestionnaire de la section d'import
+ * Gère le drag & drop et l'import de fichiers (SANS ID - VERSION FINALE)
+ */
+
+var ImportHandler = {
+  // Dépendances
+  dataManager: null,
+  importManager: null,
+  // Callbacks
+  showNotification: null,
+  refreshDataDisplay: null,
+  /**
+   * Initialise le handler d'import
+   */
+  init: function init(options) {
+    this.dataManager = options.dataManager;
+    this.importManager = options.importManager;
+    this.showNotification = options.showNotification;
+    this.refreshDataDisplay = options.refreshDataDisplay;
+    this.initDropZone();
+  },
+  /**
+   * Initialise la zone de drop
+   */
+  initDropZone: function initDropZone() {
+    var _this = this;
+    var dropZone = document.querySelector('.file-drop-zone');
+    var fileInput = document.getElementById('nc2-files-input');
+
+    // Ajouter un conteneur pour les erreurs s'il n'existe pas
+    if (!document.getElementById('import-error')) {
+      var errorDiv = document.createElement('div');
+      errorDiv.id = 'import-error';
+      errorDiv.className = 'error-message hidden';
+      dropZone.parentNode.insertBefore(errorDiv, dropZone.nextSibling);
+    }
+
+    // Prévenir les comportements par défaut du navigateur
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (eventName) {
+      dropZone.addEventListener(eventName, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    // Ajouter/retirer la classe active pendant le drag
+    ['dragenter', 'dragover'].forEach(function (eventName) {
+      dropZone.addEventListener(eventName, function () {
+        return dropZone.classList.add('active');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (eventName) {
+      dropZone.addEventListener(eventName, function () {
+        return dropZone.classList.remove('active');
+      });
+    });
+
+    // Gérer le drop
+    dropZone.addEventListener('drop', function (e) {
+      return _this.processImportedFiles(e.dataTransfer.files);
+    });
+
+    // Gérer le clic sur l'input file
+    fileInput.addEventListener('change', function () {
+      return _this.processImportedFiles(fileInput.files);
+    });
+
+    // Gérer le clic sur la zone de drop pour ouvrir le sélecteur de fichiers
+    dropZone.addEventListener('click', function (e) {
+      // Ne pas déclencher si clic sur l'input lui-même (évite double ouverture)
+      if (e.target !== fileInput) {
+        fileInput.click();
+      }
+    });
+  },
+  /**
+   * Traite les fichiers importés (MODIFIÉ - Utilise le simple overlay)
+   */
+  processImportedFiles: function () {
+    var _processImportedFiles = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(files) {
+      var importedBars, addedKeys, fileInput, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            if (!(files.length === 0)) {
+              _context.n = 1;
+              break;
+            }
+            return _context.a(2);
+          case 1:
+            // MODIFIÉ: Utiliser le simple overlay au lieu de l'overlay complexe
+            UIUtils.showSimpleLoadingOverlay('Traitement des fichiers en cours...');
+            this.hideError();
+            _context.p = 2;
+            _context.n = 3;
+            return this.importManager.processMultipleFiles(files);
+          case 3:
+            importedBars = _context.v;
+            if (importedBars && importedBars.length > 0) {
+              // Ajouter les barres au DataManager
+              addedKeys = this.dataManager.addBars(importedBars);
+              if (addedKeys.length > 0) {
+                // Rester sur la même section et montrer un message de succès
+                this.showNotification("".concat(addedKeys.length, " barres import\xE9es avec succ\xE8s."), 'success');
+
+                // Rafraîchir l'affichage des données
+                if (this.refreshDataDisplay) {
+                  this.refreshDataDisplay();
+                }
+
+                // Faire défiler jusqu'à la zone d'édition après un court délai
+                setTimeout(function () {
+                  var editPanel = document.querySelector('.panels-container');
+                  if (editPanel) {
+                    editPanel.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }
+                }, 300);
+              } else {
+                this.showError('Aucune nouvelle pièce ajoutée.');
+              }
+            } else {
+              this.showError('Aucune pièce valide trouvée dans les fichiers.');
+            }
+            _context.n = 5;
+            break;
+          case 4:
+            _context.p = 4;
+            _t = _context.v;
+            console.error('Import error:', _t);
+            this.showError("Erreur d'import: ".concat(_t.message));
+          case 5:
+            _context.p = 5;
+            // MODIFIÉ: Masquer le simple overlay
+            UIUtils.hideSimpleLoadingOverlay();
+
+            // Réinitialiser l'élément input file pour permettre la réimportation du même fichier
+            fileInput = document.getElementById('nc2-files-input');
+            if (fileInput) {
+              fileInput.value = '';
+            }
+            return _context.f(5);
+          case 6:
+            return _context.a(2);
+        }
+      }, _callee, this, [[2, 4, 5, 6]]);
+    }));
+    function processImportedFiles(_x) {
+      return _processImportedFiles.apply(this, arguments);
+    }
+    return processImportedFiles;
+  }(),
+  /**
+   * MODIFIÉ: Traite les fichiers sans notifications de succès (CORRIGÉ - plus de référence ID)
+   */
+  processFiles: function () {
+    var _processFiles = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(files) {
+      var results, addedKeys, errorMsg, _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            if (!(!files || files.length === 0)) {
+              _context2.n = 1;
+              break;
+            }
+            return _context2.a(2);
+          case 1:
+            // MODIFIÉ: Utiliser le simple overlay
+            UIUtils.showSimpleLoadingOverlay('Traitement des fichiers...');
+            _context2.p = 2;
+            _context2.n = 3;
+            return this.importManager.processFiles(files);
+          case 3:
+            results = _context2.v;
+            if (results.success.length > 0) {
+              addedKeys = this.dataManager.addBars(results.bars);
+              if (addedKeys.length > 0) {
+                if (this.refreshDataDisplay) {
+                  this.refreshDataDisplay();
+                }
+                // SUPPRIMÉ: Notification de succès
+              }
+            }
+
+            // Afficher seulement les erreurs
+            if (results.errors.length > 0) {
+              errorMsg = results.errors.length === 1 ? results.errors[0] : "".concat(results.errors.length, " erreurs d'import");
+              this.showNotification(errorMsg, 'error');
+            }
+            _context2.n = 5;
+            break;
+          case 4:
+            _context2.p = 4;
+            _t2 = _context2.v;
+            console.error('Erreur lors du traitement des fichiers:', _t2);
+            this.showNotification('Erreur lors de l\'import', 'error');
+          case 5:
+            _context2.p = 5;
+            // MODIFIÉ: Masquer le simple overlay
+            UIUtils.hideSimpleLoadingOverlay();
+            return _context2.f(5);
+          case 6:
+            return _context2.a(2);
+        }
+      }, _callee2, this, [[2, 4, 5, 6]]);
+    }));
+    function processFiles(_x2) {
+      return _processFiles.apply(this, arguments);
+    }
+    return processFiles;
+  }(),
+  /**
+   * Affiche une erreur d'import
+   */
+  showError: function showError(message) {
+    var errorDiv = document.getElementById('import-error');
+    if (errorDiv) {
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  },
+  /**
+   * Masque l'erreur d'import
+   */
+  hideError: function hideError() {
+    var errorDiv = document.getElementById('import-error');
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
+    }
+  }
+};
+// EXTERNAL MODULE: ./node_modules/jszip/dist/jszip.min.js
+var jszip_min = __webpack_require__(710);
+var jszip_min_default = /*#__PURE__*/__webpack_require__.n(jszip_min);
+;// ./src/js/import-manager.js
+function import_manager_slicedToArray(r, e) { return import_manager_arrayWithHoles(r) || import_manager_iterableToArrayLimit(r, e) || import_manager_unsupportedIterableToArray(r, e) || import_manager_nonIterableRest(); }
+function import_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function import_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function import_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function import_manager_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return import_manager_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (import_manager_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, import_manager_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, import_manager_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), import_manager_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", import_manager_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), import_manager_regeneratorDefine2(u), import_manager_regeneratorDefine2(u, o, "Generator"), import_manager_regeneratorDefine2(u, n, function () { return this; }), import_manager_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (import_manager_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function import_manager_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } import_manager_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { import_manager_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, import_manager_regeneratorDefine2(e, r, n, t); }
+function import_manager_toConsumableArray(r) { return import_manager_arrayWithoutHoles(r) || import_manager_iterableToArray(r) || import_manager_unsupportedIterableToArray(r) || import_manager_nonIterableSpread(); }
+function import_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function import_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function import_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return import_manager_arrayLikeToArray(r); }
+function import_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = import_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function import_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return import_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? import_manager_arrayLikeToArray(r, a) : void 0; } }
+function import_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function import_manager_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function import_manager_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { import_manager_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { import_manager_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Gestionnaire d'import pour fichiers NC2 et ZIP (SANS ID)
+ */
+
+
+var ImportManager = {
+  /**
+   * Traite plusieurs fichiers NC2 ou un ZIP
+   * @param {FileList} files - Liste des fichiers à traiter
+   * @returns {Promise<Array>} - Tableau d'objets barre
+   */
+  processMultipleFiles: function () {
+    var _processMultipleFiles = import_manager_asyncToGenerator(/*#__PURE__*/import_manager_regenerator().m(function _callee(files) {
+      var barres, _iterator, _step, file, fileName, content, parsedData, barre, zipBarres, _t, _t2;
+      return import_manager_regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            barres = [];
+            _context.p = 1;
+            _iterator = import_manager_createForOfIteratorHelper(files);
+            _context.p = 2;
+            _iterator.s();
+          case 3:
+            if ((_step = _iterator.n()).done) {
+              _context.n = 8;
+              break;
+            }
+            file = _step.value;
+            fileName = file.name.toLowerCase();
+            if (!(fileName.endsWith('.nc2') || fileName.endsWith('.nc1'))) {
+              _context.n = 5;
+              break;
+            }
+            _context.n = 4;
+            return this.readFileAsText(file);
+          case 4:
+            content = _context.v;
+            parsedData = Parser.parseNC2(content);
+            barre = this.convertToBarre(parsedData, file.name);
+            if (barre) {
+              barres.push(barre);
+            }
+            _context.n = 7;
+            break;
+          case 5:
+            if (!fileName.endsWith('.zip')) {
+              _context.n = 7;
+              break;
+            }
+            _context.n = 6;
+            return this.processZipFile(file);
+          case 6:
+            zipBarres = _context.v;
+            barres.push.apply(barres, import_manager_toConsumableArray(zipBarres));
+          case 7:
+            _context.n = 3;
+            break;
+          case 8:
+            _context.n = 10;
+            break;
+          case 9:
+            _context.p = 9;
+            _t = _context.v;
+            _iterator.e(_t);
+          case 10:
+            _context.p = 10;
+            _iterator.f();
+            return _context.f(10);
+          case 11:
+            return _context.a(2, barres);
+          case 12:
+            _context.p = 12;
+            _t2 = _context.v;
+            console.error('Erreur traitement fichiers:', _t2);
+            throw _t2;
+          case 13:
+            return _context.a(2);
+        }
+      }, _callee, this, [[2, 9, 10, 11], [1, 12]]);
+    }));
+    function processMultipleFiles(_x) {
+      return _processMultipleFiles.apply(this, arguments);
+    }
+    return processMultipleFiles;
+  }(),
+  /**
+   * Lit un fichier comme texte
+   * @param {File} file - Fichier à lire
+   * @returns {Promise<string>} - Contenu du fichier
+   */
+  readFileAsText: function readFileAsText(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        return resolve(reader.result);
+      };
+      reader.onerror = function (e) {
+        return reject(new Error("Erreur lecture ".concat(file.name)));
+      };
+      reader.readAsText(file);
+    });
+  },
+  /**
+   * Vérifie si un fichier est valide (pas un fichier système macOS)
+   * @param {string} path - Chemin du fichier
+   * @returns {boolean} - True si le fichier est valide
+   */
+  isValidFile: function isValidFile(path) {
+    var lowerPath = path.toLowerCase();
+
+    // Filtrer les fichiers système macOS
+    if (path.includes('__MACOSX') || path.startsWith('._')) {
+      return false;
+    }
+
+    // Filtrer les fichiers cachés et système
+    if (path.startsWith('.DS_Store') || path.includes('/.DS_Store')) {
+      return false;
+    }
+
+    // Vérifier l'extension
+    return lowerPath.endsWith('.nc2') || lowerPath.endsWith('.nc1');
+  },
+  /**
+   * Traite un fichier ZIP contenant des fichiers NC2
+   * @param {File} zipFile - Fichier ZIP à traiter
+   * @returns {Promise<Array>} - Tableau d'objets barre
+   */
+  processZipFile: function () {
+    var _processZipFile = import_manager_asyncToGenerator(/*#__PURE__*/import_manager_regenerator().m(function _callee2(zipFile) {
+      var barres, arrayBuffer, zip, _i, _Object$entries, _Object$entries$_i, path, zipEntry, content, parsedData, barre, _t3;
+      return import_manager_regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            barres = [];
+            _context2.p = 1;
+            _context2.n = 2;
+            return new Promise(function (resolve, reject) {
+              var reader = new FileReader();
+              reader.onload = function () {
+                return resolve(reader.result);
+              };
+              reader.onerror = function () {
+                return reject(new Error("Erreur lecture ZIP"));
+              };
+              reader.readAsArrayBuffer(zipFile);
+            });
+          case 2:
+            arrayBuffer = _context2.v;
+            _context2.n = 3;
+            return jszip_min_default().loadAsync(arrayBuffer);
+          case 3:
+            zip = _context2.v;
+            _i = 0, _Object$entries = Object.entries(zip.files);
+          case 4:
+            if (!(_i < _Object$entries.length)) {
+              _context2.n = 9;
+              break;
+            }
+            _Object$entries$_i = import_manager_slicedToArray(_Object$entries[_i], 2), path = _Object$entries$_i[0], zipEntry = _Object$entries$_i[1];
+            if (!zipEntry.dir) {
+              _context2.n = 5;
+              break;
+            }
+            return _context2.a(3, 8);
+          case 5:
+            if (this.isValidFile(path)) {
+              _context2.n = 6;
+              break;
+            }
+            console.log("Fichier ignor\xE9: ".concat(path));
+            return _context2.a(3, 8);
+          case 6:
+            _context2.n = 7;
+            return zipEntry.async('string');
+          case 7:
+            content = _context2.v;
+            try {
+              parsedData = Parser.parseNC2(content);
+              barre = this.convertToBarre(parsedData, path);
+              if (barre) {
+                barres.push(barre);
+              }
+            } catch (error) {
+              console.error("Erreur parsing ".concat(path, ":"), error);
+            }
+          case 8:
+            _i++;
+            _context2.n = 4;
+            break;
+          case 9:
+            return _context2.a(2, barres);
+          case 10:
+            _context2.p = 10;
+            _t3 = _context2.v;
+            console.error("Erreur traitement ZIP:", _t3);
+            throw _t3;
+          case 11:
+            return _context2.a(2);
+        }
+      }, _callee2, this, [[1, 10]]);
+    }));
+    function processZipFile(_x2) {
+      return _processZipFile.apply(this, arguments);
+    }
+    return processZipFile;
+  }(),
+  /**
+   * Convertit les données parsées en objet barre (SANS ID)
+   * @param {Object} parsedData - Données parsées du fichier NC2
+   * @param {string} filename - Nom du fichier source
+   * @returns {Object|null} - Objet barre ou null si invalide
+   */
+  convertToBarre: function convertToBarre(parsedData, filename) {
+    if (!parsedData || !parsedData.profil || parsedData.profil.trim() === '') {
+      console.error("Donn\xE9es invalides: ".concat(filename));
+      return null;
+    }
+    var shortName = filename.split('/').pop();
+
+    // Format adapté à la nouvelle structure du parser (SANS ID)
+    return {
+      nom: parsedData.nom || shortName.replace(/\.[^/.]+$/, ""),
+      profile: parsedData.profil || 'INCONNU',
+      length: parsedData.longueur || 0,
+      quantity: parsedData.quantite || 1,
+      orientation: parsedData.orientation || "a-plat",
+      type: 'fille',
+      angles: {
+        1: parsedData.angle_1 || 90,
+        2: parsedData.angle_2 || 90
+      },
+      // Propriétés F4C pour la génération F4C
+      f4cData: {
+        B021: parsedData.B021 || '',
+        B035: parsedData.B035 || '',
+        S051: parsedData.S051 || '',
+        S052: parsedData.S052 || '',
+        S053: parsedData.S053 || '',
+        S054: parsedData.S054 || '',
+        S055: parsedData.S055 || '',
+        S058: parsedData.S058 || ''
+      },
+      // SUPPRIMÉ: Plus d'ID ni originalFile
+      originalFile: shortName
+    };
+  }
+};
+;// ./src/js/ui/notification-service.js
+/**
+ * Service de notification
+ * Gère l'affichage des notifications à l'utilisateur
+ */
+var NotificationService = {
+  /**
+   * Initialise le service de notification
+   */
+  init: function init() {
+    this.createNotificationContainer();
+  },
+  /**
+   * Crée le conteneur de notifications
+   */
+  createNotificationContainer: function createNotificationContainer() {
+    var container = document.getElementById('notification-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'notification-container';
+      container.className = 'notification-container';
+      container.style.cssText = "\n        position: fixed;\n        top: 20px;\n        right: 20px;\n        z-index: 9999;\n        max-width: 400px;\n        pointer-events: none;\n      ";
+      document.body.appendChild(container);
+    }
+  },
+  /**
+   * Obtient l'icône pour chaque type
+   */
+  getIcon: function getIcon(type) {
+    // Pas d'icônes, retourner une chaîne vide
+    return '';
+  },
+  /**
+   * Affiche une notification
+   * @param {string} message - Message à afficher
+   * @param {string} type - Type de notification ('success', 'warning', 'error', 'info')
+   */
+  show: function show(message) {
+    var _this = this;
+    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+    // Créer la notification
+    var notification = document.createElement('div');
+    notification.className = "notification notification-".concat(type);
+    notification.style.cssText = "\n      background: ".concat(this.getBackgroundColor(type), ";\n      color: ").concat(this.getTextColor(type), ";\n      border: 1px solid ").concat(this.getBorderColor(type), ";\n      border-radius: 6px;\n      padding: 12px 16px;\n      margin-bottom: 8px;\n      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);\n      pointer-events: auto;\n      opacity: 0;\n      transform: translateX(100%);\n      transition: all 0.3s ease;\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      font-size: 14px;\n      line-height: 1.4;\n    ");
+
+    // Ajouter le message (sans icône)
+    var content = document.createElement('div');
+    content.style.flex = '1';
+    content.textContent = message; // Utiliser textContent au lieu de innerHTML
+
+    // Bouton de fermeture
+    var closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = "\n      background: none;\n      border: none;\n      color: inherit;\n      font-size: 18px;\n      cursor: pointer;\n      margin-left: 12px;\n      padding: 0;\n      line-height: 1;\n    ";
+    notification.appendChild(content);
+    notification.appendChild(closeBtn);
+
+    // Ajouter au conteneur
+    var container = document.getElementById('notification-container');
+    container.appendChild(notification);
+
+    // Animation d'entrée
+    setTimeout(function () {
+      notification.style.opacity = '1';
+      notification.style.transform = 'translateX(0)';
+    }, 10);
+
+    // Fermeture automatique et manuelle
+    var autoRemove = setTimeout(function () {
+      _this.removeNotification(notification);
+    }, type === 'error' ? 6000 : 1000); // Réduit les durées
+
+    closeBtn.addEventListener('click', function () {
+      clearTimeout(autoRemove);
+      _this.removeNotification(notification);
+    });
+
+    // Log console pour les erreurs
+    if (type === 'error') {
+      console.error(message);
+    }
+  },
+  /**
+   * Supprime une notification avec animation
+   */
+  removeNotification: function removeNotification(notification) {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(function () {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  },
+  /**
+   * Obtient la couleur de fond pour chaque type
+   */
+  getBackgroundColor: function getBackgroundColor(type) {
+    var colors = {
+      success: '#d4edda',
+      warning: '#fff3cd',
+      error: '#f8d7da',
+      info: '#d1ecf1'
+    };
+    return colors[type] || colors.info;
+  },
+  /**
+   * Obtient la couleur du texte pour chaque type
+   */
+  getTextColor: function getTextColor(type) {
+    var colors = {
+      success: '#155724',
+      warning: '#856404',
+      error: '#721c24',
+      info: '#0c5460'
+    };
+    return colors[type] || colors.info;
+  },
+  /**
+   * Obtient la couleur de bordure pour chaque type
+   */
+  getBorderColor: function getBorderColor(type) {
+    var colors = {
+      success: '#c3e6cb',
+      warning: '#ffeeba',
+      error: '#f5c6cb',
+      info: '#bee5eb'
+    };
+    return colors[type] || colors.info;
+  }
+};
+;// ./src/js/F4C-generator.js
+function F4C_generator_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return F4C_generator_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (F4C_generator_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, F4C_generator_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, F4C_generator_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), F4C_generator_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", F4C_generator_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), F4C_generator_regeneratorDefine2(u), F4C_generator_regeneratorDefine2(u, o, "Generator"), F4C_generator_regeneratorDefine2(u, n, function () { return this; }), F4C_generator_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (F4C_generator_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function F4C_generator_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } F4C_generator_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { F4C_generator_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, F4C_generator_regeneratorDefine2(e, r, n, t); }
+function F4C_generator_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function F4C_generator_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { F4C_generator_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { F4C_generator_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function F4C_generator_slicedToArray(r, e) { return F4C_generator_arrayWithHoles(r) || F4C_generator_iterableToArrayLimit(r, e) || F4C_generator_unsupportedIterableToArray(r, e) || F4C_generator_nonIterableRest(); }
+function F4C_generator_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function F4C_generator_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return F4C_generator_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? F4C_generator_arrayLikeToArray(r, a) : void 0; } }
+function F4C_generator_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function F4C_generator_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function F4C_generator_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+/**
+ * Générateur de fichiers F4C à partir des objets F4C
+ */
+
+var F4CGenerator = {
+  /**
+   * MODIFIÉ: Formate une longueur en mètres avec décimales précises (POINT comme séparateur pour les noms de fichiers)
+   * @param {number} lengthInMm - Longueur en centimètres
+   * @param {boolean} useComma - Si true, utilise la virgule, sinon le point
+   * @returns {string} - Longueur formatée en mètres
+   */
+
+  /**
+   * NOUVEAU: Formate une date au format AAAA-MM-JJ_HH-mm pour les noms de fichiers
+   * @param {Date} date - Date à formater
+   * @returns {string} - Date formatée pour nom de fichier
+   */
+  formatDateTimeForFileName: function formatDateTimeForFileName(date) {
+    var year = date.getFullYear();
+    var month = (date.getMonth() + 1).toString().padStart(2, '0');
+    var day = date.getDate().toString().padStart(2, '0');
+    var hours = date.getHours().toString().padStart(2, '0');
+    var minutes = date.getMinutes().toString().padStart(2, '0');
+    return "".concat(year, "-").concat(month, "-").concat(day, "_").concat(hours, "-").concat(minutes);
+  },
+  /**
+   * MODIFIÉ: Formate une date au format JJ/MM/AAAA
+   * @param {Date} date - Date à formater
+   * @returns {string} - Date formatée
+   */
+  formatDate: function formatDate(date) {
+    var day = date.getDate().toString().padStart(2, '0');
+    var month = (date.getMonth() + 1).toString().padStart(2, '0');
+    var year = date.getFullYear();
+    return "".concat(day, "/").concat(month, "/").concat(year);
+  },
+  /**
+   * MODIFIÉ: Formate une date pour les noms de fichiers (sans slashes)
+   * @param {Date} date - Date à formater
+   * @returns {string} - Date formatée pour nom de fichier
+   */
+  formatDateForFileName: function formatDateForFileName(date) {
+    var day = date.getDate().toString().padStart(2, '0');
+    var month = (date.getMonth() + 1).toString().padStart(2, '0');
+    var year = date.getFullYear();
+    return "".concat(day, "-").concat(month, "-").concat(year);
+  },
+  /**
+   * MODIFIÉ: Génère le nom de fichier F4C adapté au nouveau format
+   * @param {Object} F4CObject - Objet F4C (nouveau format)
+   * @returns {string} - Nom du fichier
+   */
+  generateF4CFileName: function generateF4CFileName(F4CObject) {
+    var profil = F4CObject.profile;
+    var longueurMm = F4CObject.length;
+    var orientation = F4CObject.orientation;
+    var pieces = F4CObject.pieces || [];
+
+    // Noms des barres (toutes, sans limite)
+    var nomsPieces = pieces.map(function (piece) {
+      var nom = piece.nom;
+      if (nom && nom.trim() !== '') {
+        // Nettoyer le nom (supprimer caractères spéciaux)
+        return nom.replace(/[^a-zA-Z0-9]/g, '');
+      } else {
+        // Utiliser le profil + longueur si pas de nom
+        return "".concat(piece.profile).concat(piece.length);
+      }
+    });
+
+    // Assembler le nom avec longueur précise (point décimal)
+    var nomFichier = "".concat(profil, "_").concat(longueurMm, "mm_").concat(orientation, "__").concat(nomsPieces.join('-'), ".F4C");
+
+    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
+    nomFichier = nomFichier.replace(/[<>:"/\\|?*]/g, '_');
+
+    // Optionnel : tronquer à 120 caractères avant l'extension
+    var maxLen = 120;
+    if (nomFichier.length > maxLen + 4) {
+      // 4 pour ".F4C"
+      var ext = '.F4C';
+      nomFichier = nomFichier.slice(0, maxLen) + ext;
+    }
+    return nomFichier;
+  },
+  /**
+   * Génère un fichier F4C à partir d'un objet F4C (nouveau format)
+   * @param {Object} F4CObject - Objet F4C (nouveau format)
+   * @param {Object} dataManager - Instance du DataManager
+   * @returns {string} - Contenu du fichier F4C
+   */
+  generateF4CFromObject: function generateF4CFromObject(F4CObject, dataManager) {
+    var _this = this;
+    console.log("\uD83D\uDD27 G\xE9n\xE9ration F4C pour ".concat(F4CObject.profile, "_").concat(F4CObject.orientation));
+    try {
+      // NOUVEAU FORMAT : accès direct aux propriétés
+      var pieces = F4CObject.pieces || [];
+      var barLength = F4CObject.length;
+      if (!pieces || pieces.length === 0) {
+        throw new Error('Aucune pièce à découper dans l\'objet F4C');
+      }
+
+      // Prendre les données F4C de la première pièce comme base pour le BODY
+      var firstPiece = pieces[0];
+
+      // Générer le BODY avec les données de la première pièce
+      var bodyContent = this.generateBody(firstPiece, {
+        profile: F4CObject.profile,
+        length: barLength,
+        orientation: F4CObject.orientation
+      });
+
+      // Grouper les pièces identiques pour optimiser les STEPs
+      var groupedSteps = this.groupIdenticalSteps(pieces);
+
+      // Générer les STEPs
+      var stepsContent = groupedSteps.map(function (group) {
+        return _this.generateStep(group.piece, group.quantity);
+      }).join('\n');
+
+      // Assembler le contenu final
+      var F4CContent = "<!--CEB-->\n".concat(bodyContent, "\n").concat(stepsContent);
+      console.log("\u2705 F4C g\xE9n\xE9r\xE9: ".concat(groupedSteps.length, " steps pour ").concat(pieces.length, " pi\xE8ces"));
+      return F4CContent;
+    } catch (error) {
+      console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(F4CObject.profile, "_").concat(F4CObject.orientation, ":"), error);
+      throw error;
+    }
+  },
+  /**
+   * MODIFIÉ: Génère le contenu du BODY (adapté au nouveau format)
+   * @param {Object} firstPiece - Première pièce du F4C
+   * @param {Object} motherBarInfo - Informations de la barre mère
+   * @returns {string} - Contenu du BODY
+   */
+  generateBody: function generateBody(firstPiece, motherBarInfo) {
+    var f4cData = firstPiece.f4cData || {};
+
+    // Template par défaut pour le BODY
+    var bodyTemplate = {
+      B001: "        ",
+      B002: "700",
+      B003: "3",
+      B004: "0",
+      B005: "0",
+      B006: "0",
+      B007: "0",
+      B008: "0",
+      B009: "0",
+      B010: "0",
+      B011: "0",
+      B012: "0",
+      B013: "0",
+      B021: "HEA     ",
+      // Sera remplacé par les données de la pièce
+      B022: "0",
+      B023: "0",
+      B024: "0",
+      B025: "0",
+      B041: "0",
+      B026: "0",
+      B027: "0",
+      B030: "        ",
+      B031: "                ",
+      B032: "                ",
+      B033: "        ",
+      B034: "0",
+      B035: "1000000",
+      // Sera remplacé par les données de la pièce
+      B037: "                ",
+      B036: "0",
+      B090: "                ",
+      B100: "1"
+    };
+
+    // Appliquer les données F4C de la pièce
+    if (f4cData.B021) {
+      bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
+    } else {
+      // Générer B021 à partir du profil
+      bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
+    }
+    if (f4cData.B035) {
+      bodyTemplate.B035 = f4cData.B035;
+    } else {
+      // Valeur par défaut basée sur le profil
+      bodyTemplate.B035 = "10000";
+    }
+
+    // Gestion de S058 (nouvelle logique)
+    if (f4cData.S058) {
+      bodyTemplate.S058 = f4cData.S058;
+    } else if (firstPiece.S058) {
+      bodyTemplate.S058 = firstPiece.S058;
+    } else {
+      bodyTemplate.S058 = "1";
+    }
+
+    // Construire la chaîne BODY
+    var bodyParts = [];
+    for (var _i = 0, _Object$entries = Object.entries(bodyTemplate); _i < _Object$entries.length; _i++) {
+      var _Object$entries$_i = F4C_generator_slicedToArray(_Object$entries[_i], 2),
+        key = _Object$entries$_i[0],
+        value = _Object$entries$_i[1];
+      bodyParts.push("".concat(key, "=\"").concat(value, "\""));
+    }
+    return "<BODY ".concat(bodyParts.join(' '), " ></BODY>");
+  },
+  /**
+   * MODIFIÉ: Groupe les pièces identiques pour optimiser les STEPs (adapté au nouveau format)
+   * @param {Array} pieces - Liste des pièces à découper
+   * @returns {Array} - Groupes de pièces identiques avec leur quantité
+   */
+  groupIdenticalSteps: function groupIdenticalSteps(pieces) {
+    var groups = new Map();
+    pieces.forEach(function (piece) {
+      var _piece$f4cData, _piece$f4cData2, _piece$f4cData3;
+      // Créer une clé unique basée sur les propriétés importantes
+      var key = JSON.stringify({
+        length: piece.length,
+        angles: piece.angles,
+        f4cData: {
+          S051: (_piece$f4cData = piece.f4cData) === null || _piece$f4cData === void 0 ? void 0 : _piece$f4cData.S051,
+          S054: (_piece$f4cData2 = piece.f4cData) === null || _piece$f4cData2 === void 0 ? void 0 : _piece$f4cData2.S054,
+          S055: (_piece$f4cData3 = piece.f4cData) === null || _piece$f4cData3 === void 0 ? void 0 : _piece$f4cData3.S055
+        }
+      });
+      if (groups.has(key)) {
+        groups.get(key).quantity++;
+      } else {
+        groups.set(key, {
+          piece: piece,
+          quantity: 1
+        });
+      }
+    });
+    return Array.from(groups.values());
+  },
+  /**
+   * MODIFIÉ: Génère un STEP pour une pièce (adapté au nouveau format)
+   * @param {Object} piece - Pièce à découper
+   * @param {number} quantity - Quantité de pièces identiques
+   * @returns {string} - Contenu du STEP
+   */
+  generateStep: function generateStep(piece, quantity) {
+    var f4cData = piece.f4cData || {};
+
+    // Template par défaut pour le STEP
+    var stepTemplate = {
+      S051: "15000000",
+      // Longueur en micromètres - sera remplacé
+      S052: "1",
+      // Quantité - sera remplacé
+      S053: "1",
+      // Quantité - sera remplacé
+      S054: "9000",
+      // Angle début en centièmes - sera remplacé
+      S055: "9000",
+      // Angle fin en centièmes - sera remplacé
+      S056: "1",
+      S057: "1",
+      S058: "1",
+      S060: "0",
+      S061: "0",
+      S070: "0",
+      S071: "0",
+      S072: "0",
+      S073: "0",
+      S074: "0",
+      S075: "0",
+      S094: "0"
+    };
+
+    // Appliquer les données F4C de la pièce
+    stepTemplate.S051 = f4cData.S051;
+
+    // Quantités
+    stepTemplate.S052 = "1";
+    stepTemplate.S053 = "1";
+
+    // Angles
+    stepTemplate.S054 = f4cData.S054;
+    stepTemplate.S055 = f4cData.S055;
+
+    // Gestion de S058 (nouvelle logique)
+    stepTemplate.S058 = f4cData.S058;
+
+    // Construire la chaîne STEP
+    var stepParts = [];
+    for (var _i2 = 0, _Object$entries2 = Object.entries(stepTemplate); _i2 < _Object$entries2.length; _i2++) {
+      var _Object$entries2$_i = F4C_generator_slicedToArray(_Object$entries2[_i2], 2),
+        key = _Object$entries2$_i[0],
+        value = _Object$entries2$_i[1];
+      stepParts.push("".concat(key, "=\"").concat(value, "\""));
+    }
+    return "<STEP ".concat(stepParts.join(' '), " ></STEP>");
+  },
+  /**
+   * CORRIGÉ: Génère le nom du fichier ZIP au format demandé
+   * @param {Array} F4CObjects - Liste des objets F4C
+   * @returns {string} - Nom du fichier ZIP
+   */
+  generateZipFileName: function generateZipFileName(F4CObjects) {
+    // Date au format AAAA-MM-JJ_HH-mm
+    var now = new Date();
+    var dateStr = this.formatDateTimeForFileName(now);
+
+    // Compter le nombre total de barres uniques
+    var barNames = new Set();
+    F4CObjects.forEach(function (F4C) {
+      F4C.pieces.forEach(function (piece) {
+        // Correction : fallback si pieceReference absent
+        var barName = '';
+        if (piece.pieceReference && piece.pieceReference.nom && piece.pieceReference.nom.trim() !== '') {
+          barName = piece.pieceReference.nom.trim();
+        } else if (piece.nom && piece.nom.trim() !== '') {
+          barName = piece.nom.trim();
+        } else if (piece.profile && piece.length) {
+          barName = "".concat(piece.profile, "_").concat(piece.length, " mm");
+        } else {
+          barName = 'barre_inconnue';
+        }
+        barNames.add(barName);
+      });
+    });
+    var nombreBarres = barNames.size;
+
+    // MODIFIÉ: Format final avec nombre de barres avant la date
+    var fileName = "lot_F4C_".concat(nombreBarres, "_barres_").concat(dateStr, ".zip");
+
+    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
+    return fileName.replace(/[<>:"/\\|?*]/g, '_');
+  },
+  /**
+   * MODIFIÉ: Génère un ZIP avec tous les fichiers F4C à partir des objets F4C
+   * @param {Array} F4CObjects - Liste des objets F4C
+   * @param {Object} dataManager - Instance du DataManager
+   * @returns {Promise<{blob: Blob, fileName: string}>} - Blob et nom du fichier ZIP
+   */
+  generateAllF4CFromObjects: function () {
+    var _generateAllF4CFromObjects = F4C_generator_asyncToGenerator(/*#__PURE__*/F4C_generator_regenerator().m(function _callee(F4CObjects, dataManager) {
+      var zip, fileNames, i, F4CObject, F4CContent, fileName, counter, uniqueFileName, nameParts, errorFileName, errorContent, summary, zipFileName, blob, _t;
+      return F4C_generator_regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            console.log("\uD83C\uDFD7\uFE0F G\xE9n\xE9ration de ".concat(F4CObjects.length, " fichiers F4C..."));
+            if (!(!F4CObjects || F4CObjects.length === 0)) {
+              _context.n = 1;
+              break;
+            }
+            throw new Error('Aucun objet F4C fourni');
+          case 1:
+            zip = new (jszip_min_default())();
+            fileNames = new Set(); // Pour éviter les doublons
+            _context.p = 2;
+            // Générer chaque fichier F4C
+            for (i = 0; i < F4CObjects.length; i++) {
+              F4CObject = F4CObjects[i];
+              try {
+                // Générer le contenu F4C
+                F4CContent = this.generateF4CFromObject(F4CObject, dataManager); // Générer le nom de fichier
+                fileName = this.generateF4CFileName(F4CObject); // Gérer les doublons en ajoutant un numéro
+                counter = 1;
+                uniqueFileName = fileName;
+                while (fileNames.has(uniqueFileName)) {
+                  nameParts = fileName.split('.F4C');
+                  uniqueFileName = "".concat(nameParts[0], "_").concat(counter, ".F4C");
+                  counter++;
+                }
+                fileNames.add(uniqueFileName);
+
+                // Ajouter au ZIP
+                zip.file(uniqueFileName, F4CContent);
+                console.log("  \u2705 ".concat(uniqueFileName, " (").concat(F4CObject.pieces.length, " pi\xE8ces)"));
+              } catch (error) {
+                console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(i + 1, ":"), error);
+
+                // Créer un fichier d'erreur pour continuer le processus
+                errorFileName = "ERREUR_F4C_".concat(i + 1, ".txt");
+                errorContent = "Erreur lors de la g\xE9n\xE9ration du F4C:\n".concat(error.message, "\n\nObjet F4C:\n").concat(JSON.stringify(F4CObject, null, 2));
+                zip.file(errorFileName, errorContent);
+              }
+            }
+
+            // Ajouter un fichier de résumé
+            summary = this.generateSummaryFile(F4CObjects);
+            zip.file('RESUME_GENERATION.txt', summary);
+
+            // Générer le nom du fichier ZIP
+            zipFileName = this.generateZipFileName(F4CObjects); // Générer le ZIP
+            console.log('📦 Création du fichier ZIP...');
+            _context.n = 3;
+            return zip.generateAsync({
+              type: "blob",
+              compression: "DEFLATE",
+              compressionOptions: {
+                level: 6
+              }
+            });
+          case 3:
+            blob = _context.v;
+            console.log("\u2705 ZIP g\xE9n\xE9r\xE9 avec succ\xE8s: ".concat(zipFileName, " (").concat(fileNames.size, " fichiers F4C)"));
+
+            // Retourner le blob et le nom du fichier
+            return _context.a(2, {
+              blob: blob,
+              fileName: zipFileName
+            });
+          case 4:
+            _context.p = 4;
+            _t = _context.v;
+            console.error('❌ Erreur lors de la génération du ZIP:', _t);
+            throw _t;
+          case 5:
+            return _context.a(2);
+        }
+      }, _callee, this, [[2, 4]]);
+    }));
+    function generateAllF4CFromObjects(_x, _x2) {
+      return _generateAllF4CFromObjects.apply(this, arguments);
+    }
+    return generateAllF4CFromObjects;
+  }(),
+  /**
+   * MODIFIÉ: Génère un fichier de résumé pour le ZIP avec virgules décimales et format de date français
+   * @param {Array} F4CObjects - Liste des objets F4C
+   * @returns {string} - Contenu du fichier de résumé
+   */
+  generateSummaryFile: function generateSummaryFile(F4CObjects) {
+    var _this2 = this;
+    var now = new Date();
+    var dateStr = this.formatDate(now);
+    var timeStr = now.toLocaleTimeString('fr-FR');
+    var summary = "R\xC9SUM\xC9 DE G\xC9N\xC9RATION F4C\n";
+    summary += "========================\n\n";
+    summary += "Date de g\xE9n\xE9ration: ".concat(dateStr, " \xE0 ").concat(timeStr, "\n");
+    summary += "Nombre total de fichiers F4C: ".concat(F4CObjects.length, "\n\n");
+
+    // Statistiques par profil
+    var profileStats = {};
+    F4CObjects.forEach(function (F4C) {
+      var profile = F4C.profile;
+      if (!profileStats[profile]) {
+        profileStats[profile] = {
+          count: 0,
+          totalPieces: 0,
+          totalLength: 0,
+          totalWaste: 0
+        };
+      }
+      profileStats[profile].count++;
+      profileStats[profile].totalPieces += F4C.pieces.length;
+      profileStats[profile].totalLength += F4C.length;
+      // Si tu as la chute sur le F4C, ajoute-la ici
+      if (typeof F4C.waste === 'number') {
+        profileStats[profile].totalWaste += F4C.waste;
+      } else {
+        // Sinon, calcule-la
+        var totalPiecesLength = F4C.pieces.reduce(function (sum, piece) {
+          return sum + piece.length;
+        }, 0);
+        profileStats[profile].totalWaste += F4C.length - totalPiecesLength;
+      }
+    });
+    summary += "STATISTIQUES PAR PROFIL:\n";
+    summary += "------------------------\n";
+    for (var _i3 = 0, _Object$entries3 = Object.entries(profileStats); _i3 < _Object$entries3.length; _i3++) {
+      var _Object$entries3$_i = F4C_generator_slicedToArray(_Object$entries3[_i3], 2),
+        profile = _Object$entries3$_i[0],
+        stats = _Object$entries3$_i[1];
+      var efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
+      var totalWasteCm = Math.round(stats.totalWaste);
+      summary += "".concat(profile, ":\n");
+      summary += "  - ".concat(stats.count, " barres m\xE8res\n");
+      summary += "  - ".concat(stats.totalPieces, " pi\xE8ces \xE0 d\xE9couper\n");
+      summary += "  - ".concat(stats.totalLength, " mm de barres\n");
+      summary += "  - ".concat(totalWasteCm, " mm de chutes\n");
+      summary += "  - Efficacit\xE9: ".concat(efficiency, "%\n\n");
+    }
+
+    // DÉTAIL DES BARRES À DÉCOUPER PAR F4C
+    summary += "D\xC9TAIL DES BARRES \xC0 D\xC9COUPER:\n";
+    summary += "=============================\n\n";
+    F4CObjects.forEach(function (F4C, F4CIndex) {
+      var fileName = _this2.generateF4CFileName(F4C);
+      summary += "\u2554".concat('═'.repeat(80), "\n");
+      summary += "\u2551 F4C ".concat(F4CIndex + 1, ": ").concat(fileName, "\n");
+      summary += "\u255A".concat('═'.repeat(80), "\n\n");
+      var totalPiecesLength = F4C.pieces.reduce(function (sum, piece) {
+        return sum + piece.length;
+      }, 0);
+      var waste = F4C.length - totalPiecesLength;
+      summary += "Profil: ".concat(F4C.profile, "\n");
+      summary += "Orientation: ".concat(F4C.orientation, "\n");
+      summary += "Longueur: ".concat(F4C.length, " mm\n");
+      summary += "Chute: ".concat(waste, " mm\n");
+
+      // Efficacité
+      var efficiency = F4C.length > 0 ? Math.round(totalPiecesLength / F4C.length * 100) : 0;
+      summary += "Efficacit\xE9: ".concat(efficiency, "%\n\n");
+      summary += "Barres \xE0 d\xE9couper:\n";
+      summary += "".concat('─'.repeat(50), "\n");
+      if (F4C.pieces && F4C.pieces.length > 0) {
+        F4C.pieces.forEach(function (piece, pieceIndex) {
+          var _piece$angles, _piece$angles2;
+          var pieceName = piece.nom && piece.nom.trim() !== '' ? piece.nom : "".concat(piece.profile, "_").concat(piece.length, " mm");
+          var angle1 = ((_piece$angles = piece.angles) === null || _piece$angles === void 0 ? void 0 : _piece$angles[1]) || 90;
+          var angle2 = ((_piece$angles2 = piece.angles) === null || _piece$angles2 === void 0 ? void 0 : _piece$angles2[2]) || 90;
+          var angleInfo = angle1 !== 90 || angle2 !== 90 ? " - Angles: ".concat(angle1, "\xB0/").concat(angle2, "\xB0") : '';
+          summary += "  ".concat((pieceIndex + 1).toString().padStart(2, ' '), ". ").concat(pieceName, " - ").concat(piece.length, " mm").concat(angleInfo, "\n");
+        });
+      } else {
+        summary += "  Aucune pi\xE8ce \xE0 d\xE9couper\n";
+      }
+      summary += "\n\n";
+    });
+    return summary;
+  }
+};
+;// ./src/js/ui/results-handler.js
+function results_handler_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return results_handler_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (results_handler_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, results_handler_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, results_handler_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), results_handler_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", results_handler_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), results_handler_regeneratorDefine2(u), results_handler_regeneratorDefine2(u, o, "Generator"), results_handler_regeneratorDefine2(u, n, function () { return this; }), results_handler_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (results_handler_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function results_handler_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } results_handler_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { results_handler_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, results_handler_regeneratorDefine2(e, r, n, t); }
+function results_handler_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function results_handler_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { results_handler_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { results_handler_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Gestionnaire de la section résultats
+ * Gère le rendu des résultats et la génération des fichiers F4C
+ */
+
+
+
+var ResultsHandler = {
+  // Dépendances
+  F4CGenerator: null,
+  dataManager: null,
+  uiController: null,
+  // Callbacks
+  showNotification: null,
+  // État pour gérer les modals
+  currentModal: null,
+  /**
+   * Initialise le gestionnaire de résultats
+   */
+  init: function init(options) {
+    this.F4CGenerator = options.F4CGenerator;
+    this.dataManager = options.dataManager;
+    this.uiController = options.uiController;
+    this.showNotification = options.showNotification;
+  },
+  /**
+   * Génère les aperçus des fichiers F4C à partir des objets F4C
+   */
+  generateF4CPreviews: function generateF4CPreviews() {
+    var _this = this;
+    try {
+      var container = document.getElementById('F4C-files-list');
+      if (!container) {
+        console.warn('Container F4C-files-list non trouvé');
+        return;
+      }
+      var F4CObjects = this.uiController.getCurrentF4CObjects();
+      if (!F4CObjects || F4CObjects.length === 0) {
+        container.innerHTML = '<p class="info-text">Aucun fichier F4C à générer.</p>';
+        return;
+      }
+
+      // Filtrer les objets F4C valides
+      var validF4CObjects = F4CObjects.filter(function (F4CObject) {
+        if (!F4CObject) {
+          console.warn('Objet F4C undefined trouvé');
+          return false;
+        }
+        if (!F4CObject.profile) {
+          console.warn('Objet F4C sans profile:', F4CObject);
+          return false;
+        }
+        return true;
+      });
+      if (validF4CObjects.length === 0) {
+        container.innerHTML = '<p class="error-text">Aucun objet F4C valide trouvé.</p>';
+        return;
+      }
+      var html = "<div class=\"F4C-preview-header\">\n        <h3>Fichiers F4C \xE0 g\xE9n\xE9rer</h3>\n        <button id=\"download-all-F4C-btn\" class=\"btn btn-primary\">\n          <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n          T\xE9l\xE9charger tous les F4C (ZIP)\n        </button>\n      </div>";
+
+      // Générer l'aperçu pour chaque objet F4C valide
+      validF4CObjects.forEach(function (F4CObject, index) {
+        try {
+          var fileName = _this.F4CGenerator.generateF4CFileName(F4CObject);
+          html += "\n            <div class=\"F4C-file-item\" data-F4C-index=\"".concat(index, "\">\n              <div class=\"F4C-file-header\">\n                <span class=\"F4C-file-name\">").concat(fileName, "</span>\n                <div class=\"F4C-file-actions\">\n                  <button class=\"btn btn-sm btn-outline info-F4C-btn\" \n                          data-F4C-index=\"").concat(index, "\">\n                    <img src=\"assets/info.svg\" alt=\"\" class=\"btn-icon\">\n                    D\xE9tails\n                  </button>\n                  <button class=\"btn btn-sm btn-primary download-F4C-btn\" \n                          data-F4C-index=\"").concat(index, "\">\n                    <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n                    T\xE9l\xE9charger\n                  </button>\n                </div>\n              </div>\n            </div>\n          ");
+        } catch (error) {
+          console.error('Erreur lors de la génération du nom de fichier F4C:', error, F4CObject);
+          html += "\n            <div class=\"F4C-file-item error\">\n              <div class=\"F4C-file-header\">\n                <span class=\"F4C-file-name\">Erreur - F4C ".concat(index + 1, "</span>\n                <div class=\"F4C-file-actions\">\n                  <span class=\"error-text\">Erreur</span>\n                </div>\n              </div>\n            </div>\n          ");
+        }
+      });
+      container.innerHTML = html;
+
+      // Configurer les événements
+      this.setupF4CPreviewEvents();
+      console.log("".concat(validF4CObjects.length, " aper\xE7us F4C g\xE9n\xE9r\xE9s"));
+    } catch (error) {
+      console.error('Erreur lors de la génération des aperçus F4C:', error);
+      var _container = document.getElementById('F4C-files-list');
+      if (_container) {
+        _container.innerHTML = '<p class="error-text">Erreur lors de la génération des aperçus F4C.</p>';
+      }
+    }
+  },
+  /**
+   * Configure les événements pour les aperçus F4C
+   */
+  setupF4CPreviewEvents: function setupF4CPreviewEvents() {
+    var _this2 = this;
+    // Bouton télécharger tout
+    var downloadAllBtn = document.getElementById('download-all-F4C-btn');
+    if (downloadAllBtn) {
+      downloadAllBtn.addEventListener('click', function () {
+        _this2.downloadAllF4C();
+      });
+    }
+
+    // Boutons de téléchargement individuel
+    document.querySelectorAll('.download-F4C-btn').forEach(function (button) {
+      button.addEventListener('click', function (e) {
+        var F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
+        _this2.downloadSingleF4C(F4CIndex);
+      });
+    });
+
+    // Boutons d'informations
+    document.querySelectorAll('.info-F4C-btn').forEach(function (button) {
+      button.addEventListener('click', function (e) {
+        var F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
+        _this2.showF4CInfo(F4CIndex);
+      });
+    });
+  },
+  /**
+   * MODIFIÉ: Télécharge un fichier F4C individuel avec overlay de chargement
+   */
+  downloadSingleF4C: function downloadSingleF4C(F4CIndex) {
+    try {
+      // NOUVEAU: Afficher l'overlay de téléchargement
+      UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
+      var F4CObjects = this.uiController.getCurrentF4CObjects();
+      if (!F4CObjects || !F4CObjects[F4CIndex]) {
+        UIUtils.hideSimpleLoadingOverlay();
+        this.showNotification('Objet F4C introuvable', 'error');
+        return;
+      }
+      var F4CObject = F4CObjects[F4CIndex];
+      var F4CContent = this.F4CGenerator.generateF4CFromObject(F4CObject, this.dataManager);
+      var fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
+
+      // Utiliser setTimeout pour permettre à l'overlay de s'afficher avant le téléchargement
+      setTimeout(function () {
+        UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
+
+        // Masquer l'overlay après un court délai pour laisser le temps au popup de s'afficher
+        setTimeout(function () {
+          UIUtils.hideSimpleLoadingOverlay();
+        }, 500);
+      }, 100);
+    } catch (error) {
+      UIUtils.hideSimpleLoadingOverlay();
+      console.error('Erreur lors du téléchargement F4C:', error);
+      this.showNotification("Erreur lors du t\xE9l\xE9chargement: ".concat(error.message), 'error');
+    }
+  },
+  /**
+   * Affiche les informations détaillées du F4C
+   */
+  showF4CInfo: function showF4CInfo(F4CIndex) {
+    try {
+      // Fermer le modal existant s'il y en a un
+      this.closeF4CInfoModal();
+      var F4CObjects = this.uiController.getCurrentF4CObjects();
+      if (!F4CObjects || !F4CObjects[F4CIndex]) {
+        this.showNotification('Objet F4C introuvable', 'error');
+        return;
+      }
+      var F4CObject = F4CObjects[F4CIndex];
+      var fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
+      this.showF4CInfoModal(fileName, F4CObject);
+    } catch (error) {
+      console.error('Erreur lors de l\'affichage des infos F4C:', error);
+      this.showNotification("Erreur lors de l'affichage: ".concat(error.message), 'error');
+    }
+  },
+  /**
+   * Ferme le modal F4C s'il existe
+   */
+  closeF4CInfoModal: function closeF4CInfoModal() {
+    if (this.currentModal && this.currentModal.parentNode) {
+      this.currentModal.parentNode.removeChild(this.currentModal);
+      this.currentModal = null;
+    }
+
+    // Nettoyer tous les modals F4C existants (au cas où)
+    var existingModals = document.querySelectorAll('.F4C-info-modal');
+    existingModals.forEach(function (modal) {
+      if (modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+      }
+    });
+  },
+  /**
+   * Formate l'orientation pour l'affichage
+   */
+  formatOrientation: function formatOrientation(orientation) {
+    switch (orientation) {
+      case 'a-plat':
+        return 'À plat';
+      case 'debout':
+        return 'Debout';
+      default:
+        return orientation;
+    }
+  },
+  /**
+   * Affiche une modal avec les informations du F4C
+   */
+  showF4CInfoModal: function showF4CInfoModal(fileName, F4CObject) {
+    var _this3 = this;
+    // Adapter au nouveau format F4C
+    var profile = F4CObject.profile;
+    var orientation = F4CObject.orientation;
+    var length = F4CObject.length;
+    var pieces = F4CObject.pieces || [];
+    var b021 = F4CObject.B021 || 'N/A';
+    var b035 = F4CObject.B035 || '0';
+
+    // Calculer la chute et l'efficacité
+    var totalPiecesLength = pieces.reduce(function (sum, piece) {
+      return sum + piece.length;
+    }, 0);
+    var waste = length - totalPiecesLength;
+    var efficiency = length > 0 ? (totalPiecesLength / length * 100).toFixed(1) : 0;
+
+    // Créer la modal en utilisant les classes existantes
+    var modal = document.createElement('div');
+    modal.className = 'modal F4C-info-modal';
+    modal.innerHTML = "\n      <div class=\"modal-content F4C-modal-content\">\n        <div class=\"modal-header\">\n          <h3>D\xE9tails du F4C: ".concat(fileName, "</h3>\n          <button class=\"close-modal\" title=\"Fermer\">&times;</button>\n        </div>\n        \n        <div class=\"modal-body F4C-modal-body\">\n          <!-- En-t\xEAte simplifi\xE9 -->\n          <div class=\"F4C-header-grid\">\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Profil</div>\n              <div class=\"F4C-header-value\">").concat(profile, "</div>\n            </div>\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Orientation</div>\n              <div class=\"F4C-header-value\">").concat(this.formatOrientation(orientation), "</div>\n            </div>\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Longueur</div>\n              <div class=\"F4C-header-value\">").concat(UIUtils.formatLenght(length), " mm</div>\n            </div>\n          </div>\n          \n          <!-- Informations de performance -->\n          <div class=\"F4C-performance-info\">\n            <span class=\"F4C-performance-item\">\n              Chute&nbsp;: <span class=\"F4C-performance-value\">").concat(UIUtils.formatLenght(waste), " mm</span>\n            </span>\n            <span class=\"F4C-performance-item\">\n              Efficacit\xE9&nbsp;: <span class=\"F4C-performance-value\">").concat(efficiency, "%</span>\n            </span>\n          </div>\n          \n          <!-- Param\xE8tres BODY -->\n          <div class=\"F4C-section\">\n            <h4 class=\"F4C-section-title\">Param\xE8tres BODY:</h4>\n            <div class=\"F4C-params-grid\">\n              <span class=\"F4C-param-tag\">B021: ").concat(b021, "</span>\n              <span class=\"F4C-param-tag\">B035: ").concat(b035, "</span>\n            </div>\n          </div>\n          \n          <!-- Barres \xE0 d\xE9couper -->\n          <div class=\"F4C-section\">\n            <h4 class=\"F4C-section-title\">Barres \xE0 d\xE9couper (").concat(pieces.length, "):</h4>\n            \n            <div class=\"F4C-pieces-list\">\n              ").concat(pieces.map(function (piece, index) {
+      // Accès direct aux propriétés de la pièce
+      var f4c = piece.f4cData || {};
+
+      // Calculer les valeurs F4C
+      var s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
+      var s052 = '1';
+      var s053 = '1';
+      var s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
+      var s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
+      var s058 = f4c.S058 || piece.S058 || '';
+      return "\n                  <div class=\"F4C-piece-item\">\n                    <!-- Index align\xE9 \xE0 droite -->\n                    <div class=\"F4C-piece-index\">#".concat(index + 1, "</div>\n                    \n                    <!-- Nom de la pi\xE8ce -->\n                    <div class=\"F4C-piece-name\">\n                      ").concat(piece.nom || "Pi\xE8ce ".concat(index + 1, " - ").concat(UIUtils.formatLenght(piece.length), "mm"), "\n                    </div>\n                    \n                    <!-- Codes F4C -->\n                    <div class=\"F4C-f4c-grid\">\n                      <span class=\"F4C-f4c-tag\">S051: ").concat(s051, "</span>\n                      <span class=\"F4C-f4c-tag\">S052: ").concat(s052, "</span>\n                      <span class=\"F4C-f4c-tag\">S053: ").concat(s053, "</span>\n                      <span class=\"F4C-f4c-tag\">S054: ").concat(s054, "</span>\n                      <span class=\"F4C-f4c-tag\">S055: ").concat(s055, "</span>\n                      <span class=\"F4C-f4c-tag\">S058: ").concat(s058, "</span>\n                    </div>\n                  </div>\n                ");
+    }).join(''), "\n            </div>\n          </div>\n        </div>\n        \n        <div class=\"modal-footer\">\n          <button class=\"btn btn-secondary close-modal\">Fermer</button>\n          <button class=\"btn btn-primary modal-download\">\n            <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n            T\xE9l\xE9charger\n          </button>\n        </div>\n      </div>\n    ");
+
+    // Stocker la référence du modal
+    this.currentModal = modal;
+
+    // Ajouter au DOM
+    document.body.appendChild(modal);
+
+    // Gérer les événements de fermeture
+    modal.querySelectorAll('.close-modal').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        _this3.closeF4CInfoModal();
+      });
+    });
+
+    // Fermer en cliquant sur l'overlay (background du modal)
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) {
+        _this3.closeF4CInfoModal();
+      }
+    });
+
+    // Fermer avec la touche Escape
+    var _handleEscape = function handleEscape(e) {
+      if (e.key === 'Escape') {
+        _this3.closeF4CInfoModal();
+        document.removeEventListener('keydown', _handleEscape);
+      }
+    };
+    document.addEventListener('keydown', _handleEscape);
+
+    // MODIFIÉ: Bouton de téléchargement avec overlay
+    modal.querySelector('.modal-download').addEventListener('click', function () {
+      try {
+        // NOUVEAU: Afficher l'overlay de téléchargement
+        UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
+
+        // Utiliser setTimeout pour permettre à l'overlay de s'afficher
+        setTimeout(function () {
+          var F4CContent = _this3.F4CGenerator.generateF4CFromObject(F4CObject, _this3.dataManager);
+          UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
+
+          // Fermer le modal et masquer l'overlay après un délai
+          setTimeout(function () {
+            _this3.closeF4CInfoModal();
+            UIUtils.hideSimpleLoadingOverlay();
+          }, 500);
+        }, 100);
+      } catch (error) {
+        UIUtils.hideSimpleLoadingOverlay();
+        console.error('Erreur téléchargement:', error);
+        _this3.showNotification('Erreur lors du téléchargement', 'error');
+      }
+    });
+  },
+  /**
+   * MODIFIÉ: Télécharge tous les fichiers F4C dans un ZIP avec overlay de chargement
+   */
+  downloadAllF4C: function () {
+    var _downloadAllF4C = results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee2() {
+      var _this4 = this;
+      var _t2;
+      return results_handler_regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            _context2.p = 0;
+            console.log('🔽 Début du téléchargement des F4C...');
+            if (this.uiController.currentF4CObjects) {
+              _context2.n = 1;
+              break;
+            }
+            throw new Error('Aucun objet F4C disponible');
+          case 1:
+            // NOUVEAU: Afficher l'overlay de téléchargement
+            UIUtils.showSimpleLoadingOverlay('Génération du fichier ZIP...');
+
+            // Utiliser setTimeout pour permettre à l'overlay de s'afficher
+            setTimeout(/*#__PURE__*/results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee() {
+              var result, _t;
+              return results_handler_regenerator().w(function (_context) {
+                while (1) switch (_context.p = _context.n) {
+                  case 0:
+                    _context.p = 0;
+                    _context.n = 1;
+                    return F4CGenerator.generateAllF4CFromObjects(_this4.uiController.currentF4CObjects, _this4.uiController.dataManager);
+                  case 1:
+                    result = _context.v;
+                    // CORRECTION: Vérifier que result a la bonne structure
+                    console.log("\uD83D\uDCE6 Nom du ZIP g\xE9n\xE9r\xE9: ".concat(result.fileName));
+
+                    // Télécharger avec le nom automatiquement généré
+                    UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
+
+                    // Masquer l'overlay après un délai pour laisser le temps au popup de s'afficher
+                    setTimeout(function () {
+                      UIUtils.hideSimpleLoadingOverlay();
+                    }, 1000); // Délai plus long pour le ZIP car il peut être plus lourd
+                    _context.n = 3;
+                    break;
+                  case 2:
+                    _context.p = 2;
+                    _t = _context.v;
+                    UIUtils.hideSimpleLoadingOverlay();
+                    console.error('❌ Erreur téléchargement F4C:', _t);
+
+                    // CORRECTION: Utiliser this.showNotification ou NotificationService
+                    if (_this4.showNotification) {
+                      _this4.showNotification("\u274C Erreur: ".concat(_t.message), 'error');
+                    } else {
+                      NotificationService.show("\u274C Erreur: ".concat(_t.message), 'error');
+                    }
+                  case 3:
+                    return _context.a(2);
+                }
+              }, _callee, null, [[0, 2]]);
+            })), 100);
+            _context2.n = 3;
+            break;
+          case 2:
+            _context2.p = 2;
+            _t2 = _context2.v;
+            UIUtils.hideSimpleLoadingOverlay();
+            console.error('❌ Erreur téléchargement F4C:', _t2);
+
+            // CORRECTION: Utiliser this.showNotification ou NotificationService
+            if (this.showNotification) {
+              this.showNotification("\u274C Erreur: ".concat(_t2.message), 'error');
+            } else {
+              NotificationService.show("\u274C Erreur: ".concat(_t2.message), 'error');
+            }
+          case 3:
+            return _context2.a(2);
+        }
+      }, _callee2, this, [[0, 2]]);
+    }));
+    function downloadAllF4C() {
+      return _downloadAllF4C.apply(this, arguments);
+    }
+    return downloadAllF4C;
+  }()
 };
 ;// ./src/js/algorithm-service.js
 function algorithm_service_typeof(o) { "@babel/helpers - typeof"; return algorithm_service_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, algorithm_service_typeof(o); }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || algorithm_service_unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return algorithm_service_arrayLikeToArray(r); }
+function algorithm_service_toConsumableArray(r) { return algorithm_service_arrayWithoutHoles(r) || algorithm_service_iterableToArray(r) || algorithm_service_unsupportedIterableToArray(r) || algorithm_service_nonIterableSpread(); }
+function algorithm_service_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function algorithm_service_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function algorithm_service_arrayWithoutHoles(r) { if (Array.isArray(r)) return algorithm_service_arrayLikeToArray(r); }
 function algorithm_service_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function algorithm_service_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? algorithm_service_ownKeys(Object(t), !0).forEach(function (r) { algorithm_service_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : algorithm_service_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function algorithm_service_defineProperty(e, r, t) { return (r = algorithm_service_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
@@ -4956,13 +8050,13 @@ var AlgorithmService = {
         if (producedQty < demandedQty) {
           return {
             valid: false,
-            error: "Pi\xE8ces manquantes: ".concat(demandedQty - producedQty, " pi\xE8ce(s) de ").concat(length, "cm non produites. \nEssayez avec plus de barres m\xE8res.")
+            error: "Pi\xE8ces manquantes: ".concat(demandedQty - producedQty, " pi\xE8ce(s) de ").concat(length, "mm non produites. \nEssayez avec plus de barres m\xE8res.")
           };
         }
         if (producedQty > demandedQty) {
           return {
             valid: false,
-            error: "Pi\xE8ces en exc\xE8s: ".concat(producedQty - demandedQty, " pi\xE8ce(s) de ").concat(length, "cm en trop. \nV\xE9rifiez les quantit\xE9s de barres m\xE8res.")
+            error: "Pi\xE8ces en exc\xE8s: ".concat(producedQty - demandedQty, " pi\xE8ce(s) de ").concat(length, "mm en trop. \nV\xE9rifiez les quantit\xE9s de barres m\xE8res.")
           };
         }
       }
@@ -4983,7 +8077,7 @@ var AlgorithmService = {
         if (!demanded.has(_length)) {
           return {
             valid: false,
-            error: "Pi\xE8ces non demand\xE9es: ".concat(_producedQty, " pi\xE8ce(s) de ").concat(_length, "cm produites sans demande. \nV\xE9rifiez la configuration.")
+            error: "Pi\xE8ces non demand\xE9es: ".concat(_producedQty, " pi\xE8ce(s) de ").concat(_length, "mm produites sans demande. \nV\xE9rifiez la configuration.")
           };
         }
       }
@@ -5065,7 +8159,7 @@ var AlgorithmService = {
           var availableQty = stockMap.get(length) || 0;
           if (usedQty > availableQty) {
             var deficit = usedQty - availableQty;
-            var error = "Stock insuffisant pour ".concat(profile, ": ").concat(deficit, " barre(s) de ").concat(length, "cm manquante(s) (demand\xE9: ").concat(usedQty, ", disponible: ").concat(availableQty, "). \n\nAjoutez plus de barres m\xE8res.");
+            var error = "Stock insuffisant pour ".concat(profile, ": ").concat(deficit, " barre(s) de ").concat(length, "mm manquante(s) (demand\xE9: ").concat(usedQty, ", disponible: ").concat(availableQty, "). \n\nAjoutez plus de barres m\xE8res.");
             errors.push(error);
 
             // Identifier les modèles affectés
@@ -5089,7 +8183,7 @@ var AlgorithmService = {
       return {
         valid: false,
         error: errors.join(' '),
-        affectedModels: _toConsumableArray(new Set(affectedModels)) // Supprimer les doublons
+        affectedModels: algorithm_service_toConsumableArray(new Set(affectedModels)) // Supprimer les doublons
       };
     }
     console.log('    ✅ Stock global suffisant');
@@ -5154,7 +8248,7 @@ var AlgorithmService = {
       return {
         originalLength: pattern.motherBarLength,
         length: pattern.motherBarLength,
-        cuts: _toConsumableArray(pattern.cuts),
+        cuts: algorithm_service_toConsumableArray(pattern.cuts),
         count: pattern.count,
         waste: pattern.waste,
         remainingLength: pattern.waste
@@ -5239,7 +8333,7 @@ var AlgorithmService = {
           barId: "pattern_".concat(index, "_").concat(i),
           originalLength: pattern.motherBarLength,
           length: pattern.motherBarLength,
-          cuts: _toConsumableArray(pattern.cuts),
+          cuts: algorithm_service_toConsumableArray(pattern.cuts),
           remainingLength: pattern.waste
         });
       }
@@ -5439,841 +8533,24 @@ var AlgorithmService = {
     return results;
   }
 };
-// EXTERNAL MODULE: ./node_modules/jszip/dist/jszip.min.js
-var jszip_min = __webpack_require__(710);
-var jszip_min_default = /*#__PURE__*/__webpack_require__.n(jszip_min);
-;// ./src/js/import-manager.js
-function import_manager_slicedToArray(r, e) { return import_manager_arrayWithHoles(r) || import_manager_iterableToArrayLimit(r, e) || import_manager_unsupportedIterableToArray(r, e) || import_manager_nonIterableRest(); }
-function import_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function import_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function import_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, _regeneratorDefine2(e, r, n, t); }
-function import_manager_toConsumableArray(r) { return import_manager_arrayWithoutHoles(r) || import_manager_iterableToArray(r) || import_manager_unsupportedIterableToArray(r) || import_manager_nonIterableSpread(); }
-function import_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function import_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function import_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return import_manager_arrayLikeToArray(r); }
-function import_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = import_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function import_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return import_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? import_manager_arrayLikeToArray(r, a) : void 0; } }
-function import_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-/**
- * Gestionnaire d'import pour fichiers NC2 et ZIP (SANS ID)
- */
-
-
-var ImportManager = {
-  /**
-   * Traite plusieurs fichiers NC2 ou un ZIP
-   * @param {FileList} files - Liste des fichiers à traiter
-   * @returns {Promise<Array>} - Tableau d'objets barre
-   */
-  processMultipleFiles: function () {
-    var _processMultipleFiles = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(files) {
-      var barres, _iterator, _step, file, fileName, content, parsedData, barre, zipBarres, _t, _t2;
-      return _regenerator().w(function (_context) {
-        while (1) switch (_context.n) {
-          case 0:
-            barres = [];
-            _context.p = 1;
-            _iterator = import_manager_createForOfIteratorHelper(files);
-            _context.p = 2;
-            _iterator.s();
-          case 3:
-            if ((_step = _iterator.n()).done) {
-              _context.n = 8;
-              break;
-            }
-            file = _step.value;
-            fileName = file.name.toLowerCase();
-            if (!(fileName.endsWith('.nc2') || fileName.endsWith('.nc1'))) {
-              _context.n = 5;
-              break;
-            }
-            _context.n = 4;
-            return this.readFileAsText(file);
-          case 4:
-            content = _context.v;
-            parsedData = Parser.parseNC2(content);
-            barre = this.convertToBarre(parsedData, file.name);
-            if (barre) {
-              barres.push(barre);
-            }
-            _context.n = 7;
-            break;
-          case 5:
-            if (!fileName.endsWith('.zip')) {
-              _context.n = 7;
-              break;
-            }
-            _context.n = 6;
-            return this.processZipFile(file);
-          case 6:
-            zipBarres = _context.v;
-            barres.push.apply(barres, import_manager_toConsumableArray(zipBarres));
-          case 7:
-            _context.n = 3;
-            break;
-          case 8:
-            _context.n = 10;
-            break;
-          case 9:
-            _context.p = 9;
-            _t = _context.v;
-            _iterator.e(_t);
-          case 10:
-            _context.p = 10;
-            _iterator.f();
-            return _context.f(10);
-          case 11:
-            return _context.a(2, barres);
-          case 12:
-            _context.p = 12;
-            _t2 = _context.v;
-            console.error('Erreur traitement fichiers:', _t2);
-            throw _t2;
-          case 13:
-            return _context.a(2);
-        }
-      }, _callee, this, [[2, 9, 10, 11], [1, 12]]);
-    }));
-    function processMultipleFiles(_x) {
-      return _processMultipleFiles.apply(this, arguments);
-    }
-    return processMultipleFiles;
-  }(),
-  /**
-   * Lit un fichier comme texte
-   * @param {File} file - Fichier à lire
-   * @returns {Promise<string>} - Contenu du fichier
-   */
-  readFileAsText: function readFileAsText(file) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        return resolve(reader.result);
-      };
-      reader.onerror = function (e) {
-        return reject(new Error("Erreur lecture ".concat(file.name)));
-      };
-      reader.readAsText(file);
-    });
-  },
-  /**
-   * Vérifie si un fichier est valide (pas un fichier système macOS)
-   * @param {string} path - Chemin du fichier
-   * @returns {boolean} - True si le fichier est valide
-   */
-  isValidFile: function isValidFile(path) {
-    var lowerPath = path.toLowerCase();
-
-    // Filtrer les fichiers système macOS
-    if (path.includes('__MACOSX') || path.startsWith('._')) {
-      return false;
-    }
-
-    // Filtrer les fichiers cachés et système
-    if (path.startsWith('.DS_Store') || path.includes('/.DS_Store')) {
-      return false;
-    }
-
-    // Vérifier l'extension
-    return lowerPath.endsWith('.nc2') || lowerPath.endsWith('.nc1');
-  },
-  /**
-   * Traite un fichier ZIP contenant des fichiers NC2
-   * @param {File} zipFile - Fichier ZIP à traiter
-   * @returns {Promise<Array>} - Tableau d'objets barre
-   */
-  processZipFile: function () {
-    var _processZipFile = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(zipFile) {
-      var barres, arrayBuffer, zip, _i, _Object$entries, _Object$entries$_i, path, zipEntry, content, parsedData, barre, _t3;
-      return _regenerator().w(function (_context2) {
-        while (1) switch (_context2.n) {
-          case 0:
-            barres = [];
-            _context2.p = 1;
-            _context2.n = 2;
-            return new Promise(function (resolve, reject) {
-              var reader = new FileReader();
-              reader.onload = function () {
-                return resolve(reader.result);
-              };
-              reader.onerror = function () {
-                return reject(new Error("Erreur lecture ZIP"));
-              };
-              reader.readAsArrayBuffer(zipFile);
-            });
-          case 2:
-            arrayBuffer = _context2.v;
-            _context2.n = 3;
-            return jszip_min_default().loadAsync(arrayBuffer);
-          case 3:
-            zip = _context2.v;
-            _i = 0, _Object$entries = Object.entries(zip.files);
-          case 4:
-            if (!(_i < _Object$entries.length)) {
-              _context2.n = 9;
-              break;
-            }
-            _Object$entries$_i = import_manager_slicedToArray(_Object$entries[_i], 2), path = _Object$entries$_i[0], zipEntry = _Object$entries$_i[1];
-            if (!zipEntry.dir) {
-              _context2.n = 5;
-              break;
-            }
-            return _context2.a(3, 8);
-          case 5:
-            if (this.isValidFile(path)) {
-              _context2.n = 6;
-              break;
-            }
-            console.log("Fichier ignor\xE9: ".concat(path));
-            return _context2.a(3, 8);
-          case 6:
-            _context2.n = 7;
-            return zipEntry.async('string');
-          case 7:
-            content = _context2.v;
-            try {
-              parsedData = Parser.parseNC2(content);
-              barre = this.convertToBarre(parsedData, path);
-              if (barre) {
-                barres.push(barre);
-              }
-            } catch (error) {
-              console.error("Erreur parsing ".concat(path, ":"), error);
-            }
-          case 8:
-            _i++;
-            _context2.n = 4;
-            break;
-          case 9:
-            return _context2.a(2, barres);
-          case 10:
-            _context2.p = 10;
-            _t3 = _context2.v;
-            console.error("Erreur traitement ZIP:", _t3);
-            throw _t3;
-          case 11:
-            return _context2.a(2);
-        }
-      }, _callee2, this, [[1, 10]]);
-    }));
-    function processZipFile(_x2) {
-      return _processZipFile.apply(this, arguments);
-    }
-    return processZipFile;
-  }(),
-  /**
-   * Convertit les données parsées en objet barre (SANS ID)
-   * @param {Object} parsedData - Données parsées du fichier NC2
-   * @param {string} filename - Nom du fichier source
-   * @returns {Object|null} - Objet barre ou null si invalide
-   */
-  convertToBarre: function convertToBarre(parsedData, filename) {
-    if (!parsedData || !parsedData.profil || parsedData.profil.trim() === '') {
-      console.error("Donn\xE9es invalides: ".concat(filename));
-      return null;
-    }
-    var shortName = filename.split('/').pop();
-
-    // Format adapté à la nouvelle structure du parser (SANS ID)
-    return {
-      nom: parsedData.nom || shortName.replace(/\.[^/.]+$/, ""),
-      profile: parsedData.profil || 'INCONNU',
-      length: parsedData.longueur || 0,
-      quantity: parsedData.quantite || 1,
-      orientation: parsedData.orientation || "a-plat",
-      type: 'fille',
-      angles: {
-        1: parsedData.angle_1 || 90,
-        2: parsedData.angle_2 || 90
-      },
-      // Propriétés F4C pour la génération F4C
-      f4cData: {
-        B021: parsedData.B021 || '',
-        B035: parsedData.B035 || '',
-        S051: parsedData.S051 || '',
-        S052: parsedData.S052 || '',
-        S053: parsedData.S053 || '',
-        S054: parsedData.S054 || '',
-        S055: parsedData.S055 || '',
-        S058: parsedData.S058 || ''
-      },
-      // SUPPRIMÉ: Plus d'ID ni originalFile
-      originalFile: shortName
-    };
-  }
-};
-;// ./src/js/f4c-generator.js
-function f4c_generator_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return f4c_generator_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (f4c_generator_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, f4c_generator_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, f4c_generator_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), f4c_generator_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", f4c_generator_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), f4c_generator_regeneratorDefine2(u), f4c_generator_regeneratorDefine2(u, o, "Generator"), f4c_generator_regeneratorDefine2(u, n, function () { return this; }), f4c_generator_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (f4c_generator_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function f4c_generator_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } f4c_generator_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { f4c_generator_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, f4c_generator_regeneratorDefine2(e, r, n, t); }
-function f4c_generator_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function f4c_generator_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { f4c_generator_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { f4c_generator_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function f4c_generator_slicedToArray(r, e) { return f4c_generator_arrayWithHoles(r) || f4c_generator_iterableToArrayLimit(r, e) || f4c_generator_unsupportedIterableToArray(r, e) || f4c_generator_nonIterableRest(); }
-function f4c_generator_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function f4c_generator_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return f4c_generator_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? f4c_generator_arrayLikeToArray(r, a) : void 0; } }
-function f4c_generator_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function f4c_generator_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function f4c_generator_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-/**
- * Générateur de fichiers F4C à partir des objets F4C
- */
-
-var F4CGenerator = {
-  /**
-   * MODIFIÉ: Formate une longueur en mètres avec décimales précises (POINT comme séparateur pour les noms de fichiers)
-   * @param {number} lengthInCm - Longueur en centimètres
-   * @param {boolean} useComma - Si true, utilise la virgule, sinon le point
-   * @returns {string} - Longueur formatée en mètres
-   */
-  formatLengthInMeters: function formatLengthInMeters(lengthInCm) {
-    var useComma = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    var meters = lengthInCm / 100;
-
-    // Si c'est un nombre entier, pas de décimales
-    if (meters % 1 === 0) {
-      return meters.toString();
-    }
-
-    // Sinon, formatage avec jusqu'à 3 décimales en supprimant les zéros inutiles
-    var formatted = meters.toFixed(3);
-    var cleanFormatted = parseFloat(formatted).toString();
-
-    // Utiliser virgule ou point selon le paramètre
-    return useComma ? cleanFormatted.replace('.', ',') : cleanFormatted;
-  },
-  /**
-   * NOUVEAU: Formate une date au format AAAA-MM-JJ_HH-mm pour les noms de fichiers
-   * @param {Date} date - Date à formater
-   * @returns {string} - Date formatée pour nom de fichier
-   */
-  formatDateTimeForFileName: function formatDateTimeForFileName(date) {
-    var year = date.getFullYear();
-    var month = (date.getMonth() + 1).toString().padStart(2, '0');
-    var day = date.getDate().toString().padStart(2, '0');
-    var hours = date.getHours().toString().padStart(2, '0');
-    var minutes = date.getMinutes().toString().padStart(2, '0');
-    return "".concat(year, "-").concat(month, "-").concat(day, "_").concat(hours, "-").concat(minutes);
-  },
-  /**
-   * MODIFIÉ: Formate une date au format JJ/MM/AAAA
-   * @param {Date} date - Date à formater
-   * @returns {string} - Date formatée
-   */
-  formatDate: function formatDate(date) {
-    var day = date.getDate().toString().padStart(2, '0');
-    var month = (date.getMonth() + 1).toString().padStart(2, '0');
-    var year = date.getFullYear();
-    return "".concat(day, "/").concat(month, "/").concat(year);
-  },
-  /**
-   * MODIFIÉ: Formate une date pour les noms de fichiers (sans slashes)
-   * @param {Date} date - Date à formater
-   * @returns {string} - Date formatée pour nom de fichier
-   */
-  formatDateForFileName: function formatDateForFileName(date) {
-    var day = date.getDate().toString().padStart(2, '0');
-    var month = (date.getMonth() + 1).toString().padStart(2, '0');
-    var year = date.getFullYear();
-    return "".concat(day, "-").concat(month, "-").concat(year);
-  },
-  /**
-   * MODIFIÉ: Génère le nom de fichier F4C adapté au nouveau format
-   * @param {Object} F4CObject - Objet F4C (nouveau format)
-   * @returns {string} - Nom du fichier
-   */
-  generateF4CFileName: function generateF4CFileName(F4CObject) {
-    var profil = F4CObject.profile;
-    var longueurCm = F4CObject.length;
-    var orientation = F4CObject.orientation;
-    var pieces = F4CObject.pieces || [];
-
-    // Longueur en mètres avec POINT décimal pour les noms de fichiers
-    var longueurMetres = this.formatLengthInMeters(longueurCm, false);
-
-    // Noms des barres (toutes, sans limite)
-    var nomsPieces = pieces.map(function (piece) {
-      var nom = piece.nom;
-      if (nom && nom.trim() !== '') {
-        // Nettoyer le nom (supprimer caractères spéciaux)
-        return nom.replace(/[^a-zA-Z0-9]/g, '');
-      } else {
-        // Utiliser le profil + longueur si pas de nom
-        return "".concat(piece.profile).concat(piece.length);
-      }
-    });
-
-    // Assembler le nom avec longueur précise (point décimal)
-    var nomFichier = "".concat(profil, "_").concat(longueurMetres, "m_").concat(orientation, "__").concat(nomsPieces.join('-'), ".F4C");
-
-    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
-    nomFichier = nomFichier.replace(/[<>:"/\\|?*]/g, '_');
-
-    // Optionnel : tronquer à 120 caractères avant l'extension
-    var maxLen = 120;
-    if (nomFichier.length > maxLen + 4) {
-      // 4 pour ".F4C"
-      var ext = '.F4C';
-      nomFichier = nomFichier.slice(0, maxLen) + ext;
-    }
-    return nomFichier;
-  },
-  /**
-   * Génère un fichier F4C à partir d'un objet F4C (nouveau format)
-   * @param {Object} F4CObject - Objet F4C (nouveau format)
-   * @param {Object} dataManager - Instance du DataManager
-   * @returns {string} - Contenu du fichier F4C
-   */
-  generateF4CFromObject: function generateF4CFromObject(F4CObject, dataManager) {
-    var _this = this;
-    console.log("\uD83D\uDD27 G\xE9n\xE9ration F4C pour ".concat(F4CObject.profile, "_").concat(F4CObject.orientation));
-    try {
-      // NOUVEAU FORMAT : accès direct aux propriétés
-      var pieces = F4CObject.pieces || [];
-      var barLength = F4CObject.length;
-      if (!pieces || pieces.length === 0) {
-        throw new Error('Aucune pièce à découper dans l\'objet F4C');
-      }
-
-      // Prendre les données F4C de la première pièce comme base pour le BODY
-      var firstPiece = pieces[0];
-
-      // Générer le BODY avec les données de la première pièce
-      var bodyContent = this.generateBody(firstPiece, {
-        profile: F4CObject.profile,
-        length: barLength,
-        orientation: F4CObject.orientation
-      });
-
-      // Grouper les pièces identiques pour optimiser les STEPs
-      var groupedSteps = this.groupIdenticalSteps(pieces);
-
-      // Générer les STEPs
-      var stepsContent = groupedSteps.map(function (group) {
-        return _this.generateStep(group.piece, group.quantity);
-      }).join('\n');
-
-      // Assembler le contenu final
-      var F4CContent = "<!--CEB-->\n".concat(bodyContent, "\n").concat(stepsContent);
-      console.log("\u2705 F4C g\xE9n\xE9r\xE9: ".concat(groupedSteps.length, " steps pour ").concat(pieces.length, " pi\xE8ces"));
-      return F4CContent;
-    } catch (error) {
-      console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(F4CObject.profile, "_").concat(F4CObject.orientation, ":"), error);
-      throw error;
-    }
-  },
-  /**
-   * MODIFIÉ: Génère le contenu du BODY (adapté au nouveau format)
-   * @param {Object} firstPiece - Première pièce du F4C
-   * @param {Object} motherBarInfo - Informations de la barre mère
-   * @returns {string} - Contenu du BODY
-   */
-  generateBody: function generateBody(firstPiece, motherBarInfo) {
-    var f4cData = firstPiece.f4cData || {};
-
-    // Template par défaut pour le BODY
-    var bodyTemplate = {
-      B001: "        ",
-      B002: "700",
-      B003: "3",
-      B004: "0",
-      B005: "0",
-      B006: "0",
-      B007: "0",
-      B008: "0",
-      B009: "0",
-      B010: "0",
-      B011: "0",
-      B012: "0",
-      B013: "0",
-      B021: "HEA     ",
-      // Sera remplacé par les données de la pièce
-      B022: "0",
-      B023: "0",
-      B024: "0",
-      B025: "0",
-      B041: "0",
-      B026: "0",
-      B027: "0",
-      B030: "        ",
-      B031: "                ",
-      B032: "                ",
-      B033: "        ",
-      B034: "0",
-      B035: "1000000",
-      // Sera remplacé par les données de la pièce
-      B037: "                ",
-      B036: "0",
-      B090: "                ",
-      B100: "1"
-    };
-
-    // Appliquer les données F4C de la pièce
-    if (f4cData.B021) {
-      bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
-    } else {
-      // Générer B021 à partir du profil
-      bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
-    }
-    if (f4cData.B035) {
-      bodyTemplate.B035 = f4cData.B035;
-    } else {
-      // Valeur par défaut basée sur le profil
-      bodyTemplate.B035 = "10000";
-    }
-
-    // Gestion de S058 (nouvelle logique)
-    if (f4cData.S058) {
-      bodyTemplate.S058 = f4cData.S058;
-    } else if (firstPiece.S058) {
-      bodyTemplate.S058 = firstPiece.S058;
-    } else {
-      bodyTemplate.S058 = "1";
-    }
-
-    // Construire la chaîne BODY
-    var bodyParts = [];
-    for (var _i = 0, _Object$entries = Object.entries(bodyTemplate); _i < _Object$entries.length; _i++) {
-      var _Object$entries$_i = f4c_generator_slicedToArray(_Object$entries[_i], 2),
-        key = _Object$entries$_i[0],
-        value = _Object$entries$_i[1];
-      bodyParts.push("".concat(key, "=\"").concat(value, "\""));
-    }
-    return "<BODY ".concat(bodyParts.join(' '), " ></BODY>");
-  },
-  /**
-   * MODIFIÉ: Groupe les pièces identiques pour optimiser les STEPs (adapté au nouveau format)
-   * @param {Array} pieces - Liste des pièces à découper
-   * @returns {Array} - Groupes de pièces identiques avec leur quantité
-   */
-  groupIdenticalSteps: function groupIdenticalSteps(pieces) {
-    var groups = new Map();
-    pieces.forEach(function (piece) {
-      var _piece$f4cData, _piece$f4cData2, _piece$f4cData3;
-      // Créer une clé unique basée sur les propriétés importantes
-      var key = JSON.stringify({
-        length: piece.length,
-        angles: piece.angles,
-        f4cData: {
-          S051: (_piece$f4cData = piece.f4cData) === null || _piece$f4cData === void 0 ? void 0 : _piece$f4cData.S051,
-          S054: (_piece$f4cData2 = piece.f4cData) === null || _piece$f4cData2 === void 0 ? void 0 : _piece$f4cData2.S054,
-          S055: (_piece$f4cData3 = piece.f4cData) === null || _piece$f4cData3 === void 0 ? void 0 : _piece$f4cData3.S055
-        }
-      });
-      if (groups.has(key)) {
-        groups.get(key).quantity++;
-      } else {
-        groups.set(key, {
-          piece: piece,
-          quantity: 1
-        });
-      }
-    });
-    return Array.from(groups.values());
-  },
-  /**
-   * MODIFIÉ: Génère un STEP pour une pièce (adapté au nouveau format)
-   * @param {Object} piece - Pièce à découper
-   * @param {number} quantity - Quantité de pièces identiques
-   * @returns {string} - Contenu du STEP
-   */
-  generateStep: function generateStep(piece, quantity) {
-    var f4cData = piece.f4cData || {};
-
-    // Template par défaut pour le STEP
-    var stepTemplate = {
-      S051: "15000000",
-      // Longueur en micromètres - sera remplacé
-      S052: "1",
-      // Quantité - sera remplacé
-      S053: "1",
-      // Quantité - sera remplacé
-      S054: "9000",
-      // Angle début en centièmes - sera remplacé
-      S055: "9000",
-      // Angle fin en centièmes - sera remplacé
-      S056: "1",
-      S057: "1",
-      S058: "1",
-      S060: "0",
-      S061: "0",
-      S070: "0",
-      S071: "0",
-      S072: "0",
-      S073: "0",
-      S074: "0",
-      S075: "0",
-      S094: "0"
-    };
-
-    // Appliquer les données F4C de la pièce
-    stepTemplate.S051 = f4cData.S051;
-
-    // Quantités
-    stepTemplate.S052 = "1";
-    stepTemplate.S053 = "1";
-
-    // Angles
-    stepTemplate.S054 = f4cData.S054;
-    stepTemplate.S055 = f4cData.S055;
-
-    // Gestion de S058 (nouvelle logique)
-    stepTemplate.S058 = f4cData.S058;
-
-    // Construire la chaîne STEP
-    var stepParts = [];
-    for (var _i2 = 0, _Object$entries2 = Object.entries(stepTemplate); _i2 < _Object$entries2.length; _i2++) {
-      var _Object$entries2$_i = f4c_generator_slicedToArray(_Object$entries2[_i2], 2),
-        key = _Object$entries2$_i[0],
-        value = _Object$entries2$_i[1];
-      stepParts.push("".concat(key, "=\"").concat(value, "\""));
-    }
-    return "<STEP ".concat(stepParts.join(' '), " ></STEP>");
-  },
-  /**
-   * CORRIGÉ: Génère le nom du fichier ZIP au format demandé
-   * @param {Array} F4CObjects - Liste des objets F4C
-   * @returns {string} - Nom du fichier ZIP
-   */
-  generateZipFileName: function generateZipFileName(F4CObjects) {
-    // Date au format AAAA-MM-JJ_HH-mm
-    var now = new Date();
-    var dateStr = this.formatDateTimeForFileName(now);
-
-    // Compter le nombre total de barres uniques
-    var barNames = new Set();
-    F4CObjects.forEach(function (F4C) {
-      F4C.pieces.forEach(function (piece) {
-        // Correction : fallback si pieceReference absent
-        var barName = '';
-        if (piece.pieceReference && piece.pieceReference.nom && piece.pieceReference.nom.trim() !== '') {
-          barName = piece.pieceReference.nom.trim();
-        } else if (piece.nom && piece.nom.trim() !== '') {
-          barName = piece.nom.trim();
-        } else if (piece.profile && piece.length) {
-          barName = "".concat(piece.profile, "_").concat(piece.length, "cm");
-        } else {
-          barName = 'barre_inconnue';
-        }
-        barNames.add(barName);
-      });
-    });
-    var nombreBarres = barNames.size;
-
-    // MODIFIÉ: Format final avec nombre de barres avant la date
-    var fileName = "lot_F4C_".concat(nombreBarres, "_barres_").concat(dateStr, ".zip");
-
-    // Nettoyer le nom final (supprimer caractères interdits dans les noms de fichier)
-    return fileName.replace(/[<>:"/\\|?*]/g, '_');
-  },
-  /**
-   * MODIFIÉ: Génère un ZIP avec tous les fichiers F4C à partir des objets F4C
-   * @param {Array} F4CObjects - Liste des objets F4C
-   * @param {Object} dataManager - Instance du DataManager
-   * @returns {Promise<{blob: Blob, fileName: string}>} - Blob et nom du fichier ZIP
-   */
-  generateAllF4CFromObjects: function () {
-    var _generateAllF4CFromObjects = f4c_generator_asyncToGenerator(/*#__PURE__*/f4c_generator_regenerator().m(function _callee(F4CObjects, dataManager) {
-      var zip, fileNames, i, F4CObject, F4CContent, fileName, counter, uniqueFileName, nameParts, errorFileName, errorContent, summary, zipFileName, blob, _t;
-      return f4c_generator_regenerator().w(function (_context) {
-        while (1) switch (_context.n) {
-          case 0:
-            console.log("\uD83C\uDFD7\uFE0F G\xE9n\xE9ration de ".concat(F4CObjects.length, " fichiers F4C..."));
-            if (!(!F4CObjects || F4CObjects.length === 0)) {
-              _context.n = 1;
-              break;
-            }
-            throw new Error('Aucun objet F4C fourni');
-          case 1:
-            zip = new (jszip_min_default())();
-            fileNames = new Set(); // Pour éviter les doublons
-            _context.p = 2;
-            // Générer chaque fichier F4C
-            for (i = 0; i < F4CObjects.length; i++) {
-              F4CObject = F4CObjects[i];
-              try {
-                // Générer le contenu F4C
-                F4CContent = this.generateF4CFromObject(F4CObject, dataManager); // Générer le nom de fichier
-                fileName = this.generateF4CFileName(F4CObject); // Gérer les doublons en ajoutant un numéro
-                counter = 1;
-                uniqueFileName = fileName;
-                while (fileNames.has(uniqueFileName)) {
-                  nameParts = fileName.split('.F4C');
-                  uniqueFileName = "".concat(nameParts[0], "_").concat(counter, ".F4C");
-                  counter++;
-                }
-                fileNames.add(uniqueFileName);
-
-                // Ajouter au ZIP
-                zip.file(uniqueFileName, F4CContent);
-                console.log("  \u2705 ".concat(uniqueFileName, " (").concat(F4CObject.pieces.length, " pi\xE8ces)"));
-              } catch (error) {
-                console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(i + 1, ":"), error);
-
-                // Créer un fichier d'erreur pour continuer le processus
-                errorFileName = "ERREUR_F4C_".concat(i + 1, ".txt");
-                errorContent = "Erreur lors de la g\xE9n\xE9ration du F4C:\n".concat(error.message, "\n\nObjet F4C:\n").concat(JSON.stringify(F4CObject, null, 2));
-                zip.file(errorFileName, errorContent);
-              }
-            }
-
-            // Ajouter un fichier de résumé
-            summary = this.generateSummaryFile(F4CObjects);
-            zip.file('RESUME_GENERATION.txt', summary);
-
-            // Générer le nom du fichier ZIP
-            zipFileName = this.generateZipFileName(F4CObjects); // Générer le ZIP
-            console.log('📦 Création du fichier ZIP...');
-            _context.n = 3;
-            return zip.generateAsync({
-              type: "blob",
-              compression: "DEFLATE",
-              compressionOptions: {
-                level: 6
-              }
-            });
-          case 3:
-            blob = _context.v;
-            console.log("\u2705 ZIP g\xE9n\xE9r\xE9 avec succ\xE8s: ".concat(zipFileName, " (").concat(fileNames.size, " fichiers F4C)"));
-
-            // Retourner le blob et le nom du fichier
-            return _context.a(2, {
-              blob: blob,
-              fileName: zipFileName
-            });
-          case 4:
-            _context.p = 4;
-            _t = _context.v;
-            console.error('❌ Erreur lors de la génération du ZIP:', _t);
-            throw _t;
-          case 5:
-            return _context.a(2);
-        }
-      }, _callee, this, [[2, 4]]);
-    }));
-    function generateAllF4CFromObjects(_x, _x2) {
-      return _generateAllF4CFromObjects.apply(this, arguments);
-    }
-    return generateAllF4CFromObjects;
-  }(),
-  /**
-   * MODIFIÉ: Génère un fichier de résumé pour le ZIP avec virgules décimales et format de date français
-   * @param {Array} F4CObjects - Liste des objets F4C
-   * @returns {string} - Contenu du fichier de résumé
-   */
-  generateSummaryFile: function generateSummaryFile(F4CObjects) {
-    var _this2 = this;
-    var now = new Date();
-    var dateStr = this.formatDate(now);
-    var timeStr = now.toLocaleTimeString('fr-FR');
-    var summary = "R\xC9SUM\xC9 DE G\xC9N\xC9RATION F4C\n";
-    summary += "========================\n\n";
-    summary += "Date de g\xE9n\xE9ration: ".concat(dateStr, " \xE0 ").concat(timeStr, "\n");
-    summary += "Nombre total de fichiers F4C: ".concat(F4CObjects.length, "\n\n");
-
-    // Statistiques par profil
-    var profileStats = {};
-    F4CObjects.forEach(function (F4C) {
-      var profile = F4C.profile;
-      if (!profileStats[profile]) {
-        profileStats[profile] = {
-          count: 0,
-          totalPieces: 0,
-          totalLength: 0,
-          totalWaste: 0
-        };
-      }
-      profileStats[profile].count++;
-      profileStats[profile].totalPieces += F4C.pieces.length;
-      profileStats[profile].totalLength += F4C.length;
-      // Si tu as la chute sur le F4C, ajoute-la ici
-      if (typeof F4C.waste === 'number') {
-        profileStats[profile].totalWaste += F4C.waste;
-      } else {
-        // Sinon, calcule-la
-        var totalPiecesLength = F4C.pieces.reduce(function (sum, piece) {
-          return sum + piece.length;
-        }, 0);
-        profileStats[profile].totalWaste += F4C.length - totalPiecesLength;
-      }
-    });
-    summary += "STATISTIQUES PAR PROFIL:\n";
-    summary += "------------------------\n";
-    for (var _i3 = 0, _Object$entries3 = Object.entries(profileStats); _i3 < _Object$entries3.length; _i3++) {
-      var _Object$entries3$_i = f4c_generator_slicedToArray(_Object$entries3[_i3], 2),
-        profile = _Object$entries3$_i[0],
-        stats = _Object$entries3$_i[1];
-      var efficiency = Math.round((1 - stats.totalWaste / stats.totalLength) * 100);
-      var totalLengthMeters = this.formatLengthInMeters(stats.totalLength, true);
-      var totalWasteCm = Math.round(stats.totalWaste);
-      summary += "".concat(profile, ":\n");
-      summary += "  - ".concat(stats.count, " barres m\xE8res\n");
-      summary += "  - ".concat(stats.totalPieces, " pi\xE8ces \xE0 d\xE9couper\n");
-      summary += "  - ".concat(totalLengthMeters, " m de barres\n");
-      summary += "  - ".concat(totalWasteCm, " cm de chutes\n");
-      summary += "  - Efficacit\xE9: ".concat(efficiency, "%\n\n");
-    }
-
-    // DÉTAIL DES BARRES À DÉCOUPER PAR F4C
-    summary += "D\xC9TAIL DES BARRES \xC0 D\xC9COUPER:\n";
-    summary += "=============================\n\n";
-    F4CObjects.forEach(function (F4C, F4CIndex) {
-      var fileName = _this2.generateF4CFileName(F4C);
-      summary += "\u2554".concat('═'.repeat(80), "\n");
-      summary += "\u2551 F4C ".concat(F4CIndex + 1, ": ").concat(fileName, "\n");
-      summary += "\u255A".concat('═'.repeat(80), "\n\n");
-      var motherBarLengthMeters = _this2.formatLengthInMeters(F4C.length, true);
-      var totalPiecesLength = F4C.pieces.reduce(function (sum, piece) {
-        return sum + piece.length;
-      }, 0);
-      var waste = F4C.length - totalPiecesLength;
-      summary += "Profil: ".concat(F4C.profile, "\n");
-      summary += "Orientation: ".concat(F4C.orientation, "\n");
-      summary += "Longueur: ".concat(motherBarLengthMeters, " m\n");
-      summary += "Chute: ".concat(waste, " cm\n");
-
-      // Efficacité
-      var efficiency = F4C.length > 0 ? Math.round(totalPiecesLength / F4C.length * 100) : 0;
-      summary += "Efficacit\xE9: ".concat(efficiency, "%\n\n");
-      summary += "Barres \xE0 d\xE9couper:\n";
-      summary += "".concat('─'.repeat(50), "\n");
-      if (F4C.pieces && F4C.pieces.length > 0) {
-        F4C.pieces.forEach(function (piece, pieceIndex) {
-          var _piece$angles, _piece$angles2;
-          var pieceName = piece.nom && piece.nom.trim() !== '' ? piece.nom : "".concat(piece.profile, "_").concat(piece.length, "cm");
-          var angle1 = ((_piece$angles = piece.angles) === null || _piece$angles === void 0 ? void 0 : _piece$angles[1]) || 90;
-          var angle2 = ((_piece$angles2 = piece.angles) === null || _piece$angles2 === void 0 ? void 0 : _piece$angles2[2]) || 90;
-          var angleInfo = angle1 !== 90 || angle2 !== 90 ? " - Angles: ".concat(angle1, "\xB0/").concat(angle2, "\xB0") : '';
-          summary += "  ".concat((pieceIndex + 1).toString().padStart(2, ' '), ". ").concat(pieceName, " - ").concat(piece.length, " cm").concat(angleInfo, "\n");
-        });
-      } else {
-        summary += "  Aucune pi\xE8ce \xE0 d\xE9couper\n";
-      }
-      summary += "\n\n";
-    });
-    return summary;
-  }
-};
-;// ./src/js/f4c-manager.js
-function f4c_manager_typeof(o) { "@babel/helpers - typeof"; return f4c_manager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, f4c_manager_typeof(o); }
-function f4c_manager_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function f4c_manager_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? f4c_manager_ownKeys(Object(t), !0).forEach(function (r) { f4c_manager_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : f4c_manager_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function f4c_manager_defineProperty(e, r, t) { return (r = f4c_manager_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function f4c_manager_toPropertyKey(t) { var i = f4c_manager_toPrimitive(t, "string"); return "symbol" == f4c_manager_typeof(i) ? i : i + ""; }
-function f4c_manager_toPrimitive(t, r) { if ("object" != f4c_manager_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != f4c_manager_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function f4c_manager_toConsumableArray(r) { return f4c_manager_arrayWithoutHoles(r) || f4c_manager_iterableToArray(r) || f4c_manager_unsupportedIterableToArray(r) || f4c_manager_nonIterableSpread(); }
-function f4c_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function f4c_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function f4c_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return f4c_manager_arrayLikeToArray(r); }
-function f4c_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = f4c_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function f4c_manager_slicedToArray(r, e) { return f4c_manager_arrayWithHoles(r) || f4c_manager_iterableToArrayLimit(r, e) || f4c_manager_unsupportedIterableToArray(r, e) || f4c_manager_nonIterableRest(); }
-function f4c_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function f4c_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return f4c_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? f4c_manager_arrayLikeToArray(r, a) : void 0; } }
-function f4c_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function f4c_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function f4c_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+;// ./src/js/F4C-manager.js
+function F4C_manager_typeof(o) { "@babel/helpers - typeof"; return F4C_manager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, F4C_manager_typeof(o); }
+function F4C_manager_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function F4C_manager_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? F4C_manager_ownKeys(Object(t), !0).forEach(function (r) { F4C_manager_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : F4C_manager_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function F4C_manager_defineProperty(e, r, t) { return (r = F4C_manager_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function F4C_manager_toPropertyKey(t) { var i = F4C_manager_toPrimitive(t, "string"); return "symbol" == F4C_manager_typeof(i) ? i : i + ""; }
+function F4C_manager_toPrimitive(t, r) { if ("object" != F4C_manager_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != F4C_manager_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function F4C_manager_toConsumableArray(r) { return F4C_manager_arrayWithoutHoles(r) || F4C_manager_iterableToArray(r) || F4C_manager_unsupportedIterableToArray(r) || F4C_manager_nonIterableSpread(); }
+function F4C_manager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function F4C_manager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function F4C_manager_arrayWithoutHoles(r) { if (Array.isArray(r)) return F4C_manager_arrayLikeToArray(r); }
+function F4C_manager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = F4C_manager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function F4C_manager_slicedToArray(r, e) { return F4C_manager_arrayWithHoles(r) || F4C_manager_iterableToArrayLimit(r, e) || F4C_manager_unsupportedIterableToArray(r, e) || F4C_manager_nonIterableRest(); }
+function F4C_manager_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function F4C_manager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return F4C_manager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? F4C_manager_arrayLikeToArray(r, a) : void 0; } }
+function F4C_manager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function F4C_manager_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function F4C_manager_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 /**
  * F4C Manager - Gère la création d'objets F4C à partir des schémas de coupe
  * Chaque objet F4C représente une barre mère à découper avec les références des pièces
@@ -6303,7 +8580,7 @@ var F4CManager = {
     for (var _i = 0, _modelNames = modelNames; _i < _modelNames.length; _i++) {
       var modelName = _modelNames[_i];
       var _modelName$split = modelName.split('_'),
-        _modelName$split2 = f4c_manager_slicedToArray(_modelName$split, 2),
+        _modelName$split2 = F4C_manager_slicedToArray(_modelName$split, 2),
         profile = _modelName$split2[0],
         orientation = _modelName$split2[1];
       var pool = this.createNewPool();
@@ -6311,7 +8588,7 @@ var F4CManager = {
       pool.orientation = orientation;
       var modelData = modelResults[modelName];
       if (modelData.layouts && Array.isArray(modelData.layouts)) {
-        var _iterator = f4c_manager_createForOfIteratorHelper(modelData.layouts),
+        var _iterator = F4C_manager_createForOfIteratorHelper(modelData.layouts),
           _step;
         try {
           for (_iterator.s(); !(_step = _iterator.n()).done;) {
@@ -6343,16 +8620,16 @@ var F4CManager = {
   createF4CFromPools: function createF4CFromPools(pools) {
     console.log('Création des F4C à partir des pools...');
     var F4CList = [];
-    var _iterator2 = f4c_manager_createForOfIteratorHelper(pools),
+    var _iterator2 = F4C_manager_createForOfIteratorHelper(pools),
       _step2;
     try {
       for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         var pool = _step2.value;
         // Créer une copie des pièces disponibles pour cette pool
-        var availablePieces = f4c_manager_toConsumableArray(pool.pieces);
+        var availablePieces = F4C_manager_toConsumableArray(pool.pieces);
 
         // Pour chaque layout, créer un F4C
-        var _iterator3 = f4c_manager_createForOfIteratorHelper(pool.layouts),
+        var _iterator3 = F4C_manager_createForOfIteratorHelper(pool.layouts),
           _step3;
         try {
           for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
@@ -6369,7 +8646,7 @@ var F4CManager = {
             };
 
             // Assigner les pièces aux cuts du layout
-            var _iterator4 = f4c_manager_createForOfIteratorHelper(layout.cuts),
+            var _iterator4 = F4C_manager_createForOfIteratorHelper(layout.cuts),
               _step4;
             try {
               var _loop = function _loop() {
@@ -6381,7 +8658,7 @@ var F4CManager = {
                 if (pieceIndex !== -1) {
                   // Assigner cette pièce au F4C
                   var assignedPiece = availablePieces[pieceIndex];
-                  F4C.pieces.push(f4c_manager_objectSpread({}, assignedPiece)); // Copie de la pièce
+                  F4C.pieces.push(F4C_manager_objectSpread({}, assignedPiece)); // Copie de la pièce
 
                   // Si c'est la première pièce, définir B035 et B021
                   if (F4C.pieces.length === 1 && assignedPiece.f4cData) {
@@ -6488,13 +8765,13 @@ var F4CManager = {
 
     // Générer le résumé textuel
     var profileSummary = Object.entries(report.byProfile).map(function (_ref) {
-      var _ref2 = f4c_manager_slicedToArray(_ref, 2),
+      var _ref2 = F4C_manager_slicedToArray(_ref, 2),
         profile = _ref2[0],
         data = _ref2[1];
       return "".concat(profile, ": ").concat(data.count, " F4C(s), ").concat(data.pieces, " pi\xE8ce(s)");
     }).join(' | ');
     var orientationSummary = Object.entries(report.byOrientation).map(function (_ref3) {
-      var _ref4 = f4c_manager_slicedToArray(_ref3, 2),
+      var _ref4 = F4C_manager_slicedToArray(_ref3, 2),
         orientation = _ref4[0],
         data = _ref4[1];
       return "".concat(orientation, ": ").concat(data.count, " F4C(s), ").concat(data.pieces, " pi\xE8ce(s)");
@@ -6519,6 +8796,7 @@ var F4CManager = {
 /**
  * ResultsRenderer - Handles rendering of algorithm results in the UI
  */
+
 var ResultsRenderer = {
   /**
    * Format model key to user-friendly display name
@@ -6546,18 +8824,18 @@ var ResultsRenderer = {
   /**
    * NOUVEAU: Formate une longueur en centimètres vers mètres avec décimales intelligentes
    */
-  formatLengthInMeters: function formatLengthInMeters(lengthInCm) {
-    var meters = lengthInCm / 100;
+  formatLengthInMeters: function formatLengthInMeters(lengthInMm) {
+    var meters = lengthInMm / 1000;
 
     // Si c'est un nombre entier, pas de décimales
     if (meters % 1 === 0) {
-      return "".concat(meters, "m");
+      return "".concat(meters);
     }
 
     // Sinon, formatage avec jusqu'à 3 décimales en supprimant les zéros inutiles
     var formatted = meters.toFixed(3);
     var cleanFormatted = parseFloat(formatted).toString();
-    return "".concat(cleanFormatted, "m");
+    return "".concat(cleanFormatted);
   },
   /**
    * NOUVEAU: Calcule la largeur minimum nécessaire pour afficher du texte
@@ -6601,7 +8879,7 @@ var ResultsRenderer = {
     }
 
     // MODIFIÉ: Grille compacte avec ordre spécifique
-    html += "\n        <div class=\"stats-grid-compact\">\n          <div class=\"stat-card-compact efficiency-card\">\n            <div class=\"stat-label-compact\">Efficacit\xE9</div>\n            <div class=\"stat-value-compact\">".concat(stats.totalEfficiency, "%</div>\n          </div>\n          <div class=\"stat-card-compact\">\n            <div class=\"stat-label-compact\">Chutes</div>\n            <div class=\"stat-value-compact\">").concat(Math.round(stats.totalWaste), " cm</div>\n          </div>\n          <div class=\"stat-card-compact\">\n            <div class=\"stat-label-compact\">Barres m\xE8res</div>\n            <div class=\"stat-value-compact\">").concat(stats.totalUsedBars, "</div>\n          </div>\n          <div class=\"stat-card-compact\">\n            <div class=\"stat-label-compact\">Longueur totale</div>\n            <div class=\"stat-value-compact\">").concat(this.formatLengthInMeters(stats.totalBarLength), "</div>\n          </div>\n        </div>\n      </div>\n    ");
+    html += "\n        <div class=\"stats-grid-compact\">\n          <div class=\"stat-card-compact efficiency-card\">\n            <div class=\"stat-label-compact\">Efficacit\xE9</div>\n            <div class=\"stat-value-compact\">".concat(stats.totalEfficiency, "%</div>\n          </div>\n          <div class=\"stat-card-compact\">\n            <div class=\"stat-label-compact\">Chutes</div>\n            <div class=\"stat-value-compact\">").concat(UIUtils.formatLenght(Math.round(stats.totalWaste)), " mm</div>\n          </div>\n          <div class=\"stat-card-compact\">\n            <div class=\"stat-label-compact\">Barres m\xE8res</div>\n            <div class=\"stat-value-compact\">").concat(stats.totalUsedBars, "</div>\n          </div>\n          <div class=\"stat-card-compact\">\n            <div class=\"stat-label-compact\">Longueur totale</div>\n            <div class=\"stat-value-compact\">").concat(UIUtils.formatLenght(stats.totalBarLength), " mm</div>\n          </div>\n        </div>\n      </div>\n    ");
     return html;
   },
   /**
@@ -6648,7 +8926,7 @@ var ResultsRenderer = {
       var otherEff = modelResult.comparison[otherKey];
       algoLine = "\n        <div class=\"algo-model-info\" style=\"font-size: 0.75em; color: var(--text-secondary); margin-bottom: 0.5rem; opacity: 0.85;\">\n          </br>\n          <div>\n            <span><strong>".concat(used, "</strong> : ").concat(usedEff !== null && usedEff !== undefined ? usedEff + '%' : 'N/A', "</span>\n          </div>\n          <div>\n            <span>").concat(otherName, " : ").concat(otherEff !== null && otherEff !== undefined ? otherEff + '%' : 'N/A', "</span>\n          </div>\n        </div>\n      ");
     }
-    var html = "\n      <div class=\"model-card\">\n        <div class=\"model-header\">\n          <h3>".concat(displayName, "</h3>\n          ").concat(algoLine, "\n        </div>\n        <div class=\"model-content\">\n          <div class=\"model-stats\">\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Efficacit\xE9</div>\n              <div class=\"stat-value efficiency-tag\">").concat(stats.efficiency, "%</div>\n            </div>\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Chutes</div>\n              <div class=\"stat-value\">").concat(Math.round(stats.wasteLength), " cm</div>\n            </div>\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Barres m\xE8res</div>\n              <div class=\"stat-value\">").concat(stats.barCount, "</div>\n            </div>\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Longueur totale</div>\n              <div class=\"stat-value\">").concat(this.formatLengthInMeters(stats.totalLength), "</div>\n            </div>\n          </div>\n          <div class=\"cut-schemes\">\n            <h4 class=\"mb-2\">Sch\xE9mas de coupe</h4>\n    ");
+    var html = "\n      <div class=\"model-card\">\n        <div class=\"model-header\">\n          <h3>".concat(displayName, "</h3>\n          ").concat(algoLine, "\n        </div>\n        <div class=\"model-content\">\n          <div class=\"model-stats\">\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Efficacit\xE9</div>\n              <div class=\"stat-value efficiency-tag\">").concat(stats.efficiency, "%</div>\n            </div>\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Chutes</div>\n              <div class=\"stat-value\">").concat(UIUtils.formatLenght(Math.round(stats.wasteLength)), " mm</div>\n            </div>\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Barres m\xE8res</div>\n              <div class=\"stat-value\">").concat(stats.barCount, "</div>\n            </div>\n            <div class=\"model-stat\">\n              <div class=\"stat-label\">Longueur totale</div>\n              <div class=\"stat-value\">").concat(UIUtils.formatLenght(stats.totalLength), " mm</div>\n            </div>\n          </div>\n          <div class=\"cut-schemes\">\n            <h4 class=\"mb-2\">Sch\xE9mas de coupe</h4>\n    ");
 
     // Add each cutting pattern
     if (modelResult.layouts && modelResult.layouts.length > 0) {
@@ -6684,7 +8962,7 @@ var ResultsRenderer = {
     // Generate the text representation of cuts
     var cutsHtml = '';
     pattern.cuts.forEach(function (cut) {
-      cutsHtml += "<span class=\"cut-count\">".concat(cut.count, "\xD7</span>").concat(cut.length, " cm ");
+      cutsHtml += "<span class=\"cut-count\">".concat(cut.count, "\xD7</span>").concat(UIUtils.formatLenght(cut.length), " mm ");
     });
 
     // Generate visual representation of the cuts
@@ -6692,2202 +8970,26 @@ var ResultsRenderer = {
     pattern.visualPieces.forEach(function (piece, pieceIndex) {
       var lastPieceClass = piece.isLast ? 'last-piece' : '';
       var showText = _this2.shouldShowTextInPiece(piece.percentage, piece.length);
-      visualBarHtml += "\n        <div class=\"cut-piece ".concat(lastPieceClass, "\" \n             style=\"width: ").concat(piece.percentage, "%\" \n             title=\"").concat(piece.length, " cm\">\n          ").concat(showText ? piece.length : '', "\n        </div>\n      ");
+      visualBarHtml += "\n        <div class=\"cut-piece ".concat(lastPieceClass, "\" \n             style=\"width: ").concat(piece.percentage, "%\" \n             title=\"").concat(UIUtils.formatLenght(piece.length), " mm\">\n          ").concat(showText ? UIUtils.formatLenght(piece.length) : '', "\n        </div>\n      ");
     });
 
     // Add waste piece if any
     if (pattern.waste > 0) {
       var showWasteText = this.shouldShowTextInPiece(pattern.wastePercentage, pattern.waste);
-      visualBarHtml += "\n        <div class=\"waste-piece\" \n             style=\"width: ".concat(pattern.wastePercentage, "%\" \n             title=\"Chute: ").concat(pattern.waste, " cm\">\n          ").concat(showWasteText ? pattern.waste : '', "\n        </div>\n      ");
+      visualBarHtml += "\n        <div class=\"waste-piece\" \n             style=\"width: ".concat(pattern.wastePercentage, "%\" \n             title=\"Chute: ").concat(UIUtils.formatLenght(pattern.waste), " mm\">\n          ").concat(showWasteText ? UIUtils.formatLenght(pattern.waste) : '', "\n        </div>\n      ");
     }
-    return "\n      <div class=\"cut-scheme\">\n        <div class=\"cut-scheme-header\">\n          <strong>".concat(pattern.count, "\xD7 Sch\xE9ma #").concat(index + 1, "</strong>\n          <span>Barre m\xE8re <span class=\"bar-length-badge\">").concat(this.formatLengthInMeters(pattern.barLength), "</span></span>\n        </div>\n        <div class=\"cut-pieces\">\n          Pi\xE8ces: ").concat(cutsHtml, "\n        </div>\n        <div class=\"waste\">\n          Chute: <span class=\"waste-value\">").concat(pattern.waste, " cm</span>\n        </div>\n        <div class=\"cut-bar\">\n          ").concat(visualBarHtml, "\n        </div>\n      </div>\n    ");
+    return "\n      <div class=\"cut-scheme\">\n        <div class=\"cut-scheme-header\">\n          <strong>".concat(pattern.count, "\xD7 Sch\xE9ma #").concat(index + 1, "</strong>\n          <span>Barre m\xE8re <span class=\"bar-length-badge\">").concat(UIUtils.formatLenght(pattern.barLength), " mm</span></span>\n        </div>\n        <div class=\"cut-pieces\">\n          Pi\xE8ces: ").concat(cutsHtml, "\n        </div>\n        <div class=\"waste\">\n          Chute: <span class=\"waste-value\">").concat(UIUtils.formatLenght(pattern.waste), " mm</span>\n        </div>\n        <div class=\"cut-bar\">\n          ").concat(visualBarHtml, "\n        </div>\n      </div>\n    ");
   }
-};
-;// ./src/js/ui/utils.js
-/**
- * Utilitaires pour l'interface utilisateur
- */
-var UIUtils = {
-  /**
-   * Affiche l'overlay de chargement avec étapes (pour l'optimisation)
-   */
-  showLoadingOverlay: function showLoadingOverlay() {
-    var overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-      overlay.classList.remove('hidden');
-      this.resetLoadingSteps();
-    }
-  },
-  /**
-   * Masque l'overlay de chargement (pour l'optimisation)
-   */
-  hideLoadingOverlay: function hideLoadingOverlay() {
-    var overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-      overlay.classList.add('hidden');
-      this.resetLoadingSteps();
-    }
-  },
-  /**
-   * NOUVEAU: Affiche le simple overlay de chargement (pour l'upload)
-   */
-  showSimpleLoadingOverlay: function showSimpleLoadingOverlay() {
-    var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Traitement des fichiers en cours...';
-    var overlay = document.getElementById('simple-loading-overlay');
-    if (overlay) {
-      var textElement = overlay.querySelector('.simple-loading-text');
-      if (textElement) {
-        textElement.textContent = message;
-      }
-      overlay.classList.remove('hidden');
-    }
-  },
-  /**
-   * NOUVEAU: Masque le simple overlay de chargement (pour l'upload)
-   */
-  hideSimpleLoadingOverlay: function hideSimpleLoadingOverlay() {
-    var overlay = document.getElementById('simple-loading-overlay');
-    if (overlay) {
-      overlay.classList.add('hidden');
-    }
-  },
-  /**
-   * Met à jour le progrès et l'étape active
-   */
-  updateLoadingProgress: function updateLoadingProgress(stepId) {
-    var percentage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    var completed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    // Mettre à jour le pourcentage si fourni
-    if (percentage !== null) {
-      var progressText = document.getElementById('progress-percentage');
-      var progressFill = document.getElementById('progress-fill');
-      if (progressText) {
-        progressText.textContent = "".concat(Math.round(percentage), "%");
-      }
-      if (progressFill) {
-        progressFill.style.width = "".concat(percentage, "%");
-      }
-    }
-
-    // Mettre à jour l'étape active
-    if (stepId) {
-      // Réinitialiser toutes les étapes
-      document.querySelectorAll('.loading-step').forEach(function (step) {
-        step.classList.remove('active');
-      });
-
-      // Marquer les étapes précédentes comme complétées
-      var currentStep = document.getElementById(stepId);
-      if (currentStep) {
-        var steps = document.querySelectorAll('.loading-step');
-        var currentIndex = Array.from(steps).indexOf(currentStep);
-        steps.forEach(function (step, index) {
-          if (index < currentIndex) {
-            step.classList.add('completed');
-            step.classList.remove('active');
-          } else if (index === currentIndex) {
-            step.classList.add('active');
-            step.classList.remove('completed');
-            if (completed) {
-              step.classList.add('completed');
-              step.classList.remove('active');
-            }
-          } else {
-            step.classList.remove('active', 'completed');
-          }
-        });
-      }
-    }
-  },
-  /**
-   * Remet à zéro les étapes de chargement
-   */
-  resetLoadingSteps: function resetLoadingSteps() {
-    document.querySelectorAll('.loading-step').forEach(function (step) {
-      step.classList.remove('active', 'completed');
-    });
-    var progressText = document.getElementById('progress-percentage');
-    var progressFill = document.getElementById('progress-fill');
-    if (progressText) {
-      progressText.textContent = '0%';
-    }
-    if (progressFill) {
-      progressFill.style.width = '0%';
-    }
-  },
-  /**
-   * Télécharge un fichier
-   */
-  downloadFile: function downloadFile(content, filename, type) {
-    var blob = content instanceof Blob ? content : new Blob([content], {
-      type: type
-    });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  },
-  /**
-   * Affiche le texte de l'étape courante dans le loading overlay (mode dynamique)
-   * @param {string} stepText - Texte à afficher (ex: "ILP pour le modèle 2/3")
-   */
-  setLoadingStepText: function setLoadingStepText(stepText) {
-    var subtitle = document.querySelector('#loading-overlay .loading-subtitle');
-    if (subtitle) {
-      subtitle.textContent = stepText;
-    }
-  },
-  /**
-   * Cache la barre de progression et les étapes (mode dynamique)
-   */
-  hideLoadingProgressBar: function hideLoadingProgressBar() {
-    var progress = document.querySelector('#loading-overlay .loading-progress');
-    var steps = document.querySelector('#loading-overlay .loading-steps');
-    if (progress) progress.style.display = 'none';
-    if (steps) steps.style.display = 'none';
-  },
-  /**
-   * Réaffiche la barre de progression et les étapes (pour la fin ou le reset)
-   */
-  showLoadingProgressBar: function showLoadingProgressBar() {
-    var progress = document.querySelector('#loading-overlay .loading-progress');
-    var steps = document.querySelector('#loading-overlay .loading-steps');
-    if (progress) progress.style.display = '';
-    if (steps) steps.style.display = '';
-  },
-  /**
-   * Transforme "debout" en "Debout" et "a-plat" en "À plat"
-   */
-  formatOrientation: function formatOrientation(orientation) {
-    if (!orientation) return '';
-    var formatted = orientation.replace('a-plat', 'À plat').replace('debout', 'Debout');
-    return formatted;
-  }
-};
-;// ./src/js/ui/import-handler.js
-function import_handler_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return import_handler_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (import_handler_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, import_handler_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, import_handler_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), import_handler_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", import_handler_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), import_handler_regeneratorDefine2(u), import_handler_regeneratorDefine2(u, o, "Generator"), import_handler_regeneratorDefine2(u, n, function () { return this; }), import_handler_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (import_handler_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function import_handler_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } import_handler_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { import_handler_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, import_handler_regeneratorDefine2(e, r, n, t); }
-function import_handler_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function import_handler_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { import_handler_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { import_handler_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-/**
- * Gestionnaire de la section d'import
- * Gère le drag & drop et l'import de fichiers (SANS ID - VERSION FINALE)
- */
-
-var ImportHandler = {
-  // Dépendances
-  dataManager: null,
-  importManager: null,
-  // Callbacks
-  showNotification: null,
-  refreshDataDisplay: null,
-  /**
-   * Initialise le handler d'import
-   */
-  init: function init(options) {
-    this.dataManager = options.dataManager;
-    this.importManager = options.importManager;
-    this.showNotification = options.showNotification;
-    this.refreshDataDisplay = options.refreshDataDisplay;
-    this.initDropZone();
-  },
-  /**
-   * Initialise la zone de drop
-   */
-  initDropZone: function initDropZone() {
-    var _this = this;
-    var dropZone = document.querySelector('.file-drop-zone');
-    var fileInput = document.getElementById('nc2-files-input');
-
-    // Ajouter un conteneur pour les erreurs s'il n'existe pas
-    if (!document.getElementById('import-error')) {
-      var errorDiv = document.createElement('div');
-      errorDiv.id = 'import-error';
-      errorDiv.className = 'error-message hidden';
-      dropZone.parentNode.insertBefore(errorDiv, dropZone.nextSibling);
-    }
-
-    // Prévenir les comportements par défaut du navigateur
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (eventName) {
-      dropZone.addEventListener(eventName, function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      });
-    });
-
-    // Ajouter/retirer la classe active pendant le drag
-    ['dragenter', 'dragover'].forEach(function (eventName) {
-      dropZone.addEventListener(eventName, function () {
-        return dropZone.classList.add('active');
-      });
-    });
-    ['dragleave', 'drop'].forEach(function (eventName) {
-      dropZone.addEventListener(eventName, function () {
-        return dropZone.classList.remove('active');
-      });
-    });
-
-    // Gérer le drop
-    dropZone.addEventListener('drop', function (e) {
-      return _this.processImportedFiles(e.dataTransfer.files);
-    });
-
-    // Gérer le clic sur l'input file
-    fileInput.addEventListener('change', function () {
-      return _this.processImportedFiles(fileInput.files);
-    });
-
-    // Gérer le clic sur la zone de drop pour ouvrir le sélecteur de fichiers
-    dropZone.addEventListener('click', function (e) {
-      // Ne pas déclencher si clic sur l'input lui-même (évite double ouverture)
-      if (e.target !== fileInput) {
-        fileInput.click();
-      }
-    });
-  },
-  /**
-   * Traite les fichiers importés (MODIFIÉ - Utilise le simple overlay)
-   */
-  processImportedFiles: function () {
-    var _processImportedFiles = import_handler_asyncToGenerator(/*#__PURE__*/import_handler_regenerator().m(function _callee(files) {
-      var importedBars, addedKeys, fileInput, _t;
-      return import_handler_regenerator().w(function (_context) {
-        while (1) switch (_context.n) {
-          case 0:
-            if (!(files.length === 0)) {
-              _context.n = 1;
-              break;
-            }
-            return _context.a(2);
-          case 1:
-            // MODIFIÉ: Utiliser le simple overlay au lieu de l'overlay complexe
-            UIUtils.showSimpleLoadingOverlay('Traitement des fichiers en cours...');
-            this.hideError();
-            _context.p = 2;
-            _context.n = 3;
-            return this.importManager.processMultipleFiles(files);
-          case 3:
-            importedBars = _context.v;
-            if (importedBars && importedBars.length > 0) {
-              // Ajouter les barres au DataManager
-              addedKeys = this.dataManager.addBars(importedBars);
-              if (addedKeys.length > 0) {
-                // Rester sur la même section et montrer un message de succès
-                this.showNotification("".concat(addedKeys.length, " barres import\xE9es avec succ\xE8s."), 'success');
-
-                // Rafraîchir l'affichage des données
-                if (this.refreshDataDisplay) {
-                  this.refreshDataDisplay();
-                }
-
-                // Faire défiler jusqu'à la zone d'édition après un court délai
-                setTimeout(function () {
-                  var editPanel = document.querySelector('.panels-container');
-                  if (editPanel) {
-                    editPanel.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                  }
-                }, 300);
-              } else {
-                this.showError('Aucune nouvelle pièce ajoutée.');
-              }
-            } else {
-              this.showError('Aucune pièce valide trouvée dans les fichiers.');
-            }
-            _context.n = 5;
-            break;
-          case 4:
-            _context.p = 4;
-            _t = _context.v;
-            console.error('Import error:', _t);
-            this.showError("Erreur d'import: ".concat(_t.message));
-          case 5:
-            _context.p = 5;
-            // MODIFIÉ: Masquer le simple overlay
-            UIUtils.hideSimpleLoadingOverlay();
-
-            // Réinitialiser l'élément input file pour permettre la réimportation du même fichier
-            fileInput = document.getElementById('nc2-files-input');
-            if (fileInput) {
-              fileInput.value = '';
-            }
-            return _context.f(5);
-          case 6:
-            return _context.a(2);
-        }
-      }, _callee, this, [[2, 4, 5, 6]]);
-    }));
-    function processImportedFiles(_x) {
-      return _processImportedFiles.apply(this, arguments);
-    }
-    return processImportedFiles;
-  }(),
-  /**
-   * MODIFIÉ: Traite les fichiers sans notifications de succès (CORRIGÉ - plus de référence ID)
-   */
-  processFiles: function () {
-    var _processFiles = import_handler_asyncToGenerator(/*#__PURE__*/import_handler_regenerator().m(function _callee2(files) {
-      var results, addedKeys, errorMsg, _t2;
-      return import_handler_regenerator().w(function (_context2) {
-        while (1) switch (_context2.n) {
-          case 0:
-            if (!(!files || files.length === 0)) {
-              _context2.n = 1;
-              break;
-            }
-            return _context2.a(2);
-          case 1:
-            // MODIFIÉ: Utiliser le simple overlay
-            UIUtils.showSimpleLoadingOverlay('Traitement des fichiers...');
-            _context2.p = 2;
-            _context2.n = 3;
-            return this.importManager.processFiles(files);
-          case 3:
-            results = _context2.v;
-            if (results.success.length > 0) {
-              addedKeys = this.dataManager.addBars(results.bars);
-              if (addedKeys.length > 0) {
-                if (this.refreshDataDisplay) {
-                  this.refreshDataDisplay();
-                }
-                // SUPPRIMÉ: Notification de succès
-              }
-            }
-
-            // Afficher seulement les erreurs
-            if (results.errors.length > 0) {
-              errorMsg = results.errors.length === 1 ? results.errors[0] : "".concat(results.errors.length, " erreurs d'import");
-              this.showNotification(errorMsg, 'error');
-            }
-            _context2.n = 5;
-            break;
-          case 4:
-            _context2.p = 4;
-            _t2 = _context2.v;
-            console.error('Erreur lors du traitement des fichiers:', _t2);
-            this.showNotification('Erreur lors de l\'import', 'error');
-          case 5:
-            _context2.p = 5;
-            // MODIFIÉ: Masquer le simple overlay
-            UIUtils.hideSimpleLoadingOverlay();
-            return _context2.f(5);
-          case 6:
-            return _context2.a(2);
-        }
-      }, _callee2, this, [[2, 4, 5, 6]]);
-    }));
-    function processFiles(_x2) {
-      return _processFiles.apply(this, arguments);
-    }
-    return processFiles;
-  }(),
-  /**
-   * Affiche une erreur d'import
-   */
-  showError: function showError(message) {
-    var errorDiv = document.getElementById('import-error');
-    if (errorDiv) {
-      errorDiv.textContent = message;
-      errorDiv.classList.remove('hidden');
-    }
-  },
-  /**
-   * Masque l'erreur d'import
-   */
-  hideError: function hideError() {
-    var errorDiv = document.getElementById('import-error');
-    if (errorDiv) {
-      errorDiv.classList.add('hidden');
-    }
-  }
-};
-;// ./src/js/ui/edit-handler.js
-function edit_handler_typeof(o) { "@babel/helpers - typeof"; return edit_handler_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, edit_handler_typeof(o); }
-function edit_handler_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = edit_handler_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function edit_handler_toConsumableArray(r) { return edit_handler_arrayWithoutHoles(r) || edit_handler_iterableToArray(r) || edit_handler_unsupportedIterableToArray(r) || edit_handler_nonIterableSpread(); }
-function edit_handler_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function edit_handler_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return edit_handler_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? edit_handler_arrayLikeToArray(r, a) : void 0; } }
-function edit_handler_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function edit_handler_arrayWithoutHoles(r) { if (Array.isArray(r)) return edit_handler_arrayLikeToArray(r); }
-function edit_handler_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function edit_handler_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function edit_handler_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? edit_handler_ownKeys(Object(t), !0).forEach(function (r) { edit_handler_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : edit_handler_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function edit_handler_defineProperty(e, r, t) { return (r = edit_handler_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function edit_handler_toPropertyKey(t) { var i = edit_handler_toPrimitive(t, "string"); return "symbol" == edit_handler_typeof(i) ? i : i + ""; }
-function edit_handler_toPrimitive(t, r) { if ("object" != edit_handler_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != edit_handler_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-/**
- * Gestionnaire de la section d'édition (SANS ID)
- */
-var EditHandler = edit_handler_defineProperty(edit_handler_defineProperty(edit_handler_defineProperty(edit_handler_defineProperty(edit_handler_defineProperty(edit_handler_defineProperty(edit_handler_defineProperty(edit_handler_defineProperty({
-  // Dépendances
-  dataManager: null,
-  showNotification: null,
-  refreshDataDisplay: null,
-  // État interne (utilise des clés au lieu d'IDs)
-  editingKey: null,
-  editingType: null,
-  editingMode: null,
-  // 'edit' ou 'create'
-
-  // Options de verrouillage
-  lockOptions: {
-    lockPieceCreation: true,
-    // Empêche l'ajout de nouvelles barres filles
-    lockPieceAngles: true,
-    // Empêche la modification des angles
-    lockPieceLengths: true // Empêche la modification des longueurs
-  },
-  /**
-   * Initialise le handler d'édition
-   */
-  init: function init(options) {
-    this.dataManager = options.dataManager;
-    this.showNotification = options.showNotification;
-    this.refreshDataDisplay = options.refreshDataDisplay;
-
-    // Appliquer les options de verrouillage si fournies
-    if (options.lockOptions) {
-      this.lockOptions = edit_handler_objectSpread(edit_handler_objectSpread({}, this.lockOptions), options.lockOptions);
-    }
-
-    // Créer les panneaux latéraux s'ils n'existent pas
-    this.createPiecePanel();
-    this.createStockPanel();
-  },
-  /**
-   * NOUVEAU: Convertit des centimètres en mètres pour l'affichage
-   */
-  formatLengthForDisplay: function formatLengthForDisplay(lengthInCm) {
-    var meters = lengthInCm / 100;
-    // Afficher avec le minimum de décimales nécessaires, virgule comme séparateur
-    return meters % 1 === 0 ? meters.toString() : meters.toString().replace('.', ',');
-  },
-  /**
-   * NOUVEAU: Convertit une valeur en mètres (avec virgule ou point) vers des centimètres
-   */
-  parseLengthFromDisplay: function parseLengthFromDisplay(displayValue) {
-    if (!displayValue || displayValue.trim() === '') return null;
-
-    // Remplacer la virgule par un point pour la conversion
-    var normalizedValue = displayValue.replace(',', '.');
-    var meters = parseFloat(normalizedValue);
-    if (isNaN(meters) || meters <= 0) return null;
-
-    // Convertir en centimètres et arrondir
-    return Math.round(meters * 100);
-  },
-  /**
-   * NOUVEAU: Configure les gestionnaires d'événements pour les champs de longueur
-   */
-  setupLengthInputHandlers: function setupLengthInputHandlers(inputElement) {
-    var _this = this;
-    // Gérer la touche Entrée
-    inputElement.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        _this.saveItem();
-      }
-    });
-
-    // Formatage automatique lors de la perte de focus seulement
-    inputElement.addEventListener('blur', function (e) {
-      var value = e.target.value.trim();
-      if (value !== '') {
-        var parsed = _this.parseLengthFromDisplay(value);
-        if (parsed !== null) {
-          e.target.value = _this.formatLengthForDisplay(parsed);
-        }
-      }
-    });
-  },
-  /**
-   * CORRECTION COMPLÈTE: Configure les gestionnaires pour tous les champs du formulaire
-   */
-  setupFormKeyHandlers: function setupFormKeyHandlers() {
-    var _this2 = this;
-    // Supprimer tous les anciens gestionnaires pour éviter les doublons
-    var form = document.querySelector('.panel-form');
-    if (!form) return;
-
-    // Créer un gestionnaire unique pour toute la fenêtre quand un panneau est ouvert
-    var globalKeyHandler = function globalKeyHandler(e) {
-      if (e.key === 'Enter') {
-        // Vérifier qu'un panneau est ouvert
-        var piecePanel = document.getElementById('piece-panel');
-        var stockPanel = document.getElementById('stock-panel');
-        var isPanelOpen = piecePanel && piecePanel.classList.contains('visible') || stockPanel && stockPanel.classList.contains('visible');
-        if (isPanelOpen) {
-          e.preventDefault();
-          e.stopPropagation();
-          _this2.saveItem();
-        }
-      }
-    };
-
-    // Supprimer l'ancien gestionnaire s'il existe
-    if (this._globalKeyHandler) {
-      document.removeEventListener('keydown', this._globalKeyHandler);
-    }
-
-    // Ajouter le nouveau gestionnaire global
-    this._globalKeyHandler = globalKeyHandler;
-    document.addEventListener('keydown', this._globalKeyHandler);
-
-    // Également ajouter sur le formulaire comme backup
-    form.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
-        _this2.saveItem();
-      }
-    });
-  },
-  /**
-   * NOUVEAU: Supprime les gestionnaires d'événements globaux
-   */
-  removeGlobalKeyHandlers: function removeGlobalKeyHandlers() {
-    if (this._globalKeyHandler) {
-      document.removeEventListener('keydown', this._globalKeyHandler);
-      this._globalKeyHandler = null;
-    }
-  },
-  /**
-   * Méthode pour rafraîchir les tableaux
-   */
-  refreshTables: function refreshTables() {
-    this.renderSection();
-  },
-  /**
-   * Rend la section d'édition
-   */
-  renderSection: function renderSection() {
-    this.renderPiecesTable();
-    this.renderStockBarsTable();
-  },
-  /**
-   * Convertit le code d'orientation en affichage lisible
-   */
-  formatOrientation: function formatOrientation(orientation) {
-    switch (orientation) {
-      case 'debout':
-        return 'Debout';
-      case 'a-plat':
-        return 'À plat';
-      default:
-        return orientation;
-    }
-  },
-  /**
-   * Trie les barres selon l'ordre : profil → orientation → longueur
-   * @param {Array} bars - Tableau de barres à trier
-   * @returns {Array} - Tableau trié
-   */
-  sortBars: function sortBars(bars) {
-    return bars.sort(function (a, b) {
-      // 1. Trier par profil
-      if (a.profile !== b.profile) {
-        return a.profile.localeCompare(b.profile);
-      }
-
-      // 2. Trier par orientation (pour les pièces uniquement)
-      if (a.orientation && b.orientation && a.orientation !== b.orientation) {
-        var orientationOrder = {
-          'a-plat': 0,
-          'debout': 1
-        };
-        var orderA = orientationOrder[a.orientation] !== undefined ? orientationOrder[a.orientation] : 2;
-        var orderB = orientationOrder[b.orientation] !== undefined ? orientationOrder[b.orientation] : 2;
-        return orderA - orderB;
-      }
-
-      // 3. Trier par longueur
-      return a.length - b.length;
-    });
-  },
-  /**
-   * Rend le tableau des barres filles avec tri automatique (adapté sans ID)
-   */
-  renderPiecesTable: function renderPiecesTable() {
-    var _this3 = this;
-    var tableContainer = document.querySelector('#pieces-table');
-    var data = this.dataManager.getData();
-
-    // Récupérer toutes les barres filles
-    var allPieces = [];
-    for (var profile in data.pieces) {
-      allPieces.push.apply(allPieces, edit_handler_toConsumableArray(data.pieces[profile]));
-    }
-
-    // Trier les barres selon l'ordre défini
-    var sortedPieces = this.sortBars(allPieces);
-
-    // Générer l'en-tête du tableau
-    var html = "\n      <table class=\"data-table\">\n        <thead>\n          <tr>\n            <th>Nom</th>\n            <th>Profil</th>\n            <th>Orientation</th>\n            <th>Longueur</th>\n            <th>Angle 1</th>\n            <th>Angle 2</th>\n            <th>Quantit\xE9</th>\n            <th>Actions</th>\n          </tr>\n        </thead>\n        <tbody>\n    ";
-
-    // Générer les lignes du tableau
-    var _iterator = edit_handler_createForOfIteratorHelper(sortedPieces),
-      _step;
-    try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var _piece$angles, _piece$angles2;
-        var piece = _step.value;
-        var pieceKey = this.dataManager.generatePieceKey(piece);
-        html += "\n        <tr data-key=\"".concat(pieceKey, "\">\n          <td>").concat(piece.nom || '-', "</td>\n          <td>").concat(piece.profile, "</td>\n          <td>").concat(this.formatOrientation(piece.orientation || "non-définie"), "</td>\n          <td>").concat(Math.round(piece.length), " cm</td>\n          <td>").concat(parseFloat(((_piece$angles = piece.angles) === null || _piece$angles === void 0 ? void 0 : _piece$angles[1]) || 90).toFixed(2), "\xB0</td>\n          <td>").concat(parseFloat(((_piece$angles2 = piece.angles) === null || _piece$angles2 === void 0 ? void 0 : _piece$angles2[2]) || 90).toFixed(2), "\xB0</td>\n          <td>").concat(piece.quantity, "</td>\n          <td>\n            <div class=\"action-buttons\">\n              <button class=\"btn-action btn-action-edit edit-piece-btn\" \n                      data-key=\"").concat(pieceKey, "\" \n                      title=\"\xC9diter\">\n                <img src=\"assets/edit.svg\" alt=\"\xC9diter\" class=\"btn-icon\">\n              </button>\n              <button class=\"btn-action btn-action-delete delete-piece-btn\" \n                      data-key=\"").concat(pieceKey, "\" \n                      title=\"Supprimer\">\n                <img src=\"assets/delete.svg\" alt=\"Supprimer\" class=\"btn-icon\">\n              </button>\n            </div>\n          </td>\n        </tr>\n      ");
-      }
-
-      // Ajouter une ligne pour le bouton d'ajout seulement si non verrouillé
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
-    }
-    if (!this.lockOptions.lockPieceCreation) {
-      html += "\n        <tr class=\"add-row\">\n          <td colspan=\"8\">\n            <button id=\"add-piece-btn\" class=\"btn btn-sm btn-primary\">+ Ajouter une barre \xE0 d\xE9couper</button>\n          </td>\n        </tr>\n      ";
-    }
-    html += "\n      </tbody>\n    </table>\n    ";
-    tableContainer.innerHTML = html;
-
-    // Configurer les gestionnaires d'événements
-    if (!this.lockOptions.lockPieceCreation) {
-      var addBtn = document.getElementById('add-piece-btn');
-      if (addBtn) {
-        addBtn.addEventListener('click', function () {
-          _this3.openPiecePanel('create');
-        });
-      }
-    }
-    document.querySelectorAll('.edit-piece-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var key = btn.getAttribute('data-key');
-        _this3.openPiecePanel('edit', key);
-      });
-    });
-    document.querySelectorAll('.delete-piece-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var key = btn.getAttribute('data-key');
-        if (_this3.dataManager.deletePiece(key)) {
-          _this3.renderPiecesTable(); // Re-render avec tri automatique
-          _this3.updateAllProfileSelects();
-        } else {
-          _this3.showNotification('Erreur lors de la suppression', 'error');
-        }
-      });
-    });
-  },
-  /**
-   * Rend le tableau des barres mères avec tri automatique et longueurs en mètres (adapté sans ID)
-   */
-  renderStockBarsTable: function renderStockBarsTable() {
-    var _this4 = this;
-    var tableContainer = document.querySelector('#stock-bars-table');
-    var data = this.dataManager.getData();
-
-    // Récupérer toutes les barres mères
-    var allMotherBars = [];
-    for (var profile in data.motherBars) {
-      allMotherBars.push.apply(allMotherBars, edit_handler_toConsumableArray(data.motherBars[profile]));
-    }
-
-    // Trier les barres selon l'ordre défini (profil puis longueur pour les barres mères)
-    var sortedBars = this.sortBars(allMotherBars);
-
-    // Générer l'en-tête du tableau
-    var html = "\n      <table class=\"data-table\">\n        <thead>\n          <tr>\n            <th>Profil</th>\n            <th>Longueur</th>\n            <th>Quantit\xE9</th>\n            <th>Actions</th>\n          </tr>\n        </thead>\n        <tbody>\n    ";
-
-    // Générer les lignes du tableau avec longueurs en mètres
-    var _iterator2 = edit_handler_createForOfIteratorHelper(sortedBars),
-      _step2;
-    try {
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-        var bar = _step2.value;
-        var barKey = this.dataManager.generateMotherBarKey(bar);
-        var lengthInMeters = this.formatLengthForDisplay(bar.length);
-        html += "\n        <tr data-key=\"".concat(barKey, "\">\n          <td>").concat(bar.profile, "</td>\n          <td>").concat(lengthInMeters, " m</td>\n          <td>").concat(bar.quantity, "</td>\n          <td>\n            <div class=\"action-buttons\">\n              <button class=\"btn-action btn-action-edit edit-stock-btn\" \n                      data-key=\"").concat(barKey, "\" \n                      title=\"\xC9diter\">\n                <img src=\"assets/edit.svg\" alt=\"\xC9diter\" class=\"btn-icon\">\n              </button>\n              <button class=\"btn-action btn-action-delete delete-stock-btn\" \n                      data-key=\"").concat(barKey, "\" \n                      title=\"Supprimer\">\n                <img src=\"assets/delete.svg\" alt=\"Supprimer\" class=\"btn-icon\">\n              </button>\n            </div>\n          </td>\n        </tr>\n      ");
-      }
-
-      // Ajouter une ligne pour le bouton d'ajout
-    } catch (err) {
-      _iterator2.e(err);
-    } finally {
-      _iterator2.f();
-    }
-    html += "\n        <tr class=\"add-row\">\n          <td colspan=\"4\">\n            <button id=\"add-stock-btn\" class=\"btn btn-sm btn-primary\">+ Ajouter une barre m\xE8re</button>\n          </td>\n        </tr>\n      </tbody>\n    </table>\n    ";
-    tableContainer.innerHTML = html;
-
-    // Configurer les gestionnaires d'événements
-    document.getElementById('add-stock-btn').addEventListener('click', function () {
-      _this4.openStockPanel('create');
-    });
-    document.querySelectorAll('.edit-stock-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var key = btn.getAttribute('data-key');
-        _this4.openStockPanel('edit', key);
-      });
-    });
-    document.querySelectorAll('.delete-stock-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var key = btn.getAttribute('data-key');
-        if (_this4.dataManager.deleteMotherBar(key)) {
-          _this4.renderStockBarsTable(); // Re-render avec tri automatique
-          _this4.updateAllProfileSelects();
-        } else {
-          _this4.showNotification('Erreur lors de la suppression', 'error');
-        }
-      });
-    });
-  },
-  /**
-   * Ouvre le panneau des barres filles (édition ou création) - adapté sans ID
-   */
-  openPiecePanel: function openPiecePanel(mode) {
-    var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    // Vérifier si la création est verrouillée
-    if (mode === 'create' && this.lockOptions.lockPieceCreation) {
-      this.showNotification('La création de nouvelles barres filles est désactivée', 'warning');
-      return;
-    }
-    this.editingMode = mode;
-    this.editingKey = key;
-    this.editingType = 'piece';
-    var panel = document.getElementById('piece-panel');
-    var form = panel.querySelector('.panel-form');
-    var title = panel.querySelector('.panel-title');
-
-    // Vider le formulaire
-    form.innerHTML = '';
-    if (mode === 'edit') {
-      var _item$angles, _item$angles2;
-      var item = this.dataManager.getPieceByKey(key);
-      if (!item) return;
-      title.textContent = "\xC9diter la barre ".concat(item.nom || item.profile);
-
-      // Déterminer si les champs doivent être désactivés
-      var lengthDisabled = this.lockOptions.lockPieceLengths ? 'disabled' : '';
-      var angleDisabled = this.lockOptions.lockPieceAngles ? 'disabled' : '';
-
-      // MODIFICATION: Réorganisation des champs - orientation et quantité après profil
-      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"piece-nom\">Nom :</label>\n          <input type=\"text\" id=\"piece-nom\" value=\"".concat(item.nom || '', "\" placeholder=\"Nom de la barre\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-profile\">Profil :</label>\n          <div class=\"profile-input-container\">\n            <select id=\"piece-profile-select\" class=\"profile-select\">\n              <option value=\"custom\">Saisie personnalis\xE9e</option>\n              ").concat(this.getProfileOptions(item.profile), "\n            </select>\n            <input type=\"text\" id=\"piece-profile\" class=\"profile-input\" value=\"").concat(item.profile, "\" placeholder=\"ex: HEA100\">\n          </div>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-orientation\">Orientation :</label>\n          <select id=\"piece-orientation\">\n            <option value=\"a-plat\" ").concat(item.orientation === 'a-plat' ? 'selected' : '', ">\xC0 plat</option>\n            <option value=\"debout\" ").concat(item.orientation === 'debout' ? 'selected' : '', ">Debout</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"piece-quantity\" min=\"1\" max=\"10000\" value=\"").concat(item.quantity, "\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-length\">Longueur (cm) ").concat(this.lockOptions.lockPieceLengths ? '(verrouillée)' : '', " :</label>\n          <input type=\"number\" id=\"piece-length\" min=\"1\" max=\"100000\" value=\"").concat(item.length, "\" ").concat(lengthDisabled, ">\n          ").concat(this.lockOptions.lockPieceLengths ? '<small class="form-help">La longueur ne peut pas être modifiée pour les barres importées</small>' : '', "\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-1\">Angle 1 (\xB0) ").concat(this.lockOptions.lockPieceAngles ? '(verrouillé)' : '', " :</label>\n          <input type=\"number\" id=\"piece-angle-1\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"").concat(parseFloat(((_item$angles = item.angles) === null || _item$angles === void 0 ? void 0 : _item$angles[1]) || 90).toFixed(2), "\" ").concat(angleDisabled, ">\n          ").concat(this.lockOptions.lockPieceAngles ? '<small class="form-help">Les angles ne peuvent pas être modifiés pour les barres importées</small>' : '', "\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-2\">Angle 2 (\xB0) ").concat(this.lockOptions.lockPieceAngles ? '(verrouillé)' : '', " :</label>\n          <input type=\"number\" id=\"piece-angle-2\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"").concat(parseFloat(((_item$angles2 = item.angles) === null || _item$angles2 === void 0 ? void 0 : _item$angles2[2]) || 90).toFixed(2), "\" ").concat(angleDisabled, ">\n        </div>\n      ");
-
-      // Initialiser le système de profil
-      this.initializeProfileSystem(item.profile);
-    } else {
-      title.textContent = 'Nouvelle barre à découper';
-
-      // MODIFICATION: Même réorganisation pour le mode création
-      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"piece-nom\">Nom :</label>\n          <input type=\"text\" id=\"piece-nom\" placeholder=\"Nom de la barre (optionnel)\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-profile\">Profil :</label>\n          <div class=\"profile-input-container\">\n            <select id=\"piece-profile-select\" class=\"profile-select\">\n              <option value=\"custom\">Saisie personnalis\xE9e</option>\n              ".concat(this.getProfileOptions(), "\n            </select>\n            <input type=\"text\" id=\"piece-profile\" class=\"profile-input\" placeholder=\"ex: HEA100\">\n          </div>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-orientation\">Orientation :</label>\n          <select id=\"piece-orientation\">\n            <option value=\"a-plat\">\xC0 plat</option>\n            <option value=\"debout\">Debout</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"piece-quantity\" min=\"1\" max=\"10000\" value=\"1\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-length\">Longueur (cm) :</label>\n          <input type=\"number\" id=\"piece-length\" min=\"1\" max=\"100000\" placeholder=\"ex: 300\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-1\">Angle 1 (\xB0) :</label>\n          <input type=\"number\" id=\"piece-angle-1\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"90.00\">\n        </div>\n        <div class=\"form-group\">\n          <label for=\"piece-angle-2\">Angle 2 (\xB0) :</label>\n          <input type=\"number\" id=\"piece-angle-2\" min=\"-360\" max=\"360\" step=\"0.01\" value=\"90.00\">\n        </div>\n      ");
-
-      // Initialiser le système de profil sans valeur prédéfinie
-      this.initializeProfileSystem();
-    }
-
-    // Configurer les gestionnaires après génération du formulaire
-    this.setupFormKeyHandlers();
-
-    // Utiliser la méthode d'ouverture
-    this.openPanel('piece-panel');
-  },
-  /**
-   * NOUVEAU: Initialise le système de profil avec dropdown et champ éditable
-   */
-  initializeProfileSystem: function initializeProfileSystem() {
-    var currentValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    var profileSelect = document.getElementById('piece-profile-select');
-    var profileInput = document.getElementById('piece-profile');
-    if (!profileSelect || !profileInput) return;
-
-    // Déterminer l'état initial
-    var isCustomMode = false;
-    if (currentValue && currentValue.trim() !== '') {
-      // Vérifier si la valeur actuelle existe dans les options
-      var matchingOption = Array.from(profileSelect.options).find(function (option) {
-        return option.value === currentValue && option.value !== 'custom';
-      });
-      if (matchingOption) {
-        // Profil existant : sélectionner dans le dropdown
-        profileSelect.value = currentValue;
-        profileInput.value = currentValue;
-        profileInput.readOnly = true;
-        isCustomMode = false;
-      } else {
-        // Profil personnalisé : mode saisie
-        profileSelect.value = 'custom';
-        profileInput.value = currentValue;
-        profileInput.readOnly = false;
-        isCustomMode = true;
-      }
-    } else {
-      // Nouveau : mode saisie par défaut
-      profileSelect.value = 'custom';
-      profileInput.value = '';
-      profileInput.readOnly = false;
-      isCustomMode = true;
-    }
-
-    // Gestionnaire pour le changement de dropdown
-    profileSelect.addEventListener('change', function () {
-      if (profileSelect.value === 'custom') {
-        // Mode saisie personnalisée
-        profileInput.readOnly = false;
-        profileInput.focus();
-        profileInput.select();
-      } else {
-        // Mode profil existant
-        profileInput.value = profileSelect.value;
-        profileInput.readOnly = true;
-      }
-    });
-
-    // Gestionnaire pour le clic sur le champ de saisie
-    profileInput.addEventListener('click', function () {
-      if (profileInput.readOnly) {
-        // Passer en mode saisie personnalisée
-        profileSelect.value = 'custom';
-        profileInput.readOnly = false;
-        profileInput.focus();
-        profileInput.select();
-      }
-    });
-
-    // Gestionnaire pour la saisie dans le champ
-    profileInput.addEventListener('input', function () {
-      if (!profileInput.readOnly) {
-        // En mode saisie, s'assurer que le dropdown est sur "custom"
-        if (profileSelect.value !== 'custom') {
-          profileSelect.value = 'custom';
-        }
-      }
-    });
-
-    // Gestionnaire pour le focus sur le champ
-    profileInput.addEventListener('focus', function () {
-      if (profileInput.readOnly) {
-        // Si on focus sur un champ en lecture seule, passer en mode saisie
-        profileSelect.value = 'custom';
-        profileInput.readOnly = false;
-        // Maintenir le focus et sélectionner le texte
-        setTimeout(function () {
-          profileInput.focus();
-          profileInput.select();
-        }, 0);
-      }
-    });
-
-    // Appliquer les styles visuels initiaux
-    this.updateProfileInputStyles(profileInput, isCustomMode);
-  },
-  /**
-   * NOUVEAU: Met à jour les styles visuels du champ de profil
-   */
-  updateProfileInputStyles: function updateProfileInputStyles(profileInput, isCustomMode) {
-    if (isCustomMode) {
-      profileInput.classList.add('custom-mode');
-      profileInput.classList.remove('readonly-mode');
-    } else {
-      profileInput.classList.add('readonly-mode');
-      profileInput.classList.remove('custom-mode');
-    }
-  },
-  /**
-   * Ouvre le panneau des barres mères - adapté sans ID
-   */
-  openStockPanel: function openStockPanel(mode) {
-    var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
-    if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
-      return;
-    }
-    this.editingMode = mode;
-    this.editingKey = key;
-    this.editingType = 'stock';
-    var panel = document.getElementById('stock-panel');
-    var form = panel.querySelector('.panel-form');
-    var title = panel.querySelector('.panel-title');
-
-    // Vider le formulaire
-    form.innerHTML = '';
-    if (mode === 'edit') {
-      var item = this.dataManager.getMotherBarByKey(key);
-      if (!item) return;
-      title.textContent = "\xC9diter la barre m\xE8re ".concat(item.profile);
-
-      // Convertir la longueur en mètres pour l'affichage
-      var lengthInMeters = this.formatLengthForDisplay(item.length);
-
-      // Générer le formulaire d'édition
-      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"stock-profile\">Profil :</label>\n          <select id=\"stock-profile\">\n            ".concat(this.getProfileOptions(item.profile), "\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-length\">Longueur (m) :</label>\n          <input type=\"text\" id=\"stock-length\" value=\"").concat(lengthInMeters, "\" placeholder=\"ex : 12 ou 3,5\">\n          <small class=\"form-help\">Saisissez la longueur en m\xE8tres</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"stock-quantity\" min=\"1\" max=\"1000000\" value=\"").concat(item.quantity, "\">\n          <small class=\"form-help\">Quantit\xE9 disponible (1000000 = illimit\xE9e)</small>\n        </div>\n      ");
-    } else {
-      // Mode création
-      title.textContent = 'Nouvelle barre mère';
-      form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"stock-profile\">Profil :</label>\n          <select id=\"stock-profile\">\n            ".concat(this.getProfileOptions(), "\n          </select>\n          <small class=\"form-help\">S\xE9lectionnez un profil existant ou saisissez-en un nouveau</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-length\">Longueur (m) :</label>\n          <input type=\"text\" id=\"stock-length\" placeholder=\"ex : 12 ou 3,5\">\n          <small class=\"form-help\">Saisissez la longueur en m\xE8tres</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"stock-quantity\" min=\"1\" max=\"1000000\" value=\"1000000\">\n          <small class=\"form-help\">Quantit\xE9 disponible (1000000 = illimit\xE9e)</small>\n        </div>\n      ");
-    }
-
-    // Configurer les gestionnaires spéciaux pour le champ de longueur
-    var lengthInput = document.getElementById('stock-length');
-    if (lengthInput) {
-      this.setupLengthInputHandlers(lengthInput);
-    }
-
-    // Configurer les gestionnaires après génération du formulaire
-    this.setupFormKeyHandlers();
-
-    // Utiliser la nouvelle méthode d'ouverture
-    this.openPanel('stock-panel');
-
-    // AJOUT: Focus automatique sur le champ longueur pour les nouvelles barres mères
-    if (mode === 'create') {
-      setTimeout(function () {
-        var lengthField = document.getElementById('stock-length');
-        if (lengthField) {
-          lengthField.focus();
-          lengthField.select(); // Sélectionner tout le texte s'il y en a
-          console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
-        }
-      }, 400); // Délai légèrement plus long pour s'assurer que le panneau est bien affiché
-    }
-  },
-  /**
-   * Ferme le panneau d'édition actif et nettoie les gestionnaires
-   */
-  closePanel: function closePanel() {
-    var piecePanel = document.getElementById('piece-panel');
-    var stockPanel = document.getElementById('stock-panel');
-    var overlay = document.getElementById('panel-overlay');
-
-    // Masquer les panneaux
-    if (piecePanel) piecePanel.classList.remove('visible');
-    if (stockPanel) stockPanel.classList.remove('visible');
-    if (overlay) overlay.classList.remove('visible');
-
-    // AJOUT: Débloquer le défilement de la page
-    document.body.classList.remove('panel-open');
-
-    // Nettoyer les gestionnaires d'événements globaux
-    this.removeGlobalKeyHandlers();
-    this.editingKey = null;
-    this.editingType = null;
-    this.editingMode = null;
-  },
-  /**
-   * Enregistre les modifications ou crée un nouvel élément - adapté sans ID
-   */
-  saveItem: function saveItem() {
-    var type = this.editingType;
-    var key = this.editingKey;
-    var mode = this.editingMode;
-    if (!type) return;
-    var success = false;
-    var updatedProfile = false;
-    if (type === 'piece') {
-      var nom = document.getElementById('piece-nom').value.trim();
-      var profileValue = document.getElementById('piece-profile').value.trim();
-      var quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      var orientation = document.getElementById('piece-orientation').value;
-
-      // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
-      var length = null;
-      var angle1 = 90,
-        angle2 = 90;
-      if (!this.lockOptions.lockPieceLengths) {
-        var lengthInput = document.getElementById('piece-length').value;
-        length = parseInt(lengthInput, 10);
-      } else if (mode === 'edit') {
-        var item = this.dataManager.getPieceByKey(key);
-        length = item ? item.length : null;
-      }
-      if (!this.lockOptions.lockPieceAngles) {
-        var angle1Input = document.getElementById('piece-angle-1').value;
-        var angle2Input = document.getElementById('piece-angle-2').value;
-        angle1 = parseFloat(angle1Input);
-        angle2 = parseFloat(angle2Input);
-      } else if (mode === 'edit') {
-        var _item$angles3, _item$angles4;
-        var _item = this.dataManager.getPieceByKey(key);
-        angle1 = _item ? ((_item$angles3 = _item.angles) === null || _item$angles3 === void 0 ? void 0 : _item$angles3[1]) || 90 : 90;
-        angle2 = _item ? ((_item$angles4 = _item.angles) === null || _item$angles4 === void 0 ? void 0 : _item$angles4[2]) || 90 : 90;
-      }
-
-      // Préparer les données à valider
-      var pieceData = {
-        nom: nom,
-        profile: profileValue,
-        length: length,
-        quantity: quantity,
-        orientation: orientation,
-        angles: {
-          1: angle1,
-          2: angle2
-        }
-      };
-
-      // Valider les données
-      var errors = this.validatePieceData(pieceData);
-      if (errors.length > 0) {
-        this.showNotification(errors[0], 'error');
-        return;
-      }
-      if (profileValue && length && quantity) {
-        if (mode === 'edit') {
-          var piece = this.dataManager.getPieceByKey(key);
-          if (piece && piece.profile !== profileValue) {
-            updatedProfile = true;
-          }
-          var updatedPiece = {
-            nom: nom,
-            profile: profileValue,
-            length: length,
-            quantity: quantity,
-            orientation: orientation,
-            angles: {
-              1: angle1,
-              2: angle2
-            }
-          };
-          var newKey = this.dataManager.updatePiece(key, updatedPiece);
-          success = newKey !== null;
-        } else {
-          var _pieceData = {
-            nom: nom,
-            profile: profileValue,
-            length: length,
-            quantity: quantity,
-            orientation: orientation,
-            angles: {
-              1: angle1,
-              2: angle2
-            },
-            type: 'fille'
-          };
-          var addedKeys = this.dataManager.addBars([_pieceData]);
-          if (addedKeys.length > 0) {
-            success = true;
-            updatedProfile = true;
-          }
-        }
-        if (success) {
-          // Re-render avec tri automatique
-          this.renderPiecesTable();
-          if (updatedProfile) {
-            this.updateAllProfileSelects();
-          }
-
-          // Rafraîchir l'affichage global SANS notification
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-
-          // Notification de succès seulement
-          if (mode === 'edit') {
-            this.showNotification("Barre modifi\xE9e", 'success');
-          }
-        }
-      }
-    } else if (type === 'stock') {
-      var _profileValue = document.getElementById('stock-profile').value.trim();
-      var _lengthInput = document.getElementById('stock-length').value.trim();
-      var _quantity = parseInt(document.getElementById('stock-quantity').value, 10);
-
-      // Convertir la longueur de mètres vers centimètres
-      var lengthInCm = this.parseLengthFromDisplay(_lengthInput);
-
-      // Préparer les données à valider
-      var motherBarData = {
-        profile: _profileValue,
-        length: lengthInCm,
-        quantity: _quantity
-      };
-
-      // Valider les données
-      var _errors = this.validateMotherBarData(motherBarData);
-      if (_errors.length > 0) {
-        this.showNotification(_errors[0], 'error');
-        return;
-      }
-      if (_profileValue && lengthInCm && _quantity) {
-        if (mode === 'edit') {
-          var bar = this.dataManager.getMotherBarByKey(key);
-          if (bar && bar.profile !== _profileValue) {
-            updatedProfile = true;
-          }
-          var updatedMotherBar = {
-            profile: _profileValue,
-            length: lengthInCm,
-            quantity: _quantity
-          };
-          var _newKey = this.dataManager.updateMotherBar(key, updatedMotherBar);
-          success = _newKey !== null;
-        } else {
-          var barData = {
-            profile: _profileValue,
-            length: lengthInCm,
-            quantity: _quantity,
-            type: 'mother'
-          };
-          var _addedKeys = this.dataManager.addBars([barData]);
-          if (_addedKeys.length > 0) {
-            success = true;
-            updatedProfile = true;
-          }
-        }
-        if (success) {
-          // Re-render avec tri automatique
-          this.renderStockBarsTable();
-          if (updatedProfile) {
-            this.updateAllProfileSelects();
-          }
-
-          // Rafraîchir l'affichage global SANS notification
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-
-          // Notification de succès seulement
-          if (mode === 'edit') {
-            this.showNotification("Barre m\xE8re modifi\xE9e", 'success');
-          }
-        }
-      }
-    }
-    if (success) {
-      this.closePanel();
-    } else {
-      this.showNotification('Erreur lors de l\'enregistrement', 'error');
-    }
-  },
-  /**
-   * MODIFIÉ: Valide les données d'une barre fille
-   */
-  validatePieceData: function validatePieceData(data) {
-    var errors = [];
-    if (data.nom && data.nom.length > 50) {
-      errors.push('Nom trop long (max 50 caractères)');
-    }
-    if (!data.profile || data.profile.trim() === '') {
-      errors.push('Profil obligatoire');
-    } else if (data.profile.length > 20) {
-      errors.push('Profil trop long (max 20 caractères)');
-    }
-    if (!data.length || isNaN(data.length) || data.length <= 0) {
-      errors.push('Longueur invalide');
-    } else if (data.length > 100000) {
-      errors.push('Longueur trop grande (max 100 000 cm)');
-    } else if (data.length < 1) {
-      errors.push('Longueur minimale 1 cm');
-    }
-    if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
-      errors.push('Quantité invalide');
-    } else if (!Number.isInteger(data.quantity)) {
-      errors.push('Quantité doit être un entier');
-    } else if (data.quantity > 10000) {
-      errors.push('Quantité trop élevée (max 10 000)');
-    }
-    if (data.angles) {
-      if (isNaN(data.angles[1]) || data.angles[1] < -360 || data.angles[1] > 360) {
-        errors.push('Angle 1 invalide (-360 à 360°)');
-      }
-      if (isNaN(data.angles[2]) || data.angles[2] < -360 || data.angles[2] > 360) {
-        errors.push('Angle 2 invalide (-360 à 360°)');
-      }
-    }
-    if (data.orientation && !['a-plat', 'debout'].includes(data.orientation)) {
-      errors.push('Orientation invalide');
-    }
-    return errors;
-  },
-  /**
-   * NOUVEAU: Valide les données d'une barre mère
-   */
-  validateMotherBarData: function validateMotherBarData(data) {
-    var errors = [];
-    if (!data.profile || data.profile.trim() === '') {
-      errors.push('Profil obligatoire');
-    } else if (data.profile.length > 20) {
-      errors.push('Profil trop long (max 20 caractères)');
-    }
-    if (!data.length || isNaN(data.length) || data.length <= 0) {
-      errors.push('Longueur invalide');
-    } else if (data.length > 100000) {
-      errors.push('Longueur trop grande (max 100 000 cm)');
-    } else if (data.length < 10) {
-      errors.push('Longueur minimale 10 cm');
-    }
-    if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
-      errors.push('Quantité invalide');
-    } else if (!Number.isInteger(data.quantity)) {
-      errors.push('Quantité doit être un entier');
-    } else if (data.quantity > 1000000) {
-      errors.push('Quantité trop élevée (max 1 000 000)');
-    }
-    return errors;
-  },
-  /**
-   * NOUVEAU: Vérifie s'il y a des barres filles avant d'ajouter une barre mère
-   */
-  checkPiecesExistBeforeAddingMotherBar: function checkPiecesExistBeforeAddingMotherBar(mode) {
-    if (mode === 'create') {
-      var data = this.dataManager.getData();
-      var totalPieces = 0;
-      for (var profile in data.pieces) {
-        var _iterator3 = edit_handler_createForOfIteratorHelper(data.pieces[profile]),
-          _step3;
-        try {
-          for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-            var piece = _step3.value;
-            totalPieces += piece.quantity;
-          }
-        } catch (err) {
-          _iterator3.e(err);
-        } finally {
-          _iterator3.f();
-        }
-      }
-      if (totalPieces === 0) {
-        this.showNotification('Importez d\'abord des barres à découper', 'warning');
-        return false;
-      }
-    }
-    return true;
-  }
-}, "openStockPanel", function openStockPanel(mode) {
-  var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-  // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
-  if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
-    return;
-  }
-  this.editingMode = mode;
-  this.editingKey = key;
-  this.editingType = 'stock';
-  var panel = document.getElementById('stock-panel');
-  var form = panel.querySelector('.panel-form');
-  var title = panel.querySelector('.panel-title');
-
-  // Vider le formulaire
-  form.innerHTML = '';
-  if (mode === 'edit') {
-    var item = this.dataManager.getMotherBarByKey(key);
-    if (!item) return;
-    title.textContent = "\xC9diter la barre m\xE8re ".concat(item.profile);
-
-    // Convertir la longueur en mètres pour l'affichage
-    var lengthInMeters = this.formatLengthForDisplay(item.length);
-
-    // Générer le formulaire d'édition
-    form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"stock-profile\">Profil :</label>\n          <select id=\"stock-profile\">\n            ".concat(this.getProfileOptions(item.profile), "\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-length\">Longueur (m) :</label>\n          <input type=\"text\" id=\"stock-length\" value=\"").concat(lengthInMeters, "\" placeholder=\"ex : 12 ou 3,5\">\n          <small class=\"form-help\">Saisissez la longueur en m\xE8tres</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"stock-quantity\" min=\"1\" max=\"1000000\" value=\"").concat(item.quantity, "\">\n          <small class=\"form-help\">Quantit\xE9 disponible (1000000 = illimit\xE9e)</small>\n        </div>\n      ");
-  } else {
-    // Mode création
-    title.textContent = 'Nouvelle barre mère';
-    form.innerHTML = "\n        <div class=\"form-group\">\n          <label for=\"stock-profile\">Profil :</label>\n          <select id=\"stock-profile\">\n            ".concat(this.getProfileOptions(), "\n          </select>\n          <small class=\"form-help\">S\xE9lectionnez un profil existant ou saisissez-en un nouveau</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-length\">Longueur (m) :</label>\n          <input type=\"text\" id=\"stock-length\" placeholder=\"ex : 12 ou 3,5\">\n          <small class=\"form-help\">Saisissez la longueur en m\xE8tres</small>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"stock-quantity\">Quantit\xE9 :</label>\n          <input type=\"number\" id=\"stock-quantity\" min=\"1\" max=\"1000000\" value=\"1000000\">\n          <small class=\"form-help\">Quantit\xE9 disponible (1000000 = illimit\xE9e)</small>\n        </div>\n      ");
-  }
-
-  // Configurer les gestionnaires spéciaux pour le champ de longueur
-  var lengthInput = document.getElementById('stock-length');
-  if (lengthInput) {
-    this.setupLengthInputHandlers(lengthInput);
-  }
-
-  // Configurer les gestionnaires après génération du formulaire
-  this.setupFormKeyHandlers();
-
-  // Utiliser la nouvelle méthode d'ouverture
-  this.openPanel('stock-panel');
-
-  // AJOUT: Focus automatique sur le champ longueur pour les nouvelles barres mères
-  if (mode === 'create') {
-    setTimeout(function () {
-      var lengthField = document.getElementById('stock-length');
-      if (lengthField) {
-        lengthField.focus();
-        lengthField.select(); // Sélectionner tout le texte s'il y en a
-        console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
-      }
-    }, 400); // Délai légèrement plus long pour s'assurer que le panneau est bien affiché
-  }
-}), "closePanel", function closePanel() {
-  var piecePanel = document.getElementById('piece-panel');
-  var stockPanel = document.getElementById('stock-panel');
-  var overlay = document.getElementById('panel-overlay');
-
-  // Masquer les panneaux
-  if (piecePanel) piecePanel.classList.remove('visible');
-  if (stockPanel) stockPanel.classList.remove('visible');
-  if (overlay) overlay.classList.remove('visible');
-
-  // AJOUT: Débloquer le défilement de la page
-  document.body.classList.remove('panel-open');
-
-  // Nettoyer les gestionnaires d'événements globaux
-  this.removeGlobalKeyHandlers();
-  this.editingKey = null;
-  this.editingType = null;
-  this.editingMode = null;
-}), "saveItem", function saveItem() {
-  var type = this.editingType;
-  var key = this.editingKey;
-  var mode = this.editingMode;
-  if (!type) return;
-  var success = false;
-  var updatedProfile = false;
-  if (type === 'piece') {
-    var nom = document.getElementById('piece-nom').value.trim();
-    var profileValue = document.getElementById('piece-profile').value.trim();
-    var quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-    var orientation = document.getElementById('piece-orientation').value;
-
-    // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
-    var length = null;
-    var angle1 = 90,
-      angle2 = 90;
-    if (!this.lockOptions.lockPieceLengths) {
-      var lengthInput = document.getElementById('piece-length').value;
-      length = parseInt(lengthInput, 10);
-    } else if (mode === 'edit') {
-      var item = this.dataManager.getPieceByKey(key);
-      length = item ? item.length : null;
-    }
-    if (!this.lockOptions.lockPieceAngles) {
-      var angle1Input = document.getElementById('piece-angle-1').value;
-      var angle2Input = document.getElementById('piece-angle-2').value;
-      angle1 = parseFloat(angle1Input);
-      angle2 = parseFloat(angle2Input);
-    } else if (mode === 'edit') {
-      var _item2$angles, _item2$angles2;
-      var _item2 = this.dataManager.getPieceByKey(key);
-      angle1 = _item2 ? ((_item2$angles = _item2.angles) === null || _item2$angles === void 0 ? void 0 : _item2$angles[1]) || 90 : 90;
-      angle2 = _item2 ? ((_item2$angles2 = _item2.angles) === null || _item2$angles2 === void 0 ? void 0 : _item2$angles2[2]) || 90 : 90;
-    }
-
-    // Préparer les données à valider
-    var pieceData = {
-      nom: nom,
-      profile: profileValue,
-      length: length,
-      quantity: quantity,
-      orientation: orientation,
-      angles: {
-        1: angle1,
-        2: angle2
-      }
-    };
-
-    // Valider les données
-    var errors = this.validatePieceData(pieceData);
-    if (errors.length > 0) {
-      this.showNotification(errors[0], 'error');
-      return;
-    }
-    if (profileValue && length && quantity) {
-      if (mode === 'edit') {
-        var piece = this.dataManager.getPieceByKey(key);
-        if (piece && piece.profile !== profileValue) {
-          updatedProfile = true;
-        }
-        var updatedPiece = {
-          nom: nom,
-          profile: profileValue,
-          length: length,
-          quantity: quantity,
-          orientation: orientation,
-          angles: {
-            1: angle1,
-            2: angle2
-          }
-        };
-        var newKey = this.dataManager.updatePiece(key, updatedPiece);
-        success = newKey !== null;
-      } else {
-        var _pieceData2 = {
-          nom: nom,
-          profile: profileValue,
-          length: length,
-          quantity: quantity,
-          orientation: orientation,
-          angles: {
-            1: angle1,
-            2: angle2
-          },
-          type: 'fille'
-        };
-        var addedKeys = this.dataManager.addBars([_pieceData2]);
-        if (addedKeys.length > 0) {
-          success = true;
-          updatedProfile = true;
-        }
-      }
-      if (success) {
-        // Re-render avec tri automatique
-        this.renderPiecesTable();
-        if (updatedProfile) {
-          this.updateAllProfileSelects();
-        }
-
-        // Rafraîchir l'affichage global SANS notification
-        if (this.refreshDataDisplay) {
-          this.refreshDataDisplay();
-        }
-
-        // Notification de succès seulement
-        if (mode === 'edit') {
-          this.showNotification("Barre modifi\xE9e", 'success');
-        }
-      }
-    }
-  } else if (type === 'stock') {
-    var _profileValue2 = document.getElementById('stock-profile').value.trim();
-    var _lengthInput2 = document.getElementById('stock-length').value.trim();
-    var _quantity2 = parseInt(document.getElementById('stock-quantity').value, 10);
-
-    // Convertir la longueur de mètres vers centimètres
-    var lengthInCm = this.parseLengthFromDisplay(_lengthInput2);
-
-    // Préparer les données à valider
-    var motherBarData = {
-      profile: _profileValue2,
-      length: lengthInCm,
-      quantity: _quantity2
-    };
-
-    // Valider les données
-    var _errors2 = this.validateMotherBarData(motherBarData);
-    if (_errors2.length > 0) {
-      this.showNotification(_errors2[0], 'error');
-      return;
-    }
-    if (_profileValue2 && lengthInCm && _quantity2) {
-      if (mode === 'edit') {
-        var bar = this.dataManager.getMotherBarByKey(key);
-        if (bar && bar.profile !== _profileValue2) {
-          updatedProfile = true;
-        }
-        var updatedMotherBar = {
-          profile: _profileValue2,
-          length: lengthInCm,
-          quantity: _quantity2
-        };
-        var _newKey2 = this.dataManager.updateMotherBar(key, updatedMotherBar);
-        success = _newKey2 !== null;
-      } else {
-        var barData = {
-          profile: _profileValue2,
-          length: lengthInCm,
-          quantity: _quantity2,
-          type: 'mother'
-        };
-        var _addedKeys2 = this.dataManager.addBars([barData]);
-        if (_addedKeys2.length > 0) {
-          success = true;
-          updatedProfile = true;
-        }
-      }
-      if (success) {
-        // Re-render avec tri automatique
-        this.renderStockBarsTable();
-        if (updatedProfile) {
-          this.updateAllProfileSelects();
-        }
-
-        // Rafraîchir l'affichage global SANS notification
-        if (this.refreshDataDisplay) {
-          this.refreshDataDisplay();
-        }
-
-        // Notification de succès seulement
-        if (mode === 'edit') {
-          this.showNotification("Barre m\xE8re modifi\xE9e", 'success');
-        }
-      }
-    }
-  }
-  if (success) {
-    this.closePanel();
-  } else {
-    this.showNotification('Erreur lors de l\'enregistrement', 'error');
-  }
-}), "updateAllProfileSelects", function updateAllProfileSelects() {
-  // Mettre à jour la liste des profils dans le panneau d'ajout/édition de barre mère
-  var stockProfileSelect = document.getElementById('stock-profile');
-  if (stockProfileSelect) {
-    var currentValue = stockProfileSelect.value;
-    stockProfileSelect.innerHTML = this.getProfileOptions(currentValue);
-  }
-
-  // Mettre à jour la liste des profils dans le panneau d'ajout/édition de barre fille
-  var pieceProfileSelect = document.getElementById('piece-profile-select');
-  if (pieceProfileSelect) {
-    var _currentValue = pieceProfileSelect.value;
-    pieceProfileSelect.innerHTML = '<option value="custom">Saisie personnalisée</option>' + this.getProfileOptions(_currentValue);
-  }
-}), "getProfileOptions", function getProfileOptions(currentValue) {
-  var data = this.dataManager.getData();
-  var profiles = new Set();
-
-  // Collecter tous les profils uniques
-  for (var profile in data.pieces) {
-    profiles.add(profile);
-  }
-  for (var _profile in data.motherBars) {
-    profiles.add(_profile);
-  }
-
-  // Générer les options HTML
-  var optionsHtml = '';
-  var _iterator4 = edit_handler_createForOfIteratorHelper(profiles),
-    _step4;
-  try {
-    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-      var _profile2 = _step4.value;
-      var selected = _profile2 === currentValue ? 'selected' : '';
-      optionsHtml += "<option value=\"".concat(_profile2, "\" ").concat(selected, ">").concat(_profile2, "</option>");
-    }
-  } catch (err) {
-    _iterator4.e(err);
-  } finally {
-    _iterator4.f();
-  }
-  return optionsHtml;
-}), "createPiecePanel", function createPiecePanel() {
-  var _this5 = this;
-  // Vérifier si le panneau existe déjà
-  if (document.getElementById('piece-panel')) return;
-
-  // S'assurer que l'overlay existe avec les bonnes propriétés
-  if (!document.getElementById('panel-overlay')) {
-    var overlay = document.createElement('div');
-    overlay.id = 'panel-overlay';
-    overlay.className = 'panel-overlay';
-
-    // AJOUT: Gestionnaire pour fermer en cliquant sur l'overlay
-    overlay.addEventListener('click', function (e) {
-      // Seulement fermer si on clique directement sur l'overlay
-      if (e.target === overlay) {
-        _this5.closePanel();
-      }
-    });
-
-    // AJOUT: Empêcher le défilement avec la molette
-    overlay.addEventListener('wheel', function (e) {
-      e.preventDefault();
-    }, {
-      passive: false
-    });
-    document.body.appendChild(overlay);
-  }
-
-  // Créer le panneau
-  var panel = document.createElement('div');
-  panel.id = 'piece-panel';
-  panel.className = 'side-panel piece-panel';
-  panel.innerHTML = "\n      <div class=\"panel-header\">\n        <h3 class=\"panel-title\">Barre \xE0 d\xE9couper</h3>\n        <button class=\"panel-close\">&times;</button>\n      </div>\n      <div class=\"panel-form\">\n        <!-- Le contenu du formulaire sera g\xE9n\xE9r\xE9 dynamiquement -->\n      </div>\n      <div class=\"panel-actions\">\n        <button class=\"btn btn-secondary cancel-btn\">Annuler</button>\n        <button class=\"btn btn-primary save-btn\">Enregistrer</button>\n      </div>\n    ";
-
-  // Ajouter au DOM
-  document.body.appendChild(panel);
-
-  // Ajouter les gestionnaires d'événements
-  panel.querySelector('.panel-close').addEventListener('click', function () {
-    return _this5.closePanel();
-  });
-  panel.querySelector('.cancel-btn').addEventListener('click', function () {
-    return _this5.closePanel();
-  });
-  panel.querySelector('.save-btn').addEventListener('click', function () {
-    return _this5.saveItem();
-  });
-}), "createStockPanel", function createStockPanel() {
-  var _this6 = this;
-  // Vérifier si le panneau existe déjà
-  if (document.getElementById('stock-panel')) return;
-
-  // S'assurer que l'overlay existe
-  if (!document.getElementById('panel-overlay')) {
-    var overlay = document.createElement('div');
-    overlay.id = 'panel-overlay';
-    overlay.className = 'panel-overlay';
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) {
-        _this6.closePanel();
-      }
-    });
-    overlay.addEventListener('wheel', function (e) {
-      e.preventDefault();
-    }, {
-      passive: false
-    });
-    document.body.appendChild(overlay);
-  }
-
-  // Créer le panneau
-  var panel = document.createElement('div');
-  panel.id = 'stock-panel';
-  panel.className = 'side-panel stock-panel';
-  panel.innerHTML = "\n      <div class=\"panel-header\">\n        <h3 class=\"panel-title\">Barre m\xE8re</h3>\n        <button class=\"panel-close\">&times;</button>\n      </div>\n      <div class=\"panel-form\">\n        <!-- Le contenu du formulaire sera g\xE9n\xE9r\xE9 dynamiquement -->\n      </div>\n      <div class=\"panel-actions\">\n        <button class=\"btn btn-secondary cancel-btn\">Annuler</button>\n        <button class=\"btn btn-primary save-btn\">Enregistrer</button>\n      </div>\n    ";
-
-  // Ajouter au DOM
-  document.body.appendChild(panel);
-
-  // Ajouter les gestionnaires d'événements
-  panel.querySelector('.panel-close').addEventListener('click', function () {
-    return _this6.closePanel();
-  });
-  panel.querySelector('.cancel-btn').addEventListener('click', function () {
-    return _this6.closePanel();
-  });
-  panel.querySelector('.save-btn').addEventListener('click', function () {
-    return _this6.saveItem();
-  });
-}), "openPanel", function openPanel(panelId) {
-  console.log('🔧 Ouverture du panneau:', panelId);
-  var panel = document.getElementById(panelId);
-  var overlay = document.getElementById('panel-overlay');
-  if (!panel) {
-    console.error('❌ Panneau non trouvé:', panelId);
-    return;
-  }
-  if (!overlay) {
-    console.error('❌ Overlay non trouvé');
-    return;
-  }
-
-  // Bloquer le défilement de la page
-  document.body.classList.add('panel-open');
-  console.log('🔒 Défilement de la page bloqué');
-
-  // Afficher le panneau et l'overlay
-  panel.classList.add('visible');
-  overlay.classList.add('visible');
-  console.log('👁️ Panneau et overlay affichés');
-
-  // MODIFICATION: Focus par défaut seulement si pas de focus spécifique prévu
-  // Le focus spécifique sera géré dans openStockPanel pour le mode 'create'
-  if (panelId !== 'stock-panel' || this.editingMode === 'edit') {
-    setTimeout(function () {
-      var firstInput = panel.querySelector('input, select, textarea');
-      if (firstInput && !firstInput.disabled) {
-        firstInput.focus();
-        console.log('🎯 Focus sur le premier champ');
-      }
-    }, 300);
-  }
-});
-;// ./src/js/ui/notification-service.js
-/**
- * Service de notification
- * Gère l'affichage des notifications à l'utilisateur
- */
-var NotificationService = {
-  /**
-   * Initialise le service de notification
-   */
-  init: function init() {
-    this.createNotificationContainer();
-  },
-  /**
-   * Crée le conteneur de notifications
-   */
-  createNotificationContainer: function createNotificationContainer() {
-    var container = document.getElementById('notification-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'notification-container';
-      container.className = 'notification-container';
-      container.style.cssText = "\n        position: fixed;\n        top: 20px;\n        right: 20px;\n        z-index: 9999;\n        max-width: 400px;\n        pointer-events: none;\n      ";
-      document.body.appendChild(container);
-    }
-  },
-  /**
-   * Obtient l'icône pour chaque type
-   */
-  getIcon: function getIcon(type) {
-    // Pas d'icônes, retourner une chaîne vide
-    return '';
-  },
-  /**
-   * Affiche une notification
-   * @param {string} message - Message à afficher
-   * @param {string} type - Type de notification ('success', 'warning', 'error', 'info')
-   */
-  show: function show(message) {
-    var _this = this;
-    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
-    // Créer la notification
-    var notification = document.createElement('div');
-    notification.className = "notification notification-".concat(type);
-    notification.style.cssText = "\n      background: ".concat(this.getBackgroundColor(type), ";\n      color: ").concat(this.getTextColor(type), ";\n      border: 1px solid ").concat(this.getBorderColor(type), ";\n      border-radius: 6px;\n      padding: 12px 16px;\n      margin-bottom: 8px;\n      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);\n      pointer-events: auto;\n      opacity: 0;\n      transform: translateX(100%);\n      transition: all 0.3s ease;\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      font-size: 14px;\n      line-height: 1.4;\n    ");
-
-    // Ajouter le message (sans icône)
-    var content = document.createElement('div');
-    content.style.flex = '1';
-    content.textContent = message; // Utiliser textContent au lieu de innerHTML
-
-    // Bouton de fermeture
-    var closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '×';
-    closeBtn.style.cssText = "\n      background: none;\n      border: none;\n      color: inherit;\n      font-size: 18px;\n      cursor: pointer;\n      margin-left: 12px;\n      padding: 0;\n      line-height: 1;\n    ";
-    notification.appendChild(content);
-    notification.appendChild(closeBtn);
-
-    // Ajouter au conteneur
-    var container = document.getElementById('notification-container');
-    container.appendChild(notification);
-
-    // Animation d'entrée
-    setTimeout(function () {
-      notification.style.opacity = '1';
-      notification.style.transform = 'translateX(0)';
-    }, 10);
-
-    // Fermeture automatique et manuelle
-    var autoRemove = setTimeout(function () {
-      _this.removeNotification(notification);
-    }, type === 'error' ? 6000 : 1000); // Réduit les durées
-
-    closeBtn.addEventListener('click', function () {
-      clearTimeout(autoRemove);
-      _this.removeNotification(notification);
-    });
-
-    // Log console pour les erreurs
-    if (type === 'error') {
-      console.error(message);
-    }
-  },
-  /**
-   * Supprime une notification avec animation
-   */
-  removeNotification: function removeNotification(notification) {
-    notification.style.opacity = '0';
-    notification.style.transform = 'translateX(100%)';
-    setTimeout(function () {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 300);
-  },
-  /**
-   * Obtient la couleur de fond pour chaque type
-   */
-  getBackgroundColor: function getBackgroundColor(type) {
-    var colors = {
-      success: '#d4edda',
-      warning: '#fff3cd',
-      error: '#f8d7da',
-      info: '#d1ecf1'
-    };
-    return colors[type] || colors.info;
-  },
-  /**
-   * Obtient la couleur du texte pour chaque type
-   */
-  getTextColor: function getTextColor(type) {
-    var colors = {
-      success: '#155724',
-      warning: '#856404',
-      error: '#721c24',
-      info: '#0c5460'
-    };
-    return colors[type] || colors.info;
-  },
-  /**
-   * Obtient la couleur de bordure pour chaque type
-   */
-  getBorderColor: function getBorderColor(type) {
-    var colors = {
-      success: '#c3e6cb',
-      warning: '#ffeeba',
-      error: '#f5c6cb',
-      info: '#bee5eb'
-    };
-    return colors[type] || colors.info;
-  }
-};
-;// ./src/js/ui/results-handler.js
-function results_handler_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return results_handler_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (results_handler_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, results_handler_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, results_handler_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), results_handler_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", results_handler_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), results_handler_regeneratorDefine2(u), results_handler_regeneratorDefine2(u, o, "Generator"), results_handler_regeneratorDefine2(u, n, function () { return this; }), results_handler_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (results_handler_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function results_handler_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } results_handler_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { results_handler_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, results_handler_regeneratorDefine2(e, r, n, t); }
-function results_handler_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function results_handler_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { results_handler_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { results_handler_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-/**
- * Gestionnaire de la section résultats
- * Gère le rendu des résultats et la génération des fichiers F4C
- */
-
-
-
-var ResultsHandler = {
-  // Dépendances
-  F4CGenerator: null,
-  dataManager: null,
-  uiController: null,
-  // Callbacks
-  showNotification: null,
-  // État pour gérer les modals
-  currentModal: null,
-  /**
-   * Initialise le gestionnaire de résultats
-   */
-  init: function init(options) {
-    this.F4CGenerator = options.F4CGenerator;
-    this.dataManager = options.dataManager;
-    this.uiController = options.uiController;
-    this.showNotification = options.showNotification;
-  },
-  /**
-   * Génère les aperçus des fichiers F4C à partir des objets F4C
-   */
-  generateF4CPreviews: function generateF4CPreviews() {
-    var _this = this;
-    try {
-      var container = document.getElementById('F4C-files-list');
-      if (!container) {
-        console.warn('Container F4C-files-list non trouvé');
-        return;
-      }
-      var F4CObjects = this.uiController.getCurrentF4CObjects();
-      if (!F4CObjects || F4CObjects.length === 0) {
-        container.innerHTML = '<p class="info-text">Aucun fichier F4C à générer.</p>';
-        return;
-      }
-
-      // Filtrer les objets F4C valides
-      var validF4CObjects = F4CObjects.filter(function (F4CObject) {
-        if (!F4CObject) {
-          console.warn('Objet F4C undefined trouvé');
-          return false;
-        }
-        if (!F4CObject.profile) {
-          console.warn('Objet F4C sans profile:', F4CObject);
-          return false;
-        }
-        return true;
-      });
-      if (validF4CObjects.length === 0) {
-        container.innerHTML = '<p class="error-text">Aucun objet F4C valide trouvé.</p>';
-        return;
-      }
-      var html = "<div class=\"F4C-preview-header\">\n        <h3>Fichiers F4C \xE0 g\xE9n\xE9rer</h3>\n        <button id=\"download-all-F4C-btn\" class=\"btn btn-primary\">\n          <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n          T\xE9l\xE9charger tous les F4C (ZIP)\n        </button>\n      </div>";
-
-      // Générer l'aperçu pour chaque objet F4C valide
-      validF4CObjects.forEach(function (F4CObject, index) {
-        try {
-          var fileName = _this.F4CGenerator.generateF4CFileName(F4CObject);
-          html += "\n            <div class=\"F4C-file-item\" data-F4C-index=\"".concat(index, "\">\n              <div class=\"F4C-file-header\">\n                <span class=\"F4C-file-name\">").concat(fileName, "</span>\n                <div class=\"F4C-file-actions\">\n                  <button class=\"btn btn-sm btn-outline info-F4C-btn\" \n                          data-F4C-index=\"").concat(index, "\">\n                    <img src=\"assets/info.svg\" alt=\"\" class=\"btn-icon\">\n                    D\xE9tails\n                  </button>\n                  <button class=\"btn btn-sm btn-primary download-F4C-btn\" \n                          data-F4C-index=\"").concat(index, "\">\n                    <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n                    T\xE9l\xE9charger\n                  </button>\n                </div>\n              </div>\n            </div>\n          ");
-        } catch (error) {
-          console.error('Erreur lors de la génération du nom de fichier F4C:', error, F4CObject);
-          html += "\n            <div class=\"F4C-file-item error\">\n              <div class=\"F4C-file-header\">\n                <span class=\"F4C-file-name\">Erreur - F4C ".concat(index + 1, "</span>\n                <div class=\"F4C-file-actions\">\n                  <span class=\"error-text\">Erreur</span>\n                </div>\n              </div>\n            </div>\n          ");
-        }
-      });
-      container.innerHTML = html;
-
-      // Configurer les événements
-      this.setupF4CPreviewEvents();
-      console.log("".concat(validF4CObjects.length, " aper\xE7us F4C g\xE9n\xE9r\xE9s"));
-    } catch (error) {
-      console.error('Erreur lors de la génération des aperçus F4C:', error);
-      var _container = document.getElementById('F4C-files-list');
-      if (_container) {
-        _container.innerHTML = '<p class="error-text">Erreur lors de la génération des aperçus F4C.</p>';
-      }
-    }
-  },
-  /**
-   * Configure les événements pour les aperçus F4C
-   */
-  setupF4CPreviewEvents: function setupF4CPreviewEvents() {
-    var _this2 = this;
-    // Bouton télécharger tout
-    var downloadAllBtn = document.getElementById('download-all-F4C-btn');
-    if (downloadAllBtn) {
-      downloadAllBtn.addEventListener('click', function () {
-        _this2.downloadAllF4C();
-      });
-    }
-
-    // Boutons de téléchargement individuel
-    document.querySelectorAll('.download-F4C-btn').forEach(function (button) {
-      button.addEventListener('click', function (e) {
-        var F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
-        _this2.downloadSingleF4C(F4CIndex);
-      });
-    });
-
-    // Boutons d'informations
-    document.querySelectorAll('.info-F4C-btn').forEach(function (button) {
-      button.addEventListener('click', function (e) {
-        var F4CIndex = parseInt(e.target.getAttribute('data-F4C-index'), 10);
-        _this2.showF4CInfo(F4CIndex);
-      });
-    });
-  },
-  /**
-   * MODIFIÉ: Télécharge un fichier F4C individuel avec overlay de chargement
-   */
-  downloadSingleF4C: function downloadSingleF4C(F4CIndex) {
-    try {
-      // NOUVEAU: Afficher l'overlay de téléchargement
-      UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
-      var F4CObjects = this.uiController.getCurrentF4CObjects();
-      if (!F4CObjects || !F4CObjects[F4CIndex]) {
-        UIUtils.hideSimpleLoadingOverlay();
-        this.showNotification('Objet F4C introuvable', 'error');
-        return;
-      }
-      var F4CObject = F4CObjects[F4CIndex];
-      var F4CContent = this.F4CGenerator.generateF4CFromObject(F4CObject, this.dataManager);
-      var fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
-
-      // Utiliser setTimeout pour permettre à l'overlay de s'afficher avant le téléchargement
-      setTimeout(function () {
-        UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
-
-        // Masquer l'overlay après un court délai pour laisser le temps au popup de s'afficher
-        setTimeout(function () {
-          UIUtils.hideSimpleLoadingOverlay();
-        }, 500);
-      }, 100);
-    } catch (error) {
-      UIUtils.hideSimpleLoadingOverlay();
-      console.error('Erreur lors du téléchargement F4C:', error);
-      this.showNotification("Erreur lors du t\xE9l\xE9chargement: ".concat(error.message), 'error');
-    }
-  },
-  /**
-   * Affiche les informations détaillées du F4C
-   */
-  showF4CInfo: function showF4CInfo(F4CIndex) {
-    try {
-      // Fermer le modal existant s'il y en a un
-      this.closeF4CInfoModal();
-      var F4CObjects = this.uiController.getCurrentF4CObjects();
-      if (!F4CObjects || !F4CObjects[F4CIndex]) {
-        this.showNotification('Objet F4C introuvable', 'error');
-        return;
-      }
-      var F4CObject = F4CObjects[F4CIndex];
-      var fileName = this.F4CGenerator.generateF4CFileName(F4CObject);
-      this.showF4CInfoModal(fileName, F4CObject);
-    } catch (error) {
-      console.error('Erreur lors de l\'affichage des infos F4C:', error);
-      this.showNotification("Erreur lors de l'affichage: ".concat(error.message), 'error');
-    }
-  },
-  /**
-   * Ferme le modal F4C s'il existe
-   */
-  closeF4CInfoModal: function closeF4CInfoModal() {
-    if (this.currentModal && this.currentModal.parentNode) {
-      this.currentModal.parentNode.removeChild(this.currentModal);
-      this.currentModal = null;
-    }
-
-    // Nettoyer tous les modals F4C existants (au cas où)
-    var existingModals = document.querySelectorAll('.F4C-info-modal');
-    existingModals.forEach(function (modal) {
-      if (modal.parentNode) {
-        modal.parentNode.removeChild(modal);
-      }
-    });
-  },
-  /**
-   * Formate l'orientation pour l'affichage
-   */
-  formatOrientation: function formatOrientation(orientation) {
-    switch (orientation) {
-      case 'a-plat':
-        return 'À plat';
-      case 'debout':
-        return 'Debout';
-      default:
-        return orientation;
-    }
-  },
-  /**
-   * Formate la longueur en mètres
-   */
-  formatLengthInMeters: function formatLengthInMeters(lengthInCm) {
-    var meters = lengthInCm / 100;
-    return meters % 1 === 0 ? "".concat(meters, " m") : "".concat(meters.toFixed(2), " m");
-  },
-  /**
-   * Affiche une modal avec les informations du F4C
-   */
-  showF4CInfoModal: function showF4CInfoModal(fileName, F4CObject) {
-    var _this3 = this;
-    // Adapter au nouveau format F4C
-    var profile = F4CObject.profile;
-    var orientation = F4CObject.orientation;
-    var length = F4CObject.length;
-    var pieces = F4CObject.pieces || [];
-    var b021 = F4CObject.B021 || 'N/A';
-    var b035 = F4CObject.B035 || '0';
-
-    // Calculer la chute et l'efficacité
-    var totalPiecesLength = pieces.reduce(function (sum, piece) {
-      return sum + piece.length;
-    }, 0);
-    var waste = length - totalPiecesLength;
-    var efficiency = length > 0 ? (totalPiecesLength / length * 100).toFixed(1) : 0;
-
-    // Créer la modal en utilisant les classes existantes
-    var modal = document.createElement('div');
-    modal.className = 'modal F4C-info-modal';
-    modal.innerHTML = "\n      <div class=\"modal-content F4C-modal-content\">\n        <div class=\"modal-header\">\n          <h3>D\xE9tails du F4C: ".concat(fileName, "</h3>\n          <button class=\"close-modal\" title=\"Fermer\">&times;</button>\n        </div>\n        \n        <div class=\"modal-body F4C-modal-body\">\n          <!-- En-t\xEAte simplifi\xE9 -->\n          <div class=\"F4C-header-grid\">\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Profil</div>\n              <div class=\"F4C-header-value\">").concat(profile, "</div>\n            </div>\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Orientation</div>\n              <div class=\"F4C-header-value\">").concat(this.formatOrientation(orientation), "</div>\n            </div>\n            <div class=\"F4C-header-item\">\n              <div class=\"F4C-header-label\">Longueur</div>\n              <div class=\"F4C-header-value\">").concat(this.formatLengthInMeters(length), "</div>\n            </div>\n          </div>\n          \n          <!-- Informations de performance -->\n          <div class=\"F4C-performance-info\">\n            <span class=\"F4C-performance-item\">\n              Chute&nbsp;: <span class=\"F4C-performance-value\">").concat(waste, " cm</span>\n            </span>\n            <span class=\"F4C-performance-item\">\n              Efficacit\xE9&nbsp;: <span class=\"F4C-performance-value\">").concat(efficiency, "%</span>\n            </span>\n          </div>\n          \n          <!-- Param\xE8tres BODY -->\n          <div class=\"F4C-section\">\n            <h4 class=\"F4C-section-title\">Param\xE8tres BODY:</h4>\n            <div class=\"F4C-params-grid\">\n              <span class=\"F4C-param-tag\">B021: ").concat(b021, "</span>\n              <span class=\"F4C-param-tag\">B035: ").concat(b035, "</span>\n            </div>\n          </div>\n          \n          <!-- Barres \xE0 d\xE9couper -->\n          <div class=\"F4C-section\">\n            <h4 class=\"F4C-section-title\">Barres \xE0 d\xE9couper (").concat(pieces.length, "):</h4>\n            \n            <div class=\"F4C-pieces-list\">\n              ").concat(pieces.map(function (piece, index) {
-      // Accès direct aux propriétés de la pièce
-      var f4c = piece.f4cData || {};
-
-      // Calculer les valeurs F4C
-      var s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-      var s052 = '1';
-      var s053 = '1';
-      var s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
-      var s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
-      var s058 = f4c.S058 || piece.S058 || '';
-      return "\n                  <div class=\"F4C-piece-item\">\n                    <!-- Index align\xE9 \xE0 droite -->\n                    <div class=\"F4C-piece-index\">#".concat(index + 1, "</div>\n                    \n                    <!-- Nom de la pi\xE8ce -->\n                    <div class=\"F4C-piece-name\">\n                      ").concat(piece.nom || "Pi\xE8ce ".concat(index + 1, " - ").concat(piece.length, "cm"), "\n                    </div>\n                    \n                    <!-- Codes F4C -->\n                    <div class=\"F4C-f4c-grid\">\n                      <span class=\"F4C-f4c-tag\">S051: ").concat(s051, "</span>\n                      <span class=\"F4C-f4c-tag\">S052: ").concat(s052, "</span>\n                      <span class=\"F4C-f4c-tag\">S053: ").concat(s053, "</span>\n                      <span class=\"F4C-f4c-tag\">S054: ").concat(s054, "</span>\n                      <span class=\"F4C-f4c-tag\">S055: ").concat(s055, "</span>\n                      <span class=\"F4C-f4c-tag\">S058: ").concat(s058, "</span>\n                    </div>\n                  </div>\n                ");
-    }).join(''), "\n            </div>\n          </div>\n        </div>\n        \n        <div class=\"modal-footer\">\n          <button class=\"btn btn-secondary close-modal\">Fermer</button>\n          <button class=\"btn btn-primary modal-download\">\n            <img src=\"assets/download.svg\" alt=\"\" class=\"btn-icon\">\n            T\xE9l\xE9charger\n          </button>\n        </div>\n      </div>\n    ");
-
-    // Stocker la référence du modal
-    this.currentModal = modal;
-
-    // Ajouter au DOM
-    document.body.appendChild(modal);
-
-    // Gérer les événements de fermeture
-    modal.querySelectorAll('.close-modal').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        _this3.closeF4CInfoModal();
-      });
-    });
-
-    // Fermer en cliquant sur l'overlay (background du modal)
-    modal.addEventListener('click', function (e) {
-      if (e.target === modal) {
-        _this3.closeF4CInfoModal();
-      }
-    });
-
-    // Fermer avec la touche Escape
-    var _handleEscape = function handleEscape(e) {
-      if (e.key === 'Escape') {
-        _this3.closeF4CInfoModal();
-        document.removeEventListener('keydown', _handleEscape);
-      }
-    };
-    document.addEventListener('keydown', _handleEscape);
-
-    // MODIFIÉ: Bouton de téléchargement avec overlay
-    modal.querySelector('.modal-download').addEventListener('click', function () {
-      try {
-        // NOUVEAU: Afficher l'overlay de téléchargement
-        UIUtils.showSimpleLoadingOverlay('Préparation du téléchargement...');
-
-        // Utiliser setTimeout pour permettre à l'overlay de s'afficher
-        setTimeout(function () {
-          var F4CContent = _this3.F4CGenerator.generateF4CFromObject(F4CObject, _this3.dataManager);
-          UIUtils.downloadFile(F4CContent, fileName, 'text/plain');
-
-          // Fermer le modal et masquer l'overlay après un délai
-          setTimeout(function () {
-            _this3.closeF4CInfoModal();
-            UIUtils.hideSimpleLoadingOverlay();
-          }, 500);
-        }, 100);
-      } catch (error) {
-        UIUtils.hideSimpleLoadingOverlay();
-        console.error('Erreur téléchargement:', error);
-        _this3.showNotification('Erreur lors du téléchargement', 'error');
-      }
-    });
-  },
-  /**
-   * MODIFIÉ: Télécharge tous les fichiers F4C dans un ZIP avec overlay de chargement
-   */
-  downloadAllF4C: function () {
-    var _downloadAllF4C = results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee2() {
-      var _this4 = this;
-      var _t2;
-      return results_handler_regenerator().w(function (_context2) {
-        while (1) switch (_context2.n) {
-          case 0:
-            _context2.p = 0;
-            console.log('🔽 Début du téléchargement des F4C...');
-            if (this.uiController.currentF4CObjects) {
-              _context2.n = 1;
-              break;
-            }
-            throw new Error('Aucun objet F4C disponible');
-          case 1:
-            // NOUVEAU: Afficher l'overlay de téléchargement
-            UIUtils.showSimpleLoadingOverlay('Génération du fichier ZIP...');
-
-            // Utiliser setTimeout pour permettre à l'overlay de s'afficher
-            setTimeout(/*#__PURE__*/results_handler_asyncToGenerator(/*#__PURE__*/results_handler_regenerator().m(function _callee() {
-              var result, _t;
-              return results_handler_regenerator().w(function (_context) {
-                while (1) switch (_context.n) {
-                  case 0:
-                    _context.p = 0;
-                    _context.n = 1;
-                    return F4CGenerator.generateAllF4CFromObjects(_this4.uiController.currentF4CObjects, _this4.uiController.dataManager);
-                  case 1:
-                    result = _context.v;
-                    // CORRECTION: Vérifier que result a la bonne structure
-                    console.log("\uD83D\uDCE6 Nom du ZIP g\xE9n\xE9r\xE9: ".concat(result.fileName));
-
-                    // Télécharger avec le nom automatiquement généré
-                    UIUtils.downloadFile(result.blob, result.fileName, 'application/zip');
-
-                    // Masquer l'overlay après un délai pour laisser le temps au popup de s'afficher
-                    setTimeout(function () {
-                      UIUtils.hideSimpleLoadingOverlay();
-                    }, 1000); // Délai plus long pour le ZIP car il peut être plus lourd
-                    _context.n = 3;
-                    break;
-                  case 2:
-                    _context.p = 2;
-                    _t = _context.v;
-                    UIUtils.hideSimpleLoadingOverlay();
-                    console.error('❌ Erreur téléchargement F4C:', _t);
-
-                    // CORRECTION: Utiliser this.showNotification ou NotificationService
-                    if (_this4.showNotification) {
-                      _this4.showNotification("\u274C Erreur: ".concat(_t.message), 'error');
-                    } else {
-                      NotificationService.show("\u274C Erreur: ".concat(_t.message), 'error');
-                    }
-                  case 3:
-                    return _context.a(2);
-                }
-              }, _callee, null, [[0, 2]]);
-            })), 100);
-            _context2.n = 3;
-            break;
-          case 2:
-            _context2.p = 2;
-            _t2 = _context2.v;
-            UIUtils.hideSimpleLoadingOverlay();
-            console.error('❌ Erreur téléchargement F4C:', _t2);
-
-            // CORRECTION: Utiliser this.showNotification ou NotificationService
-            if (this.showNotification) {
-              this.showNotification("\u274C Erreur: ".concat(_t2.message), 'error');
-            } else {
-              NotificationService.show("\u274C Erreur: ".concat(_t2.message), 'error');
-            }
-          case 3:
-            return _context2.a(2);
-        }
-      }, _callee2, this, [[0, 2]]);
-    }));
-    function downloadAllF4C() {
-      return _downloadAllF4C.apply(this, arguments);
-    }
-    return downloadAllF4C;
-  }()
 };
 ;// ./src/js/ui-controller.js
 function ui_controller_typeof(o) { "@babel/helpers - typeof"; return ui_controller_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, ui_controller_typeof(o); }
 var _UIController;
+function ui_controller_toConsumableArray(r) { return ui_controller_arrayWithoutHoles(r) || ui_controller_iterableToArray(r) || ui_controller_unsupportedIterableToArray(r) || ui_controller_nonIterableSpread(); }
+function ui_controller_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function ui_controller_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function ui_controller_arrayWithoutHoles(r) { if (Array.isArray(r)) return ui_controller_arrayLikeToArray(r); }
+function ui_controller_ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function ui_controller_objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ui_controller_ownKeys(Object(t), !0).forEach(function (r) { ui_controller_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ui_controller_ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function ui_controller_defineProperty(e, r, t) { return (r = ui_controller_toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function ui_controller_toPropertyKey(t) { var i = ui_controller_toPrimitive(t, "string"); return "symbol" == ui_controller_typeof(i) ? i : i + ""; }
 function ui_controller_toPrimitive(t, r) { if ("object" != ui_controller_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != ui_controller_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
@@ -8902,14 +9004,12 @@ function ui_controller_regenerator() { /*! regenerator-runtime -- Copyright (c) 
 function ui_controller_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } ui_controller_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { if (r) i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n;else { var o = function o(r, n) { ui_controller_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); }; o("next", 0), o("throw", 1), o("return", 2); } }, ui_controller_regeneratorDefine2(e, r, n, t); }
 function ui_controller_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function ui_controller_asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { ui_controller_asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { ui_controller_asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+ // MODIFIÉ: Import direct
 
 
 
 
 
- // Assure-toi que l'import existe
-
-// Importer les gestionnaires UI
 
 
 
@@ -8929,6 +9029,7 @@ var UIController = (_UIController = {
   // Gestionnaires UI
   importHandler: null,
   editHandler: null,
+  // MODIFIÉ: Sera maintenant EditController
   resultsHandler: null,
   notificationService: null,
   // État de l'application
@@ -9184,7 +9285,7 @@ var UIController = (_UIController = {
   var _init = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee() {
     var _t;
     return ui_controller_regenerator().w(function (_context) {
-      while (1) switch (_context.n) {
+      while (1) switch (_context.p = _context.n) {
         case 0:
           _context.p = 0;
           console.log('🚀 Initialisation de l\'application...');
@@ -9229,13 +9330,16 @@ var UIController = (_UIController = {
   this.importManager = ImportManager;
   this.F4CGenerator = F4CGenerator;
   this.F4CManager = F4CManager;
+
+  // NOUVEAU: Initialiser les données (chargement automatique du localStorage)
+  this.dataManager.initData();
   console.log('📋 Services principaux initialisés');
 }), "initializeUIHandlers", function () {
   var _initializeUIHandlers = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee2() {
     var _this5 = this;
     var _t2;
     return ui_controller_regenerator().w(function (_context2) {
-      while (1) switch (_context2.n) {
+      while (1) switch (_context2.p = _context2.n) {
         case 0:
           _context2.p = 0;
           // Initialiser les gestionnaires avec leurs dépendances
@@ -9250,7 +9354,9 @@ var UIController = (_UIController = {
               return _this5.refreshDataDisplay();
             }
           });
-          this.editHandler = EditHandler;
+
+          // MODIFIÉ: Utiliser EditController directement
+          this.editHandler = EditController;
           this.editHandler.init({
             dataManager: this.dataManager,
             showNotification: function showNotification(msg, type) {
@@ -9535,7 +9641,7 @@ var UIController = (_UIController = {
         var _ref2 = ui_controller_slicedToArray(_ref, 2),
           length = _ref2[0],
           count = _ref2[1];
-        return "".concat(count, "\xD7").concat(length, "cm");
+        return "".concat(count, "\xD7").concat(length, "mm");
       }).join(' + ');
 
       // Calculer l'efficacité
@@ -9544,8 +9650,8 @@ var UIController = (_UIController = {
       }, 0);
       var efficiency = barLength > 0 ? (usedLength / barLength * 100).toFixed(1) : 0;
       console.log("  Sch\xE9ma #".concat(index + 1, ": ").concat(count, "\xD7 r\xE9p\xE9tition(s)"));
-      console.log("    \u2514\u2500 Barre ".concat(barLength, "cm: ").concat(cutsDisplay));
-      console.log("    \u2514\u2500 Chute: ".concat(waste, "cm | Efficacit\xE9: ").concat(efficiency, "%"));
+      console.log("    \u2514\u2500 Barre ".concat(barLength, "mm: ").concat(cutsDisplay));
+      console.log("    \u2514\u2500 Chute: ".concat(waste, "mm | Efficacit\xE9: ").concat(efficiency, "%"));
     });
 
     // Statistiques du modèle
@@ -9561,7 +9667,7 @@ var UIController = (_UIController = {
     var globalEfficiency = totalLength > 0 ? ((totalLength - totalWaste) / totalLength * 100).toFixed(1) : 0;
     console.log("\n  \uD83D\uDCCA R\xE9sum\xE9 ".concat(modelKey, ":"));
     console.log("    \u2022 ".concat(totalBars, " barres m\xE8res utilis\xE9es"));
-    console.log("    \u2022 ".concat(totalWaste, "cm de chutes au total"));
+    console.log("    \u2022 ".concat(totalWaste, "mm de chutes au total"));
     console.log("    \u2022 ".concat(globalEfficiency, "% d'efficacit\xE9 globale"));
   }
 
@@ -9712,7 +9818,7 @@ var UIController = (_UIController = {
   var _runOptimization = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee3() {
     var data, progress, models, allResults, finalResults, _t3;
     return ui_controller_regenerator().w(function (_context3) {
-      while (1) switch (_context3.n) {
+      while (1) switch (_context3.p = _context3.n) {
         case 0:
           _context3.p = 0;
           this.saveOriginalDataState();
@@ -9884,7 +9990,7 @@ var UIController = (_UIController = {
   var _runRealAlgorithmSteps = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee6(models) {
     var allResults, i, model, stepId, ffdResult, ilpResult, _ffdResult, _t4, _t5;
     return ui_controller_regenerator().w(function (_context6) {
-      while (1) switch (_context6.n) {
+      while (1) switch (_context6.p = _context6.n) {
         case 0:
           console.log('🚀 Exécution réelle étape par étape (version simplifiée)');
           allResults = {}; // Initialiser la structure des résultats
@@ -10014,7 +10120,7 @@ var UIController = (_UIController = {
   var _runF4CGenerationStep = ui_controller_asyncToGenerator(/*#__PURE__*/ui_controller_regenerator().m(function _callee8() {
     var stepF4CId, _t6;
     return ui_controller_regenerator().w(function (_context8) {
-      while (1) switch (_context8.n) {
+      while (1) switch (_context8.p = _context8.n) {
         case 0:
           stepF4CId = 'step-F4C'; // ACTIVER l'étape F4C
           _context8.n = 1;
@@ -10071,6 +10177,8 @@ var UIController = (_UIController = {
   // Vérifier qu'il y a des pièces
   var totalPieces = 0;
   var pieceDetails = [];
+  var allPieceRequirements = []; // Pour stocker les besoins de chaque pièce
+
   for (var profile in data.pieces) {
     var _iterator9 = ui_controller_createForOfIteratorHelper(data.pieces[profile]),
       _step9;
@@ -10078,7 +10186,16 @@ var UIController = (_UIController = {
       for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
         var piece = _step9.value;
         totalPieces += piece.quantity;
-        pieceDetails.push("".concat(profile, ": ").concat(piece.quantity, "\xD7").concat(piece.length, "cm"));
+        pieceDetails.push("".concat(profile, ": ").concat(piece.quantity, "\xD7").concat(piece.length, "mm"));
+
+        // Stocker les besoins pour la validation ultérieure
+        allPieceRequirements.push({
+          profile: piece.profile,
+          length: piece.length,
+          quantity: piece.quantity,
+          orientation: piece.orientation || 'a-plat',
+          nom: piece.nom || "".concat(profile, "_").concat(piece.length, "mm")
+        });
       }
     } catch (err) {
       _iterator9.e(err);
@@ -10099,14 +10216,23 @@ var UIController = (_UIController = {
   // Vérifier qu'il y a des barres mères
   var totalMotherBars = 0;
   var motherDetails = [];
+  var motherBarCapabilities = {}; // Structure: {profile: [{length: X, quantity: Y}, ...]}
+
   for (var _profile7 in data.motherBars) {
+    if (!motherBarCapabilities[_profile7]) {
+      motherBarCapabilities[_profile7] = [];
+    }
     var _iterator0 = ui_controller_createForOfIteratorHelper(data.motherBars[_profile7]),
       _step0;
     try {
       for (_iterator0.s(); !(_step0 = _iterator0.n()).done;) {
         var bar = _step0.value;
         totalMotherBars += bar.quantity;
-        motherDetails.push("".concat(_profile7, ": ").concat(bar.quantity, "\xD7").concat(bar.length, "cm"));
+        motherDetails.push("".concat(_profile7, ": ").concat(bar.quantity, "\xD7").concat(bar.length, "mm"));
+        motherBarCapabilities[_profile7].push({
+          length: bar.length,
+          quantity: bar.quantity
+        });
       }
     } catch (err) {
       _iterator0.e(err);
@@ -10124,22 +10250,131 @@ var UIController = (_UIController = {
     return false;
   }
 
-  // Vérifier la cohérence des profils
-  var pieceProfiles = Object.keys(data.pieces);
-  var motherBarProfiles = Object.keys(data.motherBars);
-  console.log("\uD83D\uDD27 Profils pi\xE8ces: ".concat(pieceProfiles.join(', ')));
-  console.log("\uD83D\uDCCF Profils barres: ".concat(motherBarProfiles.join(', ')));
-  var missingProfiles = pieceProfiles.filter(function (profile) {
-    return !motherBarProfiles.includes(profile);
-  });
-  if (missingProfiles.length > 0) {
-    console.error("\u274C Profils manquants: ".concat(missingProfiles.join(', ')));
-    this.showNotification("Profils manquants dans les barres m\xE8res: ".concat(missingProfiles.join(', '), ". \n         Veuillez ajouter des barres m\xE8res pour ces profils."), 'error');
+  // NOUVELLE VALIDATION: Vérifier la compatibilité profil + longueur
+  console.log('🔍 === VALIDATION COMPATIBILITÉ PROFIL + LONGUEUR ===');
+  var incompatiblePieces = [];
+  var missingProfiles = new Set();
+  var insufficientLengths = [];
+  var _loop = function _loop() {
+    var pieceReq = _allPieceRequirements[_i3];
+    var profile = pieceReq.profile;
+    var requiredLength = pieceReq.length;
+
+    // 1. Vérifier si le profil existe
+    if (!motherBarCapabilities[profile]) {
+      missingProfiles.add(profile);
+      incompatiblePieces.push(ui_controller_objectSpread(ui_controller_objectSpread({}, pieceReq), {}, {
+        issue: 'profil_manquant'
+      }));
+      return 1; // continue
+    }
+
+    // 2. Vérifier si au moins une barre mère a une longueur suffisante
+    var compatibleBars = motherBarCapabilities[profile].filter(function (bar) {
+      return bar.length >= requiredLength;
+    });
+    if (compatibleBars.length === 0) {
+      // Aucune barre mère assez longue
+      var maxAvailableLength = Math.max.apply(Math, ui_controller_toConsumableArray(motherBarCapabilities[profile].map(function (bar) {
+        return bar.length;
+      })));
+      insufficientLengths.push(ui_controller_objectSpread(ui_controller_objectSpread({}, pieceReq), {}, {
+        maxAvailableLength: maxAvailableLength,
+        issue: 'longueur_insuffisante'
+      }));
+      incompatiblePieces.push(ui_controller_objectSpread(ui_controller_objectSpread({}, pieceReq), {}, {
+        maxAvailableLength: maxAvailableLength,
+        issue: 'longueur_insuffisante'
+      }));
+    } else {
+      // Compatible - log pour debug
+      console.log("\u2705 ".concat(pieceReq.nom, ": ").concat(compatibleBars.length, " barre(s) m\xE8re(s) compatible(s)"));
+    }
+  };
+  for (var _i3 = 0, _allPieceRequirements = allPieceRequirements; _i3 < _allPieceRequirements.length; _i3++) {
+    if (_loop()) continue;
+  }
+
+  // Rapport des problèmes trouvés
+  if (missingProfiles.size > 0) {
+    console.error("\u274C Profils manquants: ".concat(Array.from(missingProfiles).join(', ')));
+  }
+  if (insufficientLengths.length > 0) {
+    console.error("\u274C ".concat(insufficientLengths.length, " pi\xE8ce(s) avec longueur insuffisante:"));
+    insufficientLengths.forEach(function (piece) {
+      console.error("   \u2022 ".concat(piece.nom, " (").concat(piece.profile, "): besoin ").concat(UIUtils.formatLenght(piece.length), "mm, max disponible ").concat(UIUtils.formatLenght(piece.maxAvailableLength), "mm"));
+    });
+  }
+
+  // Si des incompatibilités existent, afficher un message d'erreur détaillé
+  if (incompatiblePieces.length > 0) {
+    var errorMessages = this.generateCompatibilityErrorMessage(incompatiblePieces, missingProfiles, insufficientLengths);
+    this.showNotification(errorMessages["short"], 'error');
+
+    // Log détaillé pour la console
+    console.error('❌ === INCOMPATIBILITÉS DÉTECTÉES ===');
+    console.error(errorMessages.detailed);
+    console.error('❌ =====================================');
     return false;
   }
-  console.log('✅ Validation des données réussie');
-  console.log('🔍 ===============================');
+  console.log('✅ Validation de compatibilité réussie');
+  console.log('🔍 =======================================');
   return true;
+}), "generateCompatibilityErrorMessage", function generateCompatibilityErrorMessage(incompatiblePieces, missingProfiles, insufficientLengths) {
+  var shortMessage = '';
+  var detailedMessage = '';
+
+  // Messages pour les profils manquants
+  if (missingProfiles.size > 0) {
+    var profilesList = Array.from(missingProfiles).join(', ');
+    if (missingProfiles.size === 1) {
+      shortMessage += "Profil ".concat(profilesList, " : aucune barre m\xE8re disponible. ");
+    } else {
+      shortMessage += "Profils ".concat(profilesList, " : aucune barre m\xE8re disponible. ");
+    }
+    detailedMessage += "PROFILS MANQUANTS:\n".concat(profilesList, "\n\n");
+  }
+
+  // Messages pour les longueurs insuffisantes - VERSION DÉTAILLÉE
+  if (insufficientLengths.length > 0) {
+    if (insufficientLengths.length === 1) {
+      var piece = insufficientLengths[0];
+      shortMessage += "".concat(piece.nom, " (").concat(piece.profile, ") : besoin ").concat(UIUtils.formatLenght(piece.length), "mm, max disponible ").concat(UIUtils.formatLenght(piece.maxAvailableLength), "mm (d\xE9ficit ").concat(UIUtils.formatLenght(piece.length - piece.maxAvailableLength), "mm).");
+    } else if (insufficientLengths.length <= 3) {
+      // Afficher jusqu'à 3 pièces problématiques
+      var piecesList = insufficientLengths.map(function (piece) {
+        return "".concat(piece.nom, " (").concat(UIUtils.formatLenght(piece.length), "mm > ").concat(UIUtils.formatLenght(piece.maxAvailableLength), "mm)");
+      }).join(', ');
+      shortMessage += "Pi\xE8ces trop longues : ".concat(piecesList, ".");
+    } else {
+      // Plus de 3 pièces : résumer
+      var firstThree = insufficientLengths.slice(0, 2);
+      var _piecesList = firstThree.map(function (piece) {
+        return "".concat(piece.nom, " (").concat(UIUtils.formatLenght(piece.length), "mm > ").concat(UIUtils.formatLenght(piece.maxAvailableLength), "mm)");
+      }).join(', ');
+      shortMessage += "".concat(insufficientLengths.length, " pi\xE8ces trop longues : ").concat(_piecesList, " et ").concat(insufficientLengths.length - 2, " autre(s).");
+    }
+    detailedMessage += "LONGUEURS INSUFFISANTES:\n";
+    insufficientLengths.forEach(function (piece) {
+      detailedMessage += "\u2022 ".concat(piece.nom, " (").concat(piece.profile, "): \n");
+      detailedMessage += "  Besoin: ".concat(UIUtils.formatLenght(piece.length), "mm\n");
+      detailedMessage += "  Maximum disponible: ".concat(UIUtils.formatLenght(piece.maxAvailableLength), "mm\n");
+      detailedMessage += "  D\xE9ficit: ".concat(UIUtils.formatLenght(piece.length - piece.maxAvailableLength), "mm\n\n");
+    });
+  }
+
+  // Message de suggestion synthétique
+  if (missingProfiles.size > 0 && insufficientLengths.length > 0) {
+    shortMessage += " Ajoutez des barres m\xE8res pour ces profils et longueurs.";
+  } else if (missingProfiles.size > 0) {
+    shortMessage += " Ajoutez des barres m\xE8res pour ces profils.";
+  } else if (insufficientLengths.length > 0) {
+    shortMessage += " Ajoutez des barres m\xE8res plus longues.";
+  }
+  return {
+    "short": shortMessage.trim(),
+    detailed: detailedMessage.trim()
+  };
 }), "clearOptimizationResults", function clearOptimizationResults() {
   try {
     console.log('🧹 Nettoyage des résultats d\'optimisation précédents');
@@ -10181,7 +10416,7 @@ var UIController = (_UIController = {
   } catch (error) {
     console.error('❌ Erreur lors du nettoyage des résultats:', error);
   }
-}), "showResultsTabs", function showResultsTabs() {
+}), ui_controller_defineProperty(_UIController, "showResultsTabs", function showResultsTabs() {
   try {
     console.log('📊 Affichage des onglets de résultats');
 
@@ -10317,7 +10552,7 @@ var Parser = {
       // Longueur
       if (indexLigne == 11) {
         var longueur = parseInt(ligne.split('.')[0].trim());
-        barreActuelle.longueur = longueur;
+        barreActuelle.longueur = longueur * 10;
       }
 
       // Hauteur
@@ -10585,7 +10820,7 @@ function solveGreedyFFD(motherBars, pieces) {
       }
     }
     if (!placed) {
-      console.warn("\u26A0\uFE0F Impossible de placer la pi\xE8ce de ".concat(pieceLength, "cm"));
+      console.warn("\u26A0\uFE0F Impossible de placer la pi\xE8ce de ".concat(pieceLength, "mm"));
     }
   }
   console.log("\u2705 FFD termin\xE9: ".concat(usedBars.length, " barres utilis\xE9es"));
@@ -10747,10 +10982,10 @@ function solveModelWithAdvancedILP(stockBars, demandPieces, model) {
     };
   });
   console.log("    \uD83D\uDCCF Pi\xE8ces demand\xE9es: ".concat(requiredCuts.map(function (c) {
-    return "".concat(c.count, "\xD7").concat(c.size, "cm");
+    return "".concat(c.count, "\xD7").concat(c.size, "mm");
   }).join(', ')));
   console.log("    \uD83D\uDCE6 Stock disponible: ".concat(stockSizes.map(function (s) {
-    return "".concat(s.quantity, "\xD7").concat(s.size, "cm");
+    return "".concat(s.quantity, "\xD7").concat(s.size, "mm");
   }).join(', ')));
 
   // Vérification de faisabilité
@@ -10847,7 +11082,7 @@ function convertILPSolutionToResult(ilpSolution, model) {
     return sum + layout.originalLength * layout.count;
   }, 0);
   var utilizationRate = totalBarLength > 0 ? ((totalBarLength - totalWaste) / totalBarLength * 100).toFixed(3) : 0;
-  console.log("    \uD83D\uDCCA R\xE9sultat final: ".concat(totalUsedBars, " barres, ").concat(totalWaste, "cm de chutes, efficacit\xE9 ").concat(utilizationRate, "%"));
+  console.log("    \uD83D\uDCCA R\xE9sultat final: ".concat(totalUsedBars, " barres, ").concat(totalWaste, "mm de chutes, efficacit\xE9 ").concat(utilizationRate, "%"));
   return {
     layouts: layouts,
     rawData: {
@@ -10870,7 +11105,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
     var size = _ref3.size,
       cost = _ref3.cost,
       quantity = _ref3.quantity;
-    console.log("      \uD83D\uDCCF Analyse barre ".concat(size, "cm:"));
+    console.log("      \uD83D\uDCCF Analyse barre ".concat(size, "mm:"));
     var waysOfCutting = generateOptimizedPatterns(size, cutSizes, bladeSize, 100);
     console.log("        \u2713 ".concat(waysOfCutting.length, " patterns optimis\xE9s g\xE9n\xE9r\xE9s"));
 
@@ -10898,9 +11133,9 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
         var _ref5 = Integer_Linear_Programming_slicedToArray(_ref4, 2),
           cut = _ref5[0],
           count = _ref5[1];
-        return "".concat(count, "\xD7").concat(cut, "cm");
+        return "".concat(count, "\xD7").concat(cut, "mm");
       }).join(' + ') || 'Barre vide';
-      console.log("          ".concat(index + 1, ". ").concat(cutStr, " (").concat(pattern.efficiency, "% efficacit\xE9, ").concat(pattern.waste, "cm chute)"));
+      console.log("          ".concat(index + 1, ". ").concat(cutStr, " (").concat(pattern.efficiency, "% efficacit\xE9, ").concat(pattern.waste, "mm chute)"));
     });
 
     // CHANGEMENT MAJEUR: Format ILP pour maximiser l'efficacité
@@ -11008,7 +11243,7 @@ function generateAdvancedCuttingPatterns(stockSizes, cutSizes, bladeSize) {
  */
 function generateOptimizedPatterns(barSize, cuts, bladeSize) {
   var maxPatterns = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 100;
-  console.log("        \uD83C\uDFAF G\xE9n\xE9ration optimis\xE9e pour barre ".concat(barSize, "cm (max ").concat(maxPatterns, " patterns)"));
+  console.log("        \uD83C\uDFAF G\xE9n\xE9ration optimis\xE9e pour barre ".concat(barSize, "mm (max ").concat(maxPatterns, " patterns)"));
   var patterns = [];
   var seen = new Set();
   var startTime = Date.now();
@@ -11130,7 +11365,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     constraints["cut".concat(size)] = {
       equal: count
     };
-    console.log("      \uD83D\uDCD0 Contrainte: exactement ".concat(count, " pi\xE8ces de ").concat(size, "cm"));
+    console.log("      \uD83D\uDCD0 Contrainte: exactement ".concat(count, " pi\xE8ces de ").concat(size, "mm"));
   });
   console.log("    \uD83D\uDCCA Mod\xE8le: ".concat(Object.keys(cuttingPatterns.variables).length, " variables, ").concat(Object.keys(constraints).length, " contraintes"));
 
@@ -11188,7 +11423,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
   }
 
   // NOUVEAU: Afficher les métriques d'efficacité optimisées
-  console.log("    \u2705 Solution optimale trouv\xE9e: chute totale minimis\xE9e = ".concat(solution.result, "cm"));
+  console.log("    \u2705 Solution optimale trouv\xE9e: chute totale minimis\xE9e = ".concat(solution.result, "mm"));
 
   // Calculer les métriques globales d'efficacité
   var totalWasteOptimized = 0;
@@ -11216,8 +11451,8 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
     _loop2();
   }
   var globalEfficiency = totalMotherBarLengthUsed > 0 ? (totalUsefulLength / totalMotherBarLengthUsed * 100).toFixed(3) : 0;
-  console.log("    \uD83D\uDCCA Efficacit\xE9 globale optimis\xE9e: ".concat(globalEfficiency, "% (").concat(totalUsefulLength, "cm utile / ").concat(totalMotherBarLengthUsed, "cm total)"));
-  console.log("    \uD83D\uDDD1\uFE0F Chute totale optimis\xE9e: ".concat(totalWasteOptimized, "cm"));
+  console.log("    \uD83D\uDCCA Efficacit\xE9 globale optimis\xE9e: ".concat(globalEfficiency, "% (").concat(totalUsefulLength, "mm utile / ").concat(totalMotherBarLengthUsed, "mm total)"));
+  console.log("    \uD83D\uDDD1\uFE0F Chute totale optimis\xE9e: ".concat(totalWasteOptimized, "mm"));
 
   // Vérification des contraintes (inchangé)
   console.log("    \uD83D\uDD0D V\xE9rification des contraintes:");
@@ -11245,9 +11480,9 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
       for (var _i6 = 0, _Object$entries6 = Object.entries(solution); _i6 < _Object$entries6.length; _i6++) {
         _loop4();
       }
-      console.log("      \u2713 ".concat(size, "cm: ").concat(totalProduced, "/").concat(count, " pi\xE8ces (").concat(totalProduced >= count ? 'OK' : 'MANQUE', ")"));
+      console.log("      \u2713 ".concat(size, "mm: ").concat(totalProduced, "/").concat(count, " pi\xE8ces (").concat(totalProduced >= count ? 'OK' : 'MANQUE', ")"));
       if (totalProduced < count) {
-        throw new Error("Solution incompl\xE8te: ".concat(totalProduced, "/").concat(count, " pi\xE8ces de ").concat(size, "cm"));
+        throw new Error("Solution incompl\xE8te: ".concat(totalProduced, "/").concat(count, " pi\xE8ces de ").concat(size, "mm"));
       }
     }
 
@@ -11285,7 +11520,7 @@ function solveAdvancedILPModel(cuttingPatterns, requiredCuts) {
         }, 0);
         var waste = pattern.stockSize - usedLength;
         var efficiency = (usedLength / pattern.stockSize * 100).toFixed(1);
-        console.log("      \u2022 ".concat(quantity, "\xD7 barre ").concat(pattern.stockSize, "cm: [").concat(cuts.join(', '), "] (").concat(efficiency, "% efficacit\xE9, ").concat(waste, "cm chute)"));
+        console.log("      \u2022 ".concat(quantity, "\xD7 barre ").concat(pattern.stockSize, "mm: [").concat(cuts.join(', '), "] (").concat(efficiency, "% efficacit\xE9, ").concat(waste, "mm chute)"));
         totalBars += quantity;
       }
     }
@@ -11405,6 +11640,7 @@ function js_asyncToGenerator(n) { return function () { var t = this, e = argumen
 
 
 
+
 // Importer les algorithmes
 
 
@@ -11443,7 +11679,7 @@ initializeEarlyTheme();
 document.addEventListener('DOMContentLoaded', /*#__PURE__*/js_asyncToGenerator(/*#__PURE__*/js_regenerator().m(function _callee() {
   var _t;
   return js_regenerator().w(function (_context) {
-    while (1) switch (_context.n) {
+    while (1) switch (_context.p = _context.n) {
       case 0:
         console.log('🚀 Chargement de l\'application...');
         _context.p = 1;
