@@ -14,8 +14,8 @@ import { AlgorithmService } from './algorithm-service.js';
 import { ResultsRenderer } from './results-renderer.js';
 import { Parser } from './parser.js';
 import { ImportManager } from './import-manager.js';
-import { F4CGenerator } from './f4c-generator.js';
-import { F4CManager } from './f4c-manager.js';
+import { F4CGenerator } from './F4C-generator.js';
+import { F4CManager } from './F4C-manager.js';
 
 // Importer les algorithmes
 import { solveGreedyFFD } from './algorithms/First-Fit-Decreasing.js';

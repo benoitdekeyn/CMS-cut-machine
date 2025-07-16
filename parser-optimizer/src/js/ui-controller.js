@@ -1,16 +1,14 @@
-import { DataManager } from './data-manager.js';
-import { AlgorithmService } from './algorithm-service.js';
-import { ImportManager } from './import-manager.js';
-import { F4CGenerator } from './f4c-generator.js';
-import { F4CManager } from './f4c-manager.js';
-import { ResultsRenderer } from './results-renderer.js'; // Assure-toi que l'import existe
-
-// Importer les gestionnaires UI
+import { EditController } from './ui/edit-controller.js'; // MODIFIÉ: Import direct
 import { ImportHandler } from './ui/import-handler.js';
-import { EditHandler } from './ui/edit-handler.js';
+import { ImportManager } from './import-manager.js';
+import { UIUtils } from './ui/utils.js';
 import { ResultsHandler } from './ui/results-handler.js';
 import { NotificationService } from './ui/notification-service.js';
-import { UIUtils } from './ui/utils.js';
+import { DataManager } from './data-manager.js';
+import { AlgorithmService } from './algorithm-service.js';
+import { F4CManager } from './F4C-manager.js';
+import { F4CGenerator } from './F4C-generator.js';
+import { ResultsRenderer } from './results-renderer.js';
 
 /**
  * Contrôleur d'interface utilisateur principal (ADAPTÉ SANS ID)
@@ -25,7 +23,7 @@ export const UIController = {
   
   // Gestionnaires UI
   importHandler: null,
-  editHandler: null,
+  editHandler: null, // MODIFIÉ: Sera maintenant EditController
   resultsHandler: null,
   notificationService: null,
   
@@ -378,7 +376,8 @@ export const UIController = {
         refreshDataDisplay: () => this.refreshDataDisplay()
       });
       
-      this.editHandler = EditHandler;
+      // MODIFIÉ: Utiliser EditController directement
+      this.editHandler = EditController;
       this.editHandler.init({
         dataManager: this.dataManager,
         showNotification: (msg, type) => this.showNotification(msg, type),
