@@ -40,6 +40,7 @@ export const EditHandler = {
     
     // Initialiser le bouton reset
     this.initResetButton();
+    this.initResetMotherBarsButton();
   },
 
   /**
@@ -90,6 +91,61 @@ export const EditHandler = {
     
     // Notification de succès
     this.showNotification(`${deletedCount} barre${deletedCount > 1 ? 's' : ''} à découper supprimée${deletedCount > 1 ? 's' : ''}`, 'success');
+    
+    // Rafraîchir l'affichage global si nécessaire
+    if (this.refreshDataDisplay) {
+      this.refreshDataDisplay();
+    }
+  },
+
+  /**
+   * Initialise le bouton de reset des barres mères
+   */
+  initResetMotherBarsButton: function() {
+    const resetBtn = document.getElementById('reset-mother-bars-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => this.resetAllMotherBars());
+    }
+  },
+
+  /**
+   * Supprime toutes les barres mères avec confirmation
+   */
+  resetAllMotherBars: function() {
+    const data = this.dataManager.getData();
+    
+    // Compter le nombre total de barres mères
+    let totalMotherBars = 0;
+    for (const profile in data.motherBars) {
+      totalMotherBars += data.motherBars[profile].length;
+    }
+    
+    if (totalMotherBars === 0) {
+      this.showNotification('Aucune barre mère à supprimer', 'info');
+      return;
+    }
+    
+    // Supprimer toutes les barres mères une par une
+    let deletedCount = 0;
+    for (const profile in data.motherBars) {
+      const motherBars = [...data.motherBars[profile]]; // Copie pour éviter les modifications pendant l'itération
+      motherBars.forEach(motherBar => {
+        const key = this.dataManager.generateMotherBarKey(motherBar);
+        if (this.dataManager.deleteMotherBar(key)) {
+          deletedCount++;
+        }
+      });
+    }
+    
+    // Supprimer aussi du localStorage
+    this.dataManager.clearStoredMotherBars();
+    
+    // Rafraîchir l'affichage
+    this.renderStockBarsTable();
+    this.updateAllProfileSelects();
+    
+    // Notification de succès
+    this.showNotification(`${deletedCount} barre${deletedCount > 1 ? 's' : ''} mère${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''}`, 'success');
     
     // Rafraîchir l'affichage global si nécessaire
     if (this.refreshDataDisplay) {
