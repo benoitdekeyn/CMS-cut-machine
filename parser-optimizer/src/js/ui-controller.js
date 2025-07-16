@@ -1088,7 +1088,7 @@ export const UIController = {
   },
 
   /**
-   * Validation plus robuste avec débogage détaillé
+   * Validation plus robuste avec débogage détaillé ET vérification de longueur
    */
   validateDataForOptimization: function(data) {
     console.log('🔍 === VALIDATION DES DONNÉES ===');
@@ -1108,10 +1108,21 @@ export const UIController = {
     // Vérifier qu'il y a des pièces
     let totalPieces = 0;
     let pieceDetails = [];
+    const allPieceRequirements = []; // Pour stocker les besoins de chaque pièce
+    
     for (const profile in data.pieces) {
       for (const piece of data.pieces[profile]) {
         totalPieces += piece.quantity;
         pieceDetails.push(`${profile}: ${piece.quantity}×${piece.length}mm`);
+        
+        // Stocker les besoins pour la validation ultérieure
+        allPieceRequirements.push({
+          profile: piece.profile,
+          length: piece.length,
+          quantity: piece.quantity,
+          orientation: piece.orientation || 'a-plat',
+          nom: piece.nom || `${profile}_${piece.length}mm`
+        });
       }
     }
     
@@ -1129,10 +1140,21 @@ export const UIController = {
     // Vérifier qu'il y a des barres mères
     let totalMotherBars = 0;
     let motherDetails = [];
+    const motherBarCapabilities = {}; // Structure: {profile: [{length: X, quantity: Y}, ...]}
+    
     for (const profile in data.motherBars) {
+      if (!motherBarCapabilities[profile]) {
+        motherBarCapabilities[profile] = [];
+      }
+      
       for (const bar of data.motherBars[profile]) {
         totalMotherBars += bar.quantity;
         motherDetails.push(`${profile}: ${bar.quantity}×${bar.length}mm`);
+        
+        motherBarCapabilities[profile].push({
+          length: bar.length,
+          quantity: bar.quantity
+        });
       }
     }
     
@@ -1147,27 +1169,141 @@ export const UIController = {
       return false;
     }
     
-    // Vérifier la cohérence des profils
-    const pieceProfiles = Object.keys(data.pieces);
-    const motherBarProfiles = Object.keys(data.motherBars);
+    // NOUVELLE VALIDATION: Vérifier la compatibilité profil + longueur
+    console.log('🔍 === VALIDATION COMPATIBILITÉ PROFIL + LONGUEUR ===');
     
-    console.log(`🔧 Profils pièces: ${pieceProfiles.join(', ')}`);
-    console.log(`📏 Profils barres: ${motherBarProfiles.join(', ')}`);
+    const incompatiblePieces = [];
+    const missingProfiles = new Set();
+    const insufficientLengths = [];
     
-    const missingProfiles = pieceProfiles.filter(profile => !motherBarProfiles.includes(profile));
-    if (missingProfiles.length > 0) {
-      console.error(`❌ Profils manquants: ${missingProfiles.join(', ')}`);
-      this.showNotification(
-        `Profils manquants dans les barres mères: ${missingProfiles.join(', ')}. 
-         Veuillez ajouter des barres mères pour ces profils.`, 
-        'error'
-      );
+    for (const pieceReq of allPieceRequirements) {
+      const profile = pieceReq.profile;
+      const requiredLength = pieceReq.length;
+      
+      // 1. Vérifier si le profil existe
+      if (!motherBarCapabilities[profile]) {
+        missingProfiles.add(profile);
+        incompatiblePieces.push({
+          ...pieceReq,
+          issue: 'profil_manquant'
+        });
+        continue;
+      }
+      
+      // 2. Vérifier si au moins une barre mère a une longueur suffisante
+      const compatibleBars = motherBarCapabilities[profile].filter(bar => bar.length >= requiredLength);
+      
+      if (compatibleBars.length === 0) {
+        // Aucune barre mère assez longue
+        const maxAvailableLength = Math.max(...motherBarCapabilities[profile].map(bar => bar.length));
+        
+        insufficientLengths.push({
+          ...pieceReq,
+          maxAvailableLength,
+          issue: 'longueur_insuffisante'
+        });
+        
+        incompatiblePieces.push({
+          ...pieceReq,
+          maxAvailableLength,
+          issue: 'longueur_insuffisante'
+        });
+      } else {
+        // Compatible - log pour debug
+        console.log(`✅ ${pieceReq.nom}: ${compatibleBars.length} barre(s) mère(s) compatible(s)`);
+      }
+    }
+    
+    // Rapport des problèmes trouvés
+    if (missingProfiles.size > 0) {
+      console.error(`❌ Profils manquants: ${Array.from(missingProfiles).join(', ')}`);
+    }
+    
+    if (insufficientLengths.length > 0) {
+      console.error(`❌ ${insufficientLengths.length} pièce(s) avec longueur insuffisante:`);
+      insufficientLengths.forEach(piece => {
+        console.error(`   • ${piece.nom} (${piece.profile}): besoin ${UIUtils.formatLenght(piece.length)}mm, max disponible ${UIUtils.formatLenght(piece.maxAvailableLength)}mm`);
+      });
+    }
+    
+    // Si des incompatibilités existent, afficher un message d'erreur détaillé
+    if (incompatiblePieces.length > 0) {
+      const errorMessages = this.generateCompatibilityErrorMessage(incompatiblePieces, missingProfiles, insufficientLengths);
+      this.showNotification(errorMessages.short, 'error');
+      
+      // Log détaillé pour la console
+      console.error('❌ === INCOMPATIBILITÉS DÉTECTÉES ===');
+      console.error(errorMessages.detailed);
+      console.error('❌ =====================================');
+      
       return false;
     }
     
-    console.log('✅ Validation des données réussie');
-    console.log('🔍 ===============================');
+    console.log('✅ Validation de compatibilité réussie');
+    console.log('🔍 =======================================');
     return true;
+  },
+
+  /**
+   * NOUVEAU: Génère des messages d'erreur détaillés mais synthétiques pour les incompatibilités
+   */
+  generateCompatibilityErrorMessage: function(incompatiblePieces, missingProfiles, insufficientLengths) {
+    let shortMessage = '';
+    let detailedMessage = '';
+    
+    // Messages pour les profils manquants
+    if (missingProfiles.size > 0) {
+      const profilesList = Array.from(missingProfiles).join(', ');
+      if (missingProfiles.size === 1) {
+        shortMessage += `Profil ${profilesList} : aucune barre mère disponible. `;
+      } else {
+        shortMessage += `Profils ${profilesList} : aucune barre mère disponible. `;
+      }
+      detailedMessage += `PROFILS MANQUANTS:\n${profilesList}\n\n`;
+    }
+    
+    // Messages pour les longueurs insuffisantes - VERSION DÉTAILLÉE
+    if (insufficientLengths.length > 0) {
+      if (insufficientLengths.length === 1) {
+        const piece = insufficientLengths[0];
+        shortMessage += `${piece.nom} (${piece.profile}) : besoin ${UIUtils.formatLenght(piece.length)}mm, max disponible ${UIUtils.formatLenght(piece.maxAvailableLength)}mm (déficit ${UIUtils.formatLenght(piece.length - piece.maxAvailableLength)}mm).`;
+      } else if (insufficientLengths.length <= 3) {
+        // Afficher jusqu'à 3 pièces problématiques
+        const piecesList = insufficientLengths.map(piece => 
+          `${piece.nom} (${UIUtils.formatLenght(piece.length)}mm > ${UIUtils.formatLenght(piece.maxAvailableLength)}mm)`
+        ).join(', ');
+        shortMessage += `Pièces trop longues : ${piecesList}.`;
+      } else {
+        // Plus de 3 pièces : résumer
+        const firstThree = insufficientLengths.slice(0, 2);
+        const piecesList = firstThree.map(piece => 
+          `${piece.nom} (${UIUtils.formatLenght(piece.length)}mm > ${UIUtils.formatLenght(piece.maxAvailableLength)}mm)`
+        ).join(', ');
+        shortMessage += `${insufficientLengths.length} pièces trop longues : ${piecesList} et ${insufficientLengths.length - 2} autre(s).`;
+      }
+      
+      detailedMessage += `LONGUEURS INSUFFISANTES:\n`;
+      insufficientLengths.forEach(piece => {
+        detailedMessage += `• ${piece.nom} (${piece.profile}): \n`;
+        detailedMessage += `  Besoin: ${UIUtils.formatLenght(piece.length)}mm\n`;
+        detailedMessage += `  Maximum disponible: ${UIUtils.formatLenght(piece.maxAvailableLength)}mm\n`;
+        detailedMessage += `  Déficit: ${UIUtils.formatLenght(piece.length - piece.maxAvailableLength)}mm\n\n`;
+      });
+    }
+    
+    // Message de suggestion synthétique
+    if (missingProfiles.size > 0 && insufficientLengths.length > 0) {
+      shortMessage += ` Ajoutez des barres mères pour ces profils et longueurs.`;
+    } else if (missingProfiles.size > 0) {
+      shortMessage += ` Ajoutez des barres mères pour ces profils.`;
+    } else if (insufficientLengths.length > 0) {
+      shortMessage += ` Ajoutez des barres mères plus longues.`;
+    }
+    
+    return {
+      short: shortMessage.trim(),
+      detailed: detailedMessage.trim()
+    };
   },
 
   /**

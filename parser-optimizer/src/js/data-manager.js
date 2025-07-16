@@ -361,13 +361,74 @@ export const DataManager = {
   },
 
   /**
-   * Valide les données avant optimisation
+   * NOUVEAU: Obtient les capacités des barres mères par profil
+   * @returns {Object} Structure {profile: [{length: X, quantity: Y}, ...]}
+   */
+  getMotherBarCapabilities: function() {
+    const capabilities = {};
+    
+    for (const profile in this.data.motherBars) {
+      capabilities[profile] = this.data.motherBars[profile].map(bar => ({
+        length: bar.length,
+        quantity: bar.quantity
+      }));
+    }
+    
+    return capabilities;
+  },
+
+  /**
+   * NOUVEAU: Vérifie si une pièce peut être découpée avec les barres mères disponibles
+   * @param {Object} piece - Pièce à vérifier {profile, length, quantity}
+   * @returns {Object} {compatible: boolean, reason: string, suggestions: []}
+   */
+  checkPieceCompatibility: function(piece) {
+    const motherBarsForProfile = this.data.motherBars[piece.profile];
+    
+    if (!motherBarsForProfile || motherBarsForProfile.length === 0) {
+      return {
+        compatible: false,
+        reason: 'profil_manquant',
+        message: `Aucune barre mère disponible pour le profil ${piece.profile}`,
+        suggestions: [`Ajoutez des barres mères de profil ${piece.profile}`]
+      };
+    }
+    
+    const compatibleBars = motherBarsForProfile.filter(bar => bar.length >= piece.length);
+    
+    if (compatibleBars.length === 0) {
+      const maxLength = Math.max(...motherBarsForProfile.map(bar => bar.length));
+      return {
+        compatible: false,
+        reason: 'longueur_insuffisante',
+        message: `Aucune barre mère de ${piece.profile} assez longue (max: ${maxLength}mm, besoin: ${piece.length}mm)`,
+        maxAvailableLength: maxLength,
+        deficit: piece.length - maxLength,
+        suggestions: [
+          `Ajoutez des barres mères de ${piece.profile} d'au moins ${piece.length}mm`,
+          `Réduisez la longueur de la pièce à maximum ${maxLength}mm`
+        ]
+      };
+    }
+    
+    return {
+      compatible: true,
+      reason: 'compatible',
+      message: `${compatibleBars.length} barre(s) mère(s) compatible(s) trouvée(s)`,
+      compatibleBars: compatibleBars.length
+    };
+  },
+
+  /**
+   * Valide les données avant optimisation - VERSION AMÉLIORÉE
    */
   validateData: function() {
     const data = this.getData();
     
     // Vérifier qu'il y a des pièces à découper
     let totalPieces = 0;
+    const allPieces = [];
+    
     for (const profile in data.pieces) {
       for (const piece of data.pieces[profile]) {
         if (!piece.length || piece.length <= 0) {
@@ -383,6 +444,7 @@ export const DataManager = {
           };
         }
         totalPieces += piece.quantity;
+        allPieces.push(piece);
       }
     }
     
@@ -417,6 +479,34 @@ export const DataManager = {
       return {
         valid: false,
         message: 'Aucune barre mère disponible. Ajoutez des barres mères pour l\'optimisation.'
+      };
+    }
+    
+    // NOUVEAU: Validation de compatibilité
+    const incompatibilities = [];
+    
+    for (const piece of allPieces) {
+      const compatibility = this.checkPieceCompatibility(piece);
+      if (!compatibility.compatible) {
+        incompatibilities.push({
+          piece: piece.nom || `${piece.profile}_${piece.length}mm`,
+          ...compatibility
+        });
+      }
+    }
+    
+    if (incompatibilities.length > 0) {
+      const firstIncompatibility = incompatibilities[0];
+      let message = `Incompatibilité détectée: ${firstIncompatibility.message}`;
+      
+      if (incompatibilities.length > 1) {
+        message += ` (et ${incompatibilities.length - 1} autre(s) problème(s))`;
+      }
+      
+      return {
+        valid: false,
+        message: message,
+        incompatibilities: incompatibilities
       };
     }
     
