@@ -159,8 +159,11 @@ export const EditHandler = {
   parseLengthFromDisplay: function(displayValue) {
     if (!displayValue || displayValue.trim() === '') return null;
     
+    // Supprimer tous les espaces ajoutés par le formatage
+    const cleanValue = displayValue.replace(/\s/g, '');
+    
     // Remplacer la virgule par un point pour la conversion
-    const normalizedValue = displayValue.replace(',', '.');
+    const normalizedValue = cleanValue.replace(',', '.');
     const milimeters = parseFloat(normalizedValue);
     
     if (isNaN(milimeters) || milimeters <= 0) return null;
@@ -1118,7 +1121,7 @@ export const EditHandler = {
       let angle1 = 90, angle2 = 90;
       
       if (!this.lockOptions.lockPieceLengths) {
-        const lengthInput = document.getElementById('piece-length').value;
+        const lengthInput = document.getElementById('piece-length').value.trim();
         length = parseInt(lengthInput, 10);
       } else if (mode === 'edit') {
         const item = this.dataManager.getPieceByKey(key);
@@ -1126,8 +1129,8 @@ export const EditHandler = {
       }
       
       if (!this.lockOptions.lockPieceAngles) {
-        const angle1Input = document.getElementById('piece-angle-1').value;
-        const angle2Input = document.getElementById('piece-angle-2').value;
+        const angle1Input = document.getElementById('piece-angle-1').value.trim();
+        const angle2Input = document.getElementById('piece-angle-2').value.trim();
         angle1 = parseFloat(angle1Input);
         angle2 = parseFloat(angle2Input);
       } else if (mode === 'edit') {
