@@ -174,18 +174,25 @@ export const UIUtils = {
   },
 
   /**
-   * Formate les longueurs en mmm pour qu'il y ait des espaces entre 3 chiffres
+   * Formate les longueurs en mm pour qu'il y ait des espaces tous les 3 chiffres (en partant de la droite)
    */
   formatLenght: function(lengthInMm){
+    if (!lengthInMm && lengthInMm !== 0) return '';
+    
     const lengthString = lengthInMm.toString();
     let formatedLengthString = "";
-    for (let i = 0; i < lengthString.length; i--){
+    
+    // Parcourir la chaîne de droite à gauche pour ajouter des espaces tous les 3 chiffres
+    for (let i = lengthString.length - 1; i >= 0; i--) {
       formatedLengthString = lengthString[i] + formatedLengthString;
-      if (i%3==0) {
+      
+      // Ajouter un espace tous les 3 chiffres (mais pas au début)
+      const positionFromRight = lengthString.length - i;
+      if (positionFromRight % 3 === 0 && i > 0) {
         formatedLengthString = " " + formatedLengthString;
       }
-      console.log(i, lengthString[i], formatedLengthString)
     }
+    
     return formatedLengthString;
   }
 };

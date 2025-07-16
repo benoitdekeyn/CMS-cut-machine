@@ -358,6 +358,9 @@ export const UIController = {
     this.F4CGenerator = F4CGenerator;
     this.F4CManager = F4CManager;
     
+    // NOUVEAU: Initialiser les données (chargement automatique du localStorage)
+    this.dataManager.initData();
+    
     console.log('📋 Services principaux initialisés');
   },
   

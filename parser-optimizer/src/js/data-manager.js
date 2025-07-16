@@ -7,6 +7,9 @@ export const DataManager = {
     pieces: {},      // Barres filles groupées par profil
     motherBars: {},  // Barres mères groupées par profil
   },
+
+  // Clé pour le localStorage
+  STORAGE_KEY: 'cms-mother-bars-stock',
   
   /**
    * Initialise les données
@@ -16,6 +19,10 @@ export const DataManager = {
       pieces: {},
       motherBars: {}
     };
+    
+    // NOUVEAU: Charger automatiquement les barres mères sauvegardées
+    this.loadMotherBarsFromStorage();
+    
     return this.data;
   },
   
@@ -159,13 +166,20 @@ export const DataManager = {
       this.data.motherBars[profile][existingIndex].quantity += bar.quantity || 1;
     } else {
       // Ajouter la nouvelle barre (sans nom pour les barres mères)
-      const motherBar = { ...bar };
-      delete motherBar.nom; // Supprimer la propriété nom
+      const motherBar = { 
+        profile: bar.profile,
+        length: bar.length,
+        quantity: bar.quantity || 1,
+        type: bar.type || 'mere'
+      };
       this.data.motherBars[profile].push(motherBar);
     }
     
     // Trier automatiquement après ajout
     this._sortBarsCollection(this.data.motherBars[profile]);
+    
+    // NOUVEAU: Sauvegarder automatiquement après modification
+    this.saveMotherBarsToStorage();
     
     return key;
   },
@@ -210,6 +224,9 @@ export const DataManager = {
         if (this.data.motherBars[profile].length === 0) {
           delete this.data.motherBars[profile];
         }
+        
+        // Sauvegarder les barres mères restantes dans le localStorage
+        this.saveMotherBarsToStorage();
         
         return true;
       }
@@ -304,6 +321,9 @@ export const DataManager = {
         
         // Trier automatiquement après ajout
         this._sortBarsCollection(this.data.motherBars[newProfile]);
+        
+        // NOUVEAU: Sauvegarder automatiquement après modification
+        this.saveMotherBarsToStorage();
         
         return this.generateMotherBarKey(updatedBar);
       }
@@ -490,7 +510,143 @@ export const DataManager = {
       pieces: {},
       motherBars: {}
     };
+    
+    // NOUVEAU: Nettoyer aussi le localStorage
+    this.clearStoredMotherBars();
+    
     console.log('📝 Toutes les données ont été effacées');
     return this.data;
-  }
+  },
+
+  /**
+   * NOUVEAU: Sauvegarde les barres mères dans le localStorage
+   */
+  saveMotherBarsToStorage: function() {
+    try {
+      // Nettoyer les données avant la sérialisation pour éviter les propriétés undefined
+      const cleanMotherBars = this.cleanMotherBarsForStorage();
+      const motherBarsData = JSON.stringify(cleanMotherBars);
+      
+      // Vérifier la taille des données (limite à 1MB)
+      const sizeInBytes = new Blob([motherBarsData]).size;
+      if (sizeInBytes > 1024 * 1024) { // 1MB
+        console.warn('⚠️ Les données du stock sont trop volumineuses pour être sauvegardées');
+        return;
+      }
+      
+      localStorage.setItem(this.STORAGE_KEY, motherBarsData);
+      console.log(`📦 Stock de barres mères sauvegardé (${(sizeInBytes / 1024).toFixed(1)} KB)`);
+    } catch (error) {
+      console.warn('⚠️ Impossible de sauvegarder le stock:', error);
+      // Si l'erreur est due à un quota dépassé, essayer de nettoyer
+      if (error.name === 'QuotaExceededError') {
+        console.warn('🚫 Quota localStorage dépassé, suppression de l\'ancien stock');
+        this.clearStoredMotherBars();
+      }
+    }
+  },
+
+  /**
+   * NOUVEAU: Nettoie les données des barres mères pour la sauvegarde
+   */
+  cleanMotherBarsForStorage: function() {
+    const cleanBars = {};
+    
+    for (const profile in this.data.motherBars) {
+      if (this.data.motherBars[profile] && Array.isArray(this.data.motherBars[profile])) {
+        cleanBars[profile] = this.data.motherBars[profile].map(bar => {
+          // Ne garder que les propriétés essentielles et définies
+          const cleanBar = {};
+          
+          if (bar.profile !== undefined) cleanBar.profile = bar.profile;
+          if (bar.length !== undefined) cleanBar.length = bar.length;
+          if (bar.quantity !== undefined) cleanBar.quantity = bar.quantity;
+          if (bar.type !== undefined) cleanBar.type = bar.type;
+          if (bar.orientation !== undefined) cleanBar.orientation = bar.orientation;
+          
+          return cleanBar;
+        }).filter(bar => bar.profile && bar.length && bar.quantity); // Filtrer les barres invalides
+      }
+    }
+    
+    return cleanBars;
+  },
+
+  /**
+   * NOUVEAU: Charge les barres mères depuis le localStorage
+   */
+  loadMotherBarsFromStorage: function() {
+    try {
+      const savedData = localStorage.getItem(this.STORAGE_KEY);
+      console.log('🔍 Données sauvegardées trouvées:', savedData ? 'Oui' : 'Non');
+      
+      if (savedData) {
+        const motherBars = JSON.parse(savedData);
+        console.log('📋 Données parsées:', motherBars);
+        
+        // Valider que les données sont dans le bon format
+        if (typeof motherBars === 'object' && motherBars !== null) {
+          // Valider et nettoyer chaque profil et barre
+          const validatedBars = {};
+          let totalBars = 0;
+          
+          for (const profile in motherBars) {
+            console.log(`🔍 Traitement du profil: ${profile}`, motherBars[profile]);
+            
+            if (Array.isArray(motherBars[profile])) {
+              const validBars = motherBars[profile].filter(bar => {
+                const isValid = bar && 
+                       typeof bar.profile === 'string' && 
+                       typeof bar.length === 'number' && bar.length > 0 &&
+                       typeof bar.quantity === 'number' && bar.quantity > 0;
+                
+                console.log(`🔍 Validation barre:`, bar, 'Valide:', isValid);
+                return isValid;
+              }).map(bar => {
+                // Normaliser le type pour être compatible
+                return {
+                  ...bar,
+                  type: bar.type === 'mother' ? 'mere' : (bar.type || 'mere')
+                };
+              });
+              
+              if (validBars.length > 0) {
+                validatedBars[profile] = validBars;
+                totalBars += validBars.length;
+                console.log(`✅ ${validBars.length} barre(s) validée(s) pour ${profile}`);
+              }
+            }
+          }
+          
+          if (totalBars > 0) {
+            this.data.motherBars = validatedBars;
+            console.log(`📦 ${totalBars} barre${totalBars > 1 ? 's' : ''} mère${totalBars > 1 ? 's' : ''} restaurée${totalBars > 1 ? 's' : ''} depuis le localStorage`);
+            console.log('📋 Données finales chargées:', this.data.motherBars);
+            return true;
+          } else {
+            console.log('⚠️ Aucune barre valide trouvée après validation');
+          }
+        } else {
+          console.log('⚠️ Format de données invalide');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Impossible de charger le stock sauvegardé:', error);
+      // En cas d'erreur, nettoyer le localStorage corrompu
+      this.clearStoredMotherBars();
+    }
+    return false;
+  },
+
+  /**
+   * NOUVEAU: Efface le stock sauvegardé du localStorage
+   */
+  clearStoredMotherBars: function() {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      console.log('🗑️ Stock sauvegardé supprimé du localStorage');
+    } catch (error) {
+      console.warn('⚠️ Impossible de supprimer le stock sauvegardé:', error);
+    }
+  },
 };
