@@ -372,9 +372,14 @@ export const EditPanels = {
       form.innerHTML = `
         <div class="form-group">
           <label for="stock-profile">Profil :</label>
-          <select id="stock-profile">
-            ${this.controller.getProfileOptions(item.profile)}
-          </select>
+          <div class="profile-input-container">
+            <select id="stock-profile-select" class="profile-select">
+              <option value="custom">Saisie personnalisée</option>
+              ${this.controller.getProfileOptions(item.profile)}
+            </select>
+            <input type="text" id="stock-profile" class="profile-input" value="${item.profile}" placeholder="ex: HEA100">
+          </div>
+          <small class="form-help">Sélectionnez un profil existant ou saisissez-en un nouveau</small>
         </div>
         <div class="form-group">
           <label for="stock-length">Longueur (mm) :</label>
@@ -387,15 +392,22 @@ export const EditPanels = {
           <small class="form-help">Quantité disponible (1000000 = illimitée)</small>
         </div>
       `;
+      
+      // Initialiser le système de profil pour les barres mères
+      this.initializeStockProfileSystem(item.profile);
     } else {
       title.textContent = 'Nouvelle barre mère';
       
       form.innerHTML = `
         <div class="form-group">
           <label for="stock-profile">Profil :</label>
-          <select id="stock-profile">
-            ${this.controller.getProfileOptions()}
-          </select>
+          <div class="profile-input-container">
+            <select id="stock-profile-select" class="profile-select">
+              <option value="custom">Saisie personnalisée</option>
+              ${this.controller.getProfileOptions()}
+            </select>
+            <input type="text" id="stock-profile" class="profile-input" placeholder="ex: HEA100">
+          </div>
           <small class="form-help">Sélectionnez un profil existant ou saisissez-en un nouveau</small>
         </div>
         <div class="form-group">
@@ -409,6 +421,9 @@ export const EditPanels = {
           <small class="form-help">Quantité disponible (1000000 = illimitée)</small>
         </div>
       `;
+      
+      // Initialiser le système de profil pour les nouvelles barres mères
+      this.initializeStockProfileSystem();
     }
     
     const lengthInput = document.getElementById('stock-length');
@@ -421,11 +436,11 @@ export const EditPanels = {
     
     if (mode === 'create') {
       setTimeout(() => {
-        const lengthField = document.getElementById('stock-length');
-        if (lengthField) {
-          lengthField.focus();
-          lengthField.select();
-          console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
+        const profileField = document.getElementById('stock-profile');
+        if (profileField) {
+          profileField.focus();
+          profileField.select();
+          console.log('🎯 Focus automatique sur le champ profil pour nouvelle barre mère');
         }
       }, 400);
     }
@@ -577,6 +592,86 @@ export const EditPanels = {
       profileInput.classList.add('readonly-mode');
       profileInput.classList.remove('custom-mode');
     }
+  },
+
+  /**
+   * Initialise le système de profil pour les barres mères avec dropdown et champ éditable
+   */
+  initializeStockProfileSystem: function(currentValue = '') {
+    const profileSelect = document.getElementById('stock-profile-select');
+    const profileInput = document.getElementById('stock-profile');
+    
+    if (!profileSelect || !profileInput) return;
+    
+    let isCustomMode = false;
+    
+    if (currentValue && currentValue.trim() !== '') {
+      const matchingOption = Array.from(profileSelect.options)
+        .find(option => option.value === currentValue && option.value !== 'custom');
+      
+      if (matchingOption) {
+        profileSelect.value = currentValue;
+        profileInput.value = currentValue;
+        profileInput.readOnly = true;
+        isCustomMode = false;
+      } else {
+        profileSelect.value = 'custom';
+        profileInput.value = currentValue;
+        profileInput.readOnly = false;
+        isCustomMode = true;
+      }
+    } else {
+      profileSelect.value = 'custom';
+      profileInput.value = '';
+      profileInput.readOnly = false;
+      isCustomMode = true;
+    }
+    
+    profileSelect.addEventListener('change', () => {
+      if (profileSelect.value === 'custom') {
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      } else {
+        profileInput.value = profileSelect.value;
+        profileInput.readOnly = true;
+      }
+      
+      // Mettre à jour les styles
+      this.updateProfileInputStyles(profileInput, profileSelect.value === 'custom');
+    });
+    
+    profileInput.addEventListener('click', () => {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+        this.updateProfileInputStyles(profileInput, true);
+      }
+    });
+    
+    profileInput.addEventListener('input', () => {
+      if (!profileInput.readOnly) {
+        if (profileSelect.value !== 'custom') {
+          profileSelect.value = 'custom';
+        }
+      }
+    });
+    
+    profileInput.addEventListener('focus', () => {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        setTimeout(() => {
+          profileInput.focus();
+          profileInput.select();
+        }, 0);
+        this.updateProfileInputStyles(profileInput, true);
+      }
+    });
+    
+    this.updateProfileInputStyles(profileInput, isCustomMode);
   },
 
   /**

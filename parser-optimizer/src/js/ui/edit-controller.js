@@ -299,6 +299,7 @@ export const EditController = {
         }
       }
     } else if (type === 'stock') {
+      // MODIFIÉ: Récupérer la valeur depuis le champ input au lieu du select
       const formData = UIUtils.trimFormData({
         profile: document.getElementById('stock-profile').value,
         length: document.getElementById('stock-length').value,
@@ -383,16 +384,20 @@ export const EditController = {
    * Met à jour toutes les listes déroulantes de profils
    */
   updateAllProfileSelects: function() {
-    const stockProfileSelect = document.getElementById('stock-profile');
+    // Mettre à jour le select des barres mères
+    const stockProfileSelect = document.getElementById('stock-profile-select');
     if (stockProfileSelect) {
       const currentValue = stockProfileSelect.value;
-      stockProfileSelect.innerHTML = this.getProfileOptions(currentValue);
+      const customOption = '<option value="custom">Saisie personnalisée</option>';
+      stockProfileSelect.innerHTML = customOption + this.getProfileOptions(currentValue === 'custom' ? '' : currentValue);
     }
     
+    // Mettre à jour le select des barres filles
     const pieceProfileSelect = document.getElementById('piece-profile-select');
     if (pieceProfileSelect) {
       const currentValue = pieceProfileSelect.value;
-      pieceProfileSelect.innerHTML = '<option value="custom">Saisie personnalisée</option>' + this.getProfileOptions(currentValue);
+      const customOption = '<option value="custom">Saisie personnalisée</option>';
+      pieceProfileSelect.innerHTML = customOption + this.getProfileOptions(currentValue === 'custom' ? '' : currentValue);
     }
   },
 
