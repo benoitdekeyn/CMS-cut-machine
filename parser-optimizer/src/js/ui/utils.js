@@ -194,5 +194,24 @@ export const UIUtils = {
     }
     
     return formatedLengthString;
+  },
+
+  /**
+   * Nettoie les espaces d'un objet de données de formulaire
+   * @param {Object} data - Objet contenant les données du formulaire
+   * @returns {Object} - Objet avec les valeurs nettoyées
+   */
+  trimFormData: function(data) {
+    const trimmedData = {};
+    
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string') {
+        trimmedData[key] = value.trim();
+      } else {
+        trimmedData[key] = value;
+      }
+    }
+    
+    return trimmedData;
   }
 };

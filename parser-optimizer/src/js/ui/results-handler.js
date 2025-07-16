@@ -291,14 +291,14 @@ export const ResultsHandler = {
             </div>
             <div class="F4C-header-item">
               <div class="F4C-header-label">Longueur</div>
-              <div class="F4C-header-value">${length} mm</div>
+              <div class="F4C-header-value">${UIUtils.formatLenght(length)} mm</div>
             </div>
           </div>
           
           <!-- Informations de performance -->
           <div class="F4C-performance-info">
             <span class="F4C-performance-item">
-              Chute&nbsp;: <span class="F4C-performance-value">${waste} mm</span>
+              Chute&nbsp;: <span class="F4C-performance-value">${UIUtils.formatLenght(waste)} mm</span>
             </span>
             <span class="F4C-performance-item">
               Efficacité&nbsp;: <span class="F4C-performance-value">${efficiency}%</span>
@@ -338,7 +338,7 @@ export const ResultsHandler = {
                     
                     <!-- Nom de la pièce -->
                     <div class="F4C-piece-name">
-                      ${piece.nom || `Pièce ${index + 1} - ${piece.length}mm`}
+                      ${piece.nom || `Pièce ${index + 1} - ${UIUtils.formatLenght(piece.length)}mm`}
                     </div>
                     
                     <!-- Codes F4C -->

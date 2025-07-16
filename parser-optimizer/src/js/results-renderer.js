@@ -1,6 +1,8 @@
 /**
  * ResultsRenderer - Handles rendering of algorithm results in the UI
  */
+import { UIUtils } from './ui/utils.js';
+
 export const ResultsRenderer = {
   /**
    * Format model key to user-friendly display name
@@ -106,7 +108,7 @@ export const ResultsRenderer = {
           </div>
           <div class="stat-card-compact">
             <div class="stat-label-compact">Chutes</div>
-            <div class="stat-value-compact">${Math.round(stats.totalWaste)} mm</div>
+            <div class="stat-value-compact">${UIUtils.formatLenght(Math.round(stats.totalWaste))} mm</div>
           </div>
           <div class="stat-card-compact">
             <div class="stat-label-compact">Barres mères</div>
@@ -114,7 +116,7 @@ export const ResultsRenderer = {
           </div>
           <div class="stat-card-compact">
             <div class="stat-label-compact">Longueur totale</div>
-            <div class="stat-value-compact">${stats.totalBarLength} mm</div>
+            <div class="stat-value-compact">${UIUtils.formatLenght(stats.totalBarLength)} mm</div>
           </div>
         </div>
       </div>
@@ -209,7 +211,7 @@ export const ResultsRenderer = {
             </div>
             <div class="model-stat">
               <div class="stat-label">Chutes</div>
-              <div class="stat-value">${Math.round(stats.wasteLength)} mm</div>
+              <div class="stat-value">${UIUtils.formatLenght(Math.round(stats.wasteLength))} mm</div>
             </div>
             <div class="model-stat">
               <div class="stat-label">Barres mères</div>
@@ -217,7 +219,7 @@ export const ResultsRenderer = {
             </div>
             <div class="model-stat">
               <div class="stat-label">Longueur totale</div>
-              <div class="stat-value">${stats.totalLength} mm</div>
+              <div class="stat-value">${UIUtils.formatLenght(stats.totalLength)} mm</div>
             </div>
           </div>
           <div class="cut-schemes">
@@ -283,7 +285,7 @@ export const ResultsRenderer = {
     // Generate the text representation of cuts
     let cutsHtml = '';
     pattern.cuts.forEach(cut => {
-      cutsHtml += `<span class="cut-count">${cut.count}×</span>${cut.length} mm `;
+      cutsHtml += `<span class="cut-count">${cut.count}×</span>${UIUtils.formatLenght(cut.length)} mm `;
     });
     
     // Generate visual representation of the cuts
@@ -295,8 +297,8 @@ export const ResultsRenderer = {
       visualBarHtml += `
         <div class="cut-piece ${lastPieceClass}" 
              style="width: ${piece.percentage}%" 
-             title="${piece.length} mm">
-          ${showText ? piece.length : ''}
+             title="${UIUtils.formatLenght(piece.length)} mm">
+          ${showText ? UIUtils.formatLenght(piece.length) : ''}
         </div>
       `;
     });
@@ -308,8 +310,8 @@ export const ResultsRenderer = {
       visualBarHtml += `
         <div class="waste-piece" 
              style="width: ${pattern.wastePercentage}%" 
-             title="Chute: ${pattern.waste} mm">
-          ${showWasteText ? pattern.waste : ''}
+             title="Chute: ${UIUtils.formatLenght(pattern.waste)} mm">
+          ${showWasteText ? UIUtils.formatLenght(pattern.waste) : ''}
         </div>
       `;
     }
@@ -318,13 +320,13 @@ export const ResultsRenderer = {
       <div class="cut-scheme">
         <div class="cut-scheme-header">
           <strong>${pattern.count}× Schéma #${index + 1}</strong>
-          <span>Barre mère <span class="bar-length-badge">${pattern.barLength} mm</span></span>
+          <span>Barre mère <span class="bar-length-badge">${UIUtils.formatLenght(pattern.barLength)} mm</span></span>
         </div>
         <div class="cut-pieces">
           Pièces: ${cutsHtml}
         </div>
         <div class="waste">
-          Chute: <span class="waste-value">${pattern.waste} mm</span>
+          Chute: <span class="waste-value">${UIUtils.formatLenght(pattern.waste)} mm</span>
         </div>
         <div class="cut-bar">
           ${visualBarHtml}

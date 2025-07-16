@@ -340,7 +340,7 @@ export const EditHandler = {
           <td>${piece.nom || '-'}</td>
           <td>${piece.profile}</td>
           <td>${this.formatOrientation(piece.orientation || "non-définie")}</td>
-          <td>${Math.round(piece.length)} mm</td>
+          <td>${UIUtils.formatLenght(piece.length)} mm</td>
           <td>${parseFloat(piece.angles?.[1] || 90).toFixed(2)}°</td>
           <td>${parseFloat(piece.angles?.[2] || 90).toFixed(2)}°</td>
           <td>${piece.quantity}</td>
@@ -864,202 +864,6 @@ export const EditHandler = {
   },
   
   /**
-   * Enregistre les modifications ou crée un nouvel élément - adapté sans ID
-   */
-  saveItem: function() {
-    const type = this.editingType;
-    const key = this.editingKey;
-    const mode = this.editingMode;
-    
-    if (!type) return;
-    
-    let success = false;
-    let updatedProfile = false;
-    
-    if (type === 'piece') {
-      const nom = document.getElementById('piece-nom').value.trim();
-      const profileValue = document.getElementById('piece-profile').value.trim();
-      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      const orientation = document.getElementById('piece-orientation').value;
-      
-      // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
-      let length = null;
-      let angle1 = 90, angle2 = 90;
-      
-      if (!this.lockOptions.lockPieceLengths) {
-        const lengthInput = document.getElementById('piece-length').value;
-        length = parseInt(lengthInput, 10);
-      } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceByKey(key);
-        length = item ? item.length : null;
-      }
-      
-      if (!this.lockOptions.lockPieceAngles) {
-        const angle1Input = document.getElementById('piece-angle-1').value;
-        const angle2Input = document.getElementById('piece-angle-2').value;
-        angle1 = parseFloat(angle1Input);
-        angle2 = parseFloat(angle2Input);
-      } else if (mode === 'edit') {
-        const item = this.dataManager.getPieceByKey(key);
-        angle1 = item ? (item.angles?.[1] || 90) : 90;
-        angle2 = item ? (item.angles?.[2] || 90) : 90;
-      }
-      
-      // Préparer les données à valider
-      const pieceData = {
-        nom,
-        profile: profileValue,
-        length,
-        quantity,
-        orientation,
-        angles: { 1: angle1, 2: angle2 }
-      };
-      
-      // Valider les données
-      const errors = this.validatePieceData(pieceData);
-      if (errors.length > 0) {
-        this.showNotification(errors[0], 'error');
-        return;
-      }
-      
-      if (profileValue && length && quantity) {
-        if (mode === 'edit') {
-          const piece = this.dataManager.getPieceByKey(key);
-          
-          if (piece && piece.profile !== profileValue) {
-            updatedProfile = true;
-          }
-          
-          const updatedPiece = {
-            nom,
-            profile: profileValue,
-            length,
-            quantity,
-            orientation,
-            angles: { 1: angle1, 2: angle2 }
-          };
-          
-          const newKey = this.dataManager.updatePiece(key, updatedPiece);
-          success = newKey !== null;
-        } else {
-          const pieceData = {
-            nom,
-            profile: profileValue,
-            length,
-            quantity,
-            orientation,
-            angles: { 1: angle1, 2: angle2 },
-            type: 'fille'
-          };
-          
-          const addedKeys = this.dataManager.addBars([pieceData]);
-          if (addedKeys.length > 0) {
-            success = true;
-            updatedProfile = true;
-          }
-        }
-        
-        if (success) {
-          // Re-render avec tri automatique
-          this.renderPiecesTable();
-          
-          if (updatedProfile) {
-            this.updateAllProfileSelects();
-          }
-          
-          // Rafraîchir l'affichage global SANS notification
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-          
-          // Notification de succès seulement
-          if (mode === 'edit') {
-            this.showNotification(`Barre modifiée`, 'success');
-          }
-        }
-      }
-    } else if (type === 'stock') {
-      const profileValue = document.getElementById('stock-profile').value.trim();
-      const lengthInput = document.getElementById('stock-length').value.trim();
-      const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
-      
-      // Convertir la longueur de mètres vers centimètres
-      const lengthInMm = this.parseLengthFromDisplay(lengthInput);
-      
-      // Préparer les données à valider
-      const motherBarData = {
-        profile: profileValue,
-        length: lengthInMm,
-        quantity
-      };
-      
-      // Valider les données
-      const errors = this.validateMotherBarData(motherBarData);
-      if (errors.length > 0) {
-        this.showNotification(errors[0], 'error');
-        return;
-      }
-      
-      if (profileValue && lengthInMm && quantity) {
-        if (mode === 'edit') {
-          const bar = this.dataManager.getMotherBarByKey(key);
-          
-          if (bar && bar.profile !== profileValue) {
-            updatedProfile = true;
-          }
-          
-          const updatedMotherBar = {
-            profile: profileValue,
-            length: lengthInMm,
-            quantity
-          };
-          
-          const newKey = this.dataManager.updateMotherBar(key, updatedMotherBar);
-          success = newKey !== null;
-        } else {
-          const barData = {
-            profile: profileValue,
-            length: lengthInMm,
-            quantity,
-            type: 'mother'
-          };
-          
-          const addedKeys = this.dataManager.addBars([barData]);
-          if (addedKeys.length > 0) {
-            success = true;
-            updatedProfile = true;
-          }
-        }
-        
-        if (success) {
-          // Re-render avec tri automatique
-          this.renderStockBarsTable();
-          
-          if (updatedProfile) {
-            this.updateAllProfileSelects();
-          }
-          
-          // Rafraîchir l'affichage global SANS notification
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-          
-          // Notification de succès seulement
-          if (mode === 'edit') {
-            this.showNotification(`Barre mère modifiée`, 'success');
-          }
-        }
-      }
-    }
-    
-    if (success) {
-      this.closePanel();
-    } else {
-      this.showNotification('Erreur lors de l\'enregistrement', 'error');
-    }
-  },
-  
-  /**
    * MODIFIÉ: Valide les données d'une barre fille
    */
   validatePieceData: function(data) {
@@ -1296,10 +1100,18 @@ export const EditHandler = {
     let updatedProfile = false;
     
     if (type === 'piece') {
-      const nom = document.getElementById('piece-nom').value.trim();
-      const profileValue = document.getElementById('piece-profile').value.trim();
-      const quantity = parseInt(document.getElementById('piece-quantity').value, 10);
-      const orientation = document.getElementById('piece-orientation').value;
+      // Récupérer les données du formulaire et les nettoyer avec trimFormData
+      const formData = UIUtils.trimFormData({
+        nom: document.getElementById('piece-nom').value,
+        profile: document.getElementById('piece-profile').value,
+        quantity: document.getElementById('piece-quantity').value,
+        orientation: document.getElementById('piece-orientation').value
+      });
+      
+      const nom = formData.nom;
+      const profileValue = formData.profile;
+      const quantity = parseInt(formData.quantity, 10);
+      const orientation = formData.orientation;
       
       // Récupérer la longueur et les angles seulement si les champs ne sont pas verrouillés
       let length = null;
@@ -1398,9 +1210,16 @@ export const EditHandler = {
         }
       }
     } else if (type === 'stock') {
-      const profileValue = document.getElementById('stock-profile').value.trim();
-      const lengthInput = document.getElementById('stock-length').value.trim();
-      const quantity = parseInt(document.getElementById('stock-quantity').value, 10);
+      // Récupérer les données du formulaire et les nettoyer avec trimFormData
+      const formData = UIUtils.trimFormData({
+        profile: document.getElementById('stock-profile').value,
+        length: document.getElementById('stock-length').value,
+        quantity: document.getElementById('stock-quantity').value
+      });
+      
+      const profileValue = formData.profile;
+      const lengthInput = formData.length;
+      const quantity = parseInt(formData.quantity, 10);
       
       // Convertir la longueur de mètres vers centimètres
       const lengthInMm = this.parseLengthFromDisplay(lengthInput);
