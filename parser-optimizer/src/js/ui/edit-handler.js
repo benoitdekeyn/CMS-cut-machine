@@ -748,10 +748,6 @@ export const EditHandler = {
    * Ouvre le panneau des barres mères - adapté sans ID
    */
   openStockPanel: function(mode, key = null) {
-    // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
-    if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
-      return;
-    }
     
     this.editingMode = mode;
     this.editingKey = key;
@@ -946,35 +942,9 @@ export const EditHandler = {
   },
 
   /**
-   * NOUVEAU: Vérifie s'il y a des barres filles avant d'ajouter une barre mère
-   */
-  checkPiecesExistBeforeAddingMotherBar: function(mode) {
-    if (mode === 'create') {
-      const data = this.dataManager.getData();
-      let totalPieces = 0;
-      
-      for (const profile in data.pieces) {
-        for (const piece of data.pieces[profile]) {
-          totalPieces += piece.quantity;
-        }
-      }
-      
-      if (totalPieces === 0) {
-        this.showNotification('Importez d\'abord des barres à découper', 'warning');
-        return false;
-      }
-    }
-    return true;
-  },
-
-  /**
    * MODIFICATION: Focus automatique sur le champ longueur pour les nouvelles barres mères
    */
   openStockPanel: function(mode, key = null) {
-    // Vérifier s'il y a des barres filles avant d'ajouter une barre mère
-    if (!this.checkPiecesExistBeforeAddingMotherBar(mode)) {
-      return;
-    }
     
     this.editingMode = mode;
     this.editingKey = key;
