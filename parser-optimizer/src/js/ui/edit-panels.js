@@ -422,8 +422,8 @@ export const EditPanels = {
         </div>
       `;
       
-      // Initialiser le système de profil pour les nouvelles barres mères
-      this.initializeStockProfileSystem();
+      // MODIFIÉ: Initialiser le système de profil avec le premier profil disponible
+      this.initializeStockProfileSystemForNew();
     }
     
     const lengthInput = document.getElementById('stock-length');
@@ -434,13 +434,14 @@ export const EditPanels = {
     this.setupFormKeyHandlers();
     this.openPanel('stock-panel');
     
+    // MODIFIÉ: Focus sur le champ longueur pour les nouvelles barres mères
     if (mode === 'create') {
       setTimeout(() => {
-        const profileField = document.getElementById('stock-profile');
-        if (profileField) {
-          profileField.focus();
-          profileField.select();
-          console.log('🎯 Focus automatique sur le champ profil pour nouvelle barre mère');
+        const lengthField = document.getElementById('stock-length');
+        if (lengthField) {
+          lengthField.focus();
+          lengthField.select();
+          console.log('🎯 Focus automatique sur le champ longueur pour nouvelle barre mère');
         }
       }, 400);
     }
@@ -495,15 +496,8 @@ export const EditPanels = {
     overlay.classList.add('visible');
     console.log('👁️ Panneau et overlay affichés');
     
-    if (panelId !== 'stock-panel' || this.controller.editingMode === 'edit') {
-      setTimeout(() => {
-        const firstInput = panel.querySelector('input, select, textarea');
-        if (firstInput && !firstInput.disabled) {
-          firstInput.focus();
-          console.log('🎯 Focus sur le premier champ');
-        }
-      }, 300);
-    }
+    // MODIFIÉ: Ne pas faire de focus automatique ici, c'est géré dans openStockPanel
+    // Le focus sera fait spécifiquement pour chaque type de panneau
   },
 
   /**
@@ -670,8 +664,79 @@ export const EditPanels = {
         this.updateProfileInputStyles(profileInput, true);
       }
     });
+  },
+
+  /**
+   * NOUVEAU: Initialise le système de profil pour les nouvelles barres mères avec le premier profil disponible
+   */
+  initializeStockProfileSystemForNew: function() {
+    const profileSelect = document.getElementById('stock-profile-select');
+    const profileInput = document.getElementById('stock-profile');
     
-    this.updateProfileInputStyles(profileInput, isCustomMode);
+    if (!profileSelect || !profileInput) return;
+    
+    // Chercher le premier profil disponible (non "custom")
+    const firstAvailableProfile = Array.from(profileSelect.options)
+      .find(option => option.value !== 'custom');
+    
+    if (firstAvailableProfile) {
+      // Utiliser le premier profil disponible
+      profileSelect.value = firstAvailableProfile.value;
+      profileInput.value = firstAvailableProfile.value;
+      profileInput.readOnly = true;
+      this.updateProfileInputStyles(profileInput, false); // false = pas en mode custom
+    } else {
+      // Pas de profil disponible, utiliser le mode custom
+      profileSelect.value = 'custom';
+      profileInput.value = '';
+      profileInput.readOnly = false;
+      this.updateProfileInputStyles(profileInput, true); // true = mode custom
+    }
+    
+    // Configurer les gestionnaires d'événements
+    profileSelect.addEventListener('change', () => {
+      if (profileSelect.value === 'custom') {
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+      } else {
+        profileInput.value = profileSelect.value;
+        profileInput.readOnly = true;
+      }
+      
+      // Mettre à jour les styles
+      this.updateProfileInputStyles(profileInput, profileSelect.value === 'custom');
+    });
+    
+    profileInput.addEventListener('click', () => {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        profileInput.focus();
+        profileInput.select();
+        this.updateProfileInputStyles(profileInput, true);
+      }
+    });
+    
+    profileInput.addEventListener('input', () => {
+      if (!profileInput.readOnly) {
+        if (profileSelect.value !== 'custom') {
+          profileSelect.value = 'custom';
+        }
+      }
+    });
+    
+    profileInput.addEventListener('focus', () => {
+      if (profileInput.readOnly) {
+        profileSelect.value = 'custom';
+        profileInput.readOnly = false;
+        setTimeout(() => {
+          profileInput.focus();
+          profileInput.select();
+        }, 0);
+        this.updateProfileInputStyles(profileInput, true);
+      }
+    });
   },
 
   /**
