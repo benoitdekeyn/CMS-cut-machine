@@ -20,4 +20,10 @@ if [ -f "src-tauri/target/release/bundle/msi/"*.msi ]; then
     echo "✅ MSI installer copied"
 fi
 
+# Copy portable executable
+if [ -f "src-tauri/target/release/cms-f4c-generator.exe" ]; then
+    cp src-tauri/target/release/cms-f4c-generator.exe "../windows-executable/CMS-F4C-Generator-Portable.exe"
+    echo "✅ Portable executable copied"
+fi
+
 echo "✅ All executables copied to windows-executable directory!"

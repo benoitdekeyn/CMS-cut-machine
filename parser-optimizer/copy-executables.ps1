@@ -32,4 +32,13 @@ if (Test-Path $msiPath) {
     Write-Host "⚠️  No MSI installer found" -ForegroundColor Yellow
 }
 
+# Copy portable executable
+$portablePath = "src-tauri/target/release/CMS F4C Generator.exe"
+if (Test-Path $portablePath) {
+    Copy-Item $portablePath "../windows-executable/CMS-F4C-Generator-Portable.exe" -Force
+    Write-Host "✅ Portable executable copied" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  No portable executable found" -ForegroundColor Yellow
+}
+
 Write-Host "✅ Executable copy process completed!" -ForegroundColor Green
