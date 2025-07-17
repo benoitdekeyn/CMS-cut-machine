@@ -3,13 +3,20 @@ node_modules/
 npm-debug.log
 yarn-error.log
 yarn-debug.log
-package-lock.json
 
 # Build outputs
 dist/
 build/
 
+# Electron (legacy)
 electron-dist/
+
+# Tauri
+parser-optimizer/src-tauri/target/
+parser-optimizer/src-tauri/Cargo.lock
+
+# Rust
+*.pdb
 
 # IDE and editor files
 .idea/
@@ -28,3 +35,15 @@ electron-dist/
 # Logs
 logs/
 *.log
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+
+# Cache directories
+.cache/
+.parcel-cache/
