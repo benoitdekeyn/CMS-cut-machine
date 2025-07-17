@@ -10552,7 +10552,7 @@ var Parser = {
       // Longueur
       if (indexLigne == 11) {
         var longueur = parseInt(ligne.split('.')[0].trim());
-        barreActuelle.longueur = longueur * 10;
+        barreActuelle.longueur = longueur;
       }
 
       // Hauteur
