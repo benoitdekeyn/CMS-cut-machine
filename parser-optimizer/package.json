@@ -1,58 +1,15 @@
 {
   "name": "parser-optimizer",
   "version": "1.0.0",
-  "main": "electron/main.js",
   "homepage": "./",
   "scripts": {
     "start": "webpack serve --mode development",
-    "clean": "rm -rf dist",
-    "build-web": "npm run clean && webpack --mode production && mkdir -p ../web-files && cp -a dist/. ../web-files/",
-    "electron": "electron .",
-    "electron-dev": "npm run build-web && electron .",
-    "build-win": "npm run build-web && electron-builder --win && npm run copy-executables",
-    "build-win-portable": "npm run build-web && electron-builder --win portable && npm run copy-executables",
-    "build": "npm run build-web && electron-builder --win && npm run copy-executables",
-    "build-all": "npm run build-web && electron-builder && npm run copy-executables",
-    "copy-executables": "mkdir -p ../windows-executable && cp electron-dist/*.exe ../windows-executable/ 2>/dev/null || true"
-  },
-  "build": {
-    "appId": "com.cms.F4Cgenerator",
-    "productName": "CMS-F4C-generator",
-    "directories": {
-      "output": "electron-dist"
-    },
-    "files": [
-      "dist/**/*",
-      "electron/**/*",
-      "node_modules/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "electron/icon.ico",
-      "requestedExecutionLevel": "asInvoker",
-      "verifyUpdateCodeSignature": false,
-      "artifactName": "CMS-F4C-generator-setup.exe"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "CMS F4C Generator",
-      "artifactName": "CMS-F4C-generator-setup.exe"
-    },
-    "portable": {
-      "artifactName": "CMS-F4C-generator-portable.exe"
-    }
+    "clean": "rimraf dist",
+    "build": "npm run clean && webpack --mode production && cpy \"dist/**\" \"../web-files\" --cwd=. --parents",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build && npm run copy-tauri-executables",
+    "copy-tauri-executables": "powershell -ExecutionPolicy Bypass -File copy-executables.ps1"
   },
   "keywords": [],
   "author": "",
@@ -61,19 +18,21 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
+    "@tauri-apps/cli": "^1.5.0",
     "babel-loader": "^10.0.0",
     "copy-webpack-plugin": "^11.0.0",
+    "cpy-cli": "^5.0.0",
     "css-loader": "^7.1.2",
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1",
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.2",
+    "rimraf": "^5.0.5",
     "terser": "^5.19.2",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.1"
   },
   "dependencies": {
+    "@tauri-apps/api": "^1.5.0",
     "javascript-lp-solver": "^0.4.24",
     "jszip": "^3.10.1"
   }
