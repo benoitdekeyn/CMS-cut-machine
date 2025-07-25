@@ -260,7 +260,7 @@ export const ResultsHandler = {
     const orientation = F4CObject.orientation;
     const length = F4CObject.length;
     const pieces = F4CObject.pieces || [];
-    const b021 = F4CObject.B021 || 'N/A';
+    const b021 = '1'; // Valeur par défaut pour B021
     const b035 = F4CObject.B035 || '0';
     
     // Calculer la chute et l'efficacité
@@ -325,8 +325,8 @@ export const ResultsHandler = {
                 
                 // Calculer les valeurs F4C
                 const s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-                const s052 = '1';
-                const s053 = '1';
+                const s052 = '1'; // Quantité toujours 1
+                const s053 = '0'; // Quantité toujours 0
                 const s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
                 const s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
                 const s058 = f4c.S058 || piece.S058 || '';

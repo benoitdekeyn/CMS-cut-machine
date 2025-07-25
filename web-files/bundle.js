@@ -6802,17 +6802,15 @@ var F4CGenerator = {
         orientation: F4CObject.orientation
       });
 
-      // Grouper les pièces identiques pour optimiser les STEPs
-      var groupedSteps = this.groupIdenticalSteps(pieces);
-
-      // Générer les STEPs
-      var stepsContent = groupedSteps.map(function (group) {
-        return _this.generateStep(group.piece, group.quantity);
-      }).join('\n');
+      // CORRIGÉ: Générer un STEP par pièce (pas de groupement)
+      var stepsContent = pieces.map(function (piece) {
+        return _this.generateStep(piece, 1);
+      } // Toujours quantité 1 par STEP
+      ).join('\n');
 
       // Assembler le contenu final
       var F4CContent = "<!--CEB-->\n".concat(bodyContent, "\n").concat(stepsContent);
-      console.log("\u2705 F4C g\xE9n\xE9r\xE9: ".concat(groupedSteps.length, " steps pour ").concat(pieces.length, " pi\xE8ces"));
+      console.log("\u2705 F4C g\xE9n\xE9r\xE9: ".concat(pieces.length, " steps pour ").concat(pieces.length, " pi\xE8ces"));
       return F4CContent;
     } catch (error) {
       console.error("\u274C Erreur g\xE9n\xE9ration F4C ".concat(F4CObject.profile, "_").concat(F4CObject.orientation, ":"), error);
@@ -6843,8 +6841,8 @@ var F4CGenerator = {
       B011: "0",
       B012: "0",
       B013: "0",
-      B021: "HEA     ",
-      // Sera remplacé par les données de la pièce
+      B021: "1",
+      // Profil ?
       B022: "0",
       B023: "0",
       B024: "0",
@@ -6865,27 +6863,19 @@ var F4CGenerator = {
       B100: "1"
     };
 
-    // Appliquer les données F4C de la pièce
-    if (f4cData.B021) {
-      bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
-    } else {
-      // Générer B021 à partir du profil
-      bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
-    }
+    // // Appliquer les données F4C de la pièce
+    // if (f4cData.B021) {
+    //   bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
+    // } else {
+    //   // Générer B021 à partir du profil
+    //   bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
+    // }
+
     if (f4cData.B035) {
       bodyTemplate.B035 = f4cData.B035;
     } else {
       // Valeur par défaut basée sur le profil
       bodyTemplate.B035 = "10000";
-    }
-
-    // Gestion de S058 (nouvelle logique)
-    if (f4cData.S058) {
-      bodyTemplate.S058 = f4cData.S058;
-    } else if (firstPiece.S058) {
-      bodyTemplate.S058 = firstPiece.S058;
-    } else {
-      bodyTemplate.S058 = "1";
     }
 
     // Construire la chaîne BODY
@@ -6899,42 +6889,13 @@ var F4CGenerator = {
     return "<BODY ".concat(bodyParts.join(' '), " ></BODY>");
   },
   /**
-   * MODIFIÉ: Groupe les pièces identiques pour optimiser les STEPs (adapté au nouveau format)
-   * @param {Array} pieces - Liste des pièces à découper
-   * @returns {Array} - Groupes de pièces identiques avec leur quantité
-   */
-  groupIdenticalSteps: function groupIdenticalSteps(pieces) {
-    var groups = new Map();
-    pieces.forEach(function (piece) {
-      var _piece$f4cData, _piece$f4cData2, _piece$f4cData3;
-      // Créer une clé unique basée sur les propriétés importantes
-      var key = JSON.stringify({
-        length: piece.length,
-        angles: piece.angles,
-        f4cData: {
-          S051: (_piece$f4cData = piece.f4cData) === null || _piece$f4cData === void 0 ? void 0 : _piece$f4cData.S051,
-          S054: (_piece$f4cData2 = piece.f4cData) === null || _piece$f4cData2 === void 0 ? void 0 : _piece$f4cData2.S054,
-          S055: (_piece$f4cData3 = piece.f4cData) === null || _piece$f4cData3 === void 0 ? void 0 : _piece$f4cData3.S055
-        }
-      });
-      if (groups.has(key)) {
-        groups.get(key).quantity++;
-      } else {
-        groups.set(key, {
-          piece: piece,
-          quantity: 1
-        });
-      }
-    });
-    return Array.from(groups.values());
-  },
-  /**
-   * MODIFIÉ: Génère un STEP pour une pièce (adapté au nouveau format)
+   * MODIFIÉ: Génère un STEP pour une pièce (toujours quantité 1)
    * @param {Object} piece - Pièce à découper
-   * @param {number} quantity - Quantité de pièces identiques
+   * @param {number} quantity - Quantité de pièces identiques (toujours 1 maintenant)
    * @returns {string} - Contenu du STEP
    */
-  generateStep: function generateStep(piece, quantity) {
+  generateStep: function generateStep(piece) {
+    var quantity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
     var f4cData = piece.f4cData || {};
 
     // Template par défaut pour le STEP
@@ -6942,9 +6903,8 @@ var F4CGenerator = {
       S051: "15000000",
       // Longueur en micromètres - sera remplacé
       S052: "1",
-      // Quantité - sera remplacé
-      S053: "1",
-      // Quantité - sera remplacé
+      // Quantité - toujours 1
+      S053: "0",
       S054: "9000",
       // Angle début en centièmes - sera remplacé
       S055: "9000",
@@ -6966,15 +6926,11 @@ var F4CGenerator = {
     // Appliquer les données F4C de la pièce
     stepTemplate.S051 = f4cData.S051;
 
-    // Quantités
-    stepTemplate.S052 = "1";
-    stepTemplate.S053 = "1";
-
     // Angles
     stepTemplate.S054 = f4cData.S054;
     stepTemplate.S055 = f4cData.S055;
 
-    // Gestion de S058 (nouvelle logique)
+    // Gestion de S058
     stepTemplate.S058 = f4cData.S058;
 
     // Construire la chaîne STEP
@@ -7418,7 +7374,7 @@ var ResultsHandler = {
     var orientation = F4CObject.orientation;
     var length = F4CObject.length;
     var pieces = F4CObject.pieces || [];
-    var b021 = F4CObject.B021 || 'N/A';
+    var b021 = '1'; // Valeur par défaut pour B021
     var b035 = F4CObject.B035 || '0';
 
     // Calculer la chute et l'efficacité
@@ -7437,8 +7393,8 @@ var ResultsHandler = {
 
       // Calculer les valeurs F4C
       var s051 = f4c.S051 || Math.round(piece.length * 10000).toString();
-      var s052 = '1';
-      var s053 = '1';
+      var s052 = '1'; // Quantité toujours 1
+      var s053 = '0'; // Quantité toujours 0
       var s054 = f4c.S054 || (piece.angles && piece.angles[1] ? Math.round(piece.angles[1] * 100).toString() : '9000');
       var s055 = f4c.S055 || (piece.angles && piece.angles[2] ? Math.round(piece.angles[2] * 100).toString() : '9000');
       var s058 = f4c.S058 || piece.S058 || '';
