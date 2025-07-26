@@ -4,7 +4,7 @@
     "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:9000",
     "distDir": "../dist",
-    "withGlobalTauri": false
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "CMS F4C Generator",
@@ -33,6 +33,17 @@
         "removeFile": false,
         "renameFile": false,
         "exists": true
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true
       }
     },
     "bundle": {
@@ -61,7 +72,7 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
     },
     "updater": {
       "active": false
@@ -74,7 +85,8 @@
         "width": 1200,
         "height": 800,
         "minWidth": 100,
-        "minHeight": 100
+        "minHeight": 100,
+        "fileDropEnabled": true
       }
     ]
   }
