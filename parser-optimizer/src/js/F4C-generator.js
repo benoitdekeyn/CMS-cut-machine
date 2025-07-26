@@ -118,18 +118,15 @@ export const F4CGenerator = {
         orientation: F4CObject.orientation
       });
       
-      // Grouper les pièces identiques pour optimiser les STEPs
-      const groupedSteps = this.groupIdenticalSteps(pieces);
-      
-      // Générer les STEPs
-      const stepsContent = groupedSteps.map(group => 
-        this.generateStep(group.piece, group.quantity)
+      // CORRIGÉ: Générer un STEP par pièce (pas de groupement)
+      const stepsContent = pieces.map(piece => 
+        this.generateStep(piece, 1) // Toujours quantité 1 par STEP
       ).join('\n');
       
       // Assembler le contenu final
       const F4CContent = `<!--CEB-->\n${bodyContent}\n${stepsContent}`;
       
-      console.log(`✅ F4C généré: ${groupedSteps.length} steps pour ${pieces.length} pièces`);
+      console.log(`✅ F4C généré: ${pieces.length} steps pour ${pieces.length} pièces`);
       
       return F4CContent;
       
@@ -163,7 +160,7 @@ export const F4CGenerator = {
       B011: "0",
       B012: "0",
       B013: "0",
-      B021: "HEA     ", // Sera remplacé par les données de la pièce
+      B021: "1", // Profil ?
       B022: "0",
       B023: "0",
       B024: "0",
@@ -183,28 +180,19 @@ export const F4CGenerator = {
       B100: "1"
     };
     
-    // Appliquer les données F4C de la pièce
-    if (f4cData.B021) {
-      bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
-    } else {
-      // Générer B021 à partir du profil
-      bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
-    }
+    // // Appliquer les données F4C de la pièce
+    // if (f4cData.B021) {
+    //   bodyTemplate.B021 = f4cData.B021.padEnd(8, ' ');
+    // } else {
+    //   // Générer B021 à partir du profil
+    //   bodyTemplate.B021 = firstPiece.profile.substring(0, 3).padEnd(8, ' ');
+    // }
     
     if (f4cData.B035) {
       bodyTemplate.B035 = f4cData.B035;
     } else {
       // Valeur par défaut basée sur le profil
       bodyTemplate.B035 = "10000";
-    }
-    
-    // Gestion de S058 (nouvelle logique)
-    if (f4cData.S058) {
-      bodyTemplate.S058 = f4cData.S058;
-    } else if (firstPiece.S058) {
-      bodyTemplate.S058 = firstPiece.S058;
-    } else {
-      bodyTemplate.S058 = "1";
     }
     
     // Construire la chaîne BODY
@@ -217,52 +205,19 @@ export const F4CGenerator = {
   },
   
   /**
-   * MODIFIÉ: Groupe les pièces identiques pour optimiser les STEPs (adapté au nouveau format)
-   * @param {Array} pieces - Liste des pièces à découper
-   * @returns {Array} - Groupes de pièces identiques avec leur quantité
-   */
-  groupIdenticalSteps: function(pieces) {
-    const groups = new Map();
-    
-    pieces.forEach(piece => {
-      // Créer une clé unique basée sur les propriétés importantes
-      const key = JSON.stringify({
-        length: piece.length,
-        angles: piece.angles,
-        f4cData: {
-          S051: piece.f4cData?.S051,
-          S054: piece.f4cData?.S054,
-          S055: piece.f4cData?.S055
-        }
-      });
-      
-      if (groups.has(key)) {
-        groups.get(key).quantity++;
-      } else {
-        groups.set(key, {
-          piece: piece,
-          quantity: 1
-        });
-      }
-    });
-    
-    return Array.from(groups.values());
-  },
-  
-  /**
-   * MODIFIÉ: Génère un STEP pour une pièce (adapté au nouveau format)
+   * MODIFIÉ: Génère un STEP pour une pièce (toujours quantité 1)
    * @param {Object} piece - Pièce à découper
-   * @param {number} quantity - Quantité de pièces identiques
+   * @param {number} quantity - Quantité de pièces identiques (toujours 1 maintenant)
    * @returns {string} - Contenu du STEP
    */
-  generateStep: function(piece, quantity) {
+  generateStep: function(piece, quantity = 1) {
     const f4cData = piece.f4cData || {};
     
     // Template par défaut pour le STEP
     let stepTemplate = {
       S051: "15000000", // Longueur en micromètres - sera remplacé
-      S052: "1",        // Quantité - sera remplacé
-      S053: "1",        // Quantité - sera remplacé
+      S052: "1",        // Quantité - toujours 1
+      S053: "0",        
       S054: "9000",     // Angle début en centièmes - sera remplacé
       S055: "9000",     // Angle fin en centièmes - sera remplacé
       S056: "1",
@@ -282,15 +237,11 @@ export const F4CGenerator = {
     // Appliquer les données F4C de la pièce
     stepTemplate.S051 = f4cData.S051;
     
-    // Quantités
-    stepTemplate.S052 = "1"
-    stepTemplate.S053 = "1"
-    
     // Angles
     stepTemplate.S054 = f4cData.S054;
     stepTemplate.S055 = f4cData.S055;
     
-    // Gestion de S058 (nouvelle logique)
+    // Gestion de S058
     stepTemplate.S058 = f4cData.S058;
     
     // Construire la chaîne STEP
