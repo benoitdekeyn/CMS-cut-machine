@@ -4,8 +4,9 @@
   "homepage": "./",
   "scripts": {
     "start": "webpack serve --mode development",
-    "clean": "rimraf dist && del \"../web-files/*hot-update*\"",
-    "build": "webpack --mode production && cpy \"dist/**\" \"../web-files\" --cwd=. --parents && npm run clean"
+  "clean": "rimraf dist && del \"../web-files/*hot-update*\"",
+  "build": "webpack --mode production && cpy \"**\" \"../web-files\" --cwd=dist && npm run move-webfiles && npm run clean",
+  "move-webfiles": "node scripts/move-webfiles.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.2",
     "rimraf": "^5.0.5",
+    "cpy-cli": "^3.1.1",
     "terser": "^5.19.2",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
