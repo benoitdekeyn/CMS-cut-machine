@@ -92,58 +92,36 @@ export const ImportHandler = {
   },
   
   /**
-   * APPROCHE SIMPLIFIÉE: Configuration du drag & drop pour Tauri
+   * Configuration du drag & drop pour Tauri (version simplifiée)
    */
   setupTauriFileDrop: function(dropZone) {
     if (!window.__TAURI__) return;
     
-    console.log('🔧 Configuration du drag & drop Tauri (approche simplifiée)');
+    console.log('🔧 Configuration du drag & drop Tauri');
     
     try {
       const { listen } = window.__TAURI__.event;
-      const { invoke } = window.__TAURI__.tauri;
       
       // Écouter les événements émis depuis Rust
       listen('file-drop-hover', (event) => {
-        console.log('👀 Survol détecté depuis Rust:', event.payload);
+        console.log('👀 Survol détecté:', event.payload);
         dropZone.classList.add('active');
       });
       
       listen('file-dropped', async (event) => {
-        console.log('📁 Fichiers droppés depuis Rust:', event.payload);
+        console.log('📁 Fichiers droppés:', event.payload);
         dropZone.classList.remove('active');
-        
-        // Traiter les fichiers reçus
         await this.processTauriDroppedFiles(event.payload);
       });
       
       listen('file-drop-cancelled', (event) => {
-        console.log('❌ Drop annulé depuis Rust');
+        console.log('❌ Drop annulé');
         dropZone.classList.remove('active');
       });
-      
-      // Polling de sécurité moins fréquent
-      setInterval(async () => {
-        if (this.isProcessing) return;
-        
-        try {
-          const files = await invoke('get_dropped_files');
-          if (files && files.length > 0) {
-            this.isProcessing = true;
-            console.log('📦 Fichiers récupérés par polling:', files);
-            await this.processTauriDroppedFiles(files);
-            this.isProcessing = false;
-          }
-        } catch (error) {
-          this.isProcessing = false;
-          // Ignorer les erreurs de polling
-        }
-      }, 500);
       
       console.log('✅ Drag & drop Tauri configuré');
     } catch (error) {
       console.error('❌ Erreur configuration Tauri:', error);
-      // Fallback : utiliser le comportement web standard
       this.setupWebFileDrop(dropZone);
     }
   },
@@ -212,7 +190,30 @@ export const ImportHandler = {
   processTauriDroppedFiles: async function(filePaths) {
     if (!filePaths || filePaths.length === 0) return;
     
-    console.log('🔄 Traitement des fichiers Tauri:', filePaths);
+    // Vérifier si un import est déjà en cours
+    if (this.isProcessing) {
+      console.log('⚠️ Import déjà en cours, ignoré');
+      this.showNotification('Un import est déjà en cours', 'warning');
+      return;
+    }
+    
+    // Générer une signature des fichiers
+    const filesSignature = JSON.stringify(filePaths);
+    const now = Date.now();
+    
+    // Vérifier si ce sont les mêmes fichiers importés récemment
+    if (filesSignature === this.lastProcessedFiles && (now - this.lastProcessedTime) < DUPLICATE_IMPORT_TIMEOUT) {
+      console.log('🔁 Fichiers déjà traités récemment, ignorés');
+      this.showNotification('Ces fichiers ont déjà été importés', 'info');
+      return;
+    }
+    
+    // Marquer comme en cours de traitement
+    this.isProcessing = true;
+    this.lastProcessedFiles = filesSignature;
+    this.lastProcessedTime = now;
+    
+    console.log(`📂 Import de ${filePaths.length} fichier(s) Tauri`);
     
     UIUtils.showSimpleLoadingOverlay('Lecture des fichiers...');
     this.hideError();
@@ -267,7 +268,11 @@ export const ImportHandler = {
         const importedBars = await this.importManager.processMultipleFiles(files);
         
         if (importedBars && importedBars.length > 0) {
+          console.log(`📊 ${importedBars.length} barres à ajouter`);
+          
           const addedKeys = this.dataManager.addBars(importedBars);
+          
+          console.log(`✅ ${addedKeys.length} barres ajoutées (clés uniques)`);
           
           if (addedKeys.length > 0) {
             this.showNotification(`${addedKeys.length} barres importées avec succès.`, 'success');
@@ -284,7 +289,7 @@ export const ImportHandler = {
               }
             }, 300);
           } else {
-            this.showError('Aucune nouvelle pièce ajoutée.');
+            this.showError('Aucune nouvelle pièce ajoutée (peut-être des doublons).');
           }
         } else {
           this.showError('Aucune pièce valide trouvée dans les fichiers.');
@@ -294,10 +299,19 @@ export const ImportHandler = {
       }
       
     } catch (error) {
-      console.error('Erreur traitement fichiers Tauri:', error);
+      console.error('❌ Erreur traitement fichiers Tauri:', error);
       this.showError(`Erreur de traitement: ${error.message}`);
+      
+      // En cas d'erreur, oublier la signature pour permettre une réessai
+      this.lastProcessedFiles = null;
     } finally {
       UIUtils.hideSimpleLoadingOverlay();
+      
+      // Libérer après un délai de sécurité
+      setTimeout(() => {
+        this.isProcessing = false;
+        console.log('🔓 Import Tauri terminé, prêt pour le suivant');
+      }, 1000);
     }
   },
   
