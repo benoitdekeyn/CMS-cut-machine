@@ -244,7 +244,7 @@ export const ImportHandler = {
       const selected = await open({
         multiple: true,
         filters: [{
-          name: 'Fichiers NC',
+          name: 'Fichiers NC et ZIP',
           extensions: ['nc1', 'nc2', 'zip']
         }]
       });
@@ -278,7 +278,7 @@ export const ImportHandler = {
         throw new Error('API Tauri non disponible');
       }
       
-      const { readTextFile } = window.__TAURI__.fs;
+      const { readTextFile, readBinaryFile } = window.__TAURI__.fs;
       const files = [];
       
       // Lire chaque fichier
@@ -291,20 +291,29 @@ export const ImportHandler = {
             continue;
           }
           
-          if (fileName.endsWith('.zip')) {
-            console.warn('⚠️ Fichiers ZIP non supportés en mode Tauri');
-            continue;
-          }
-          
           console.log(`📖 Lecture: ${fileName}`);
-          const content = await readTextFile(filePath);
-          files.push(new File([content], fileName, { type: 'text/plain' }));
+          
+          if (fileName.endsWith('.zip')) {
+            // Lire le ZIP comme binaire
+            const binaryData = await readBinaryFile(filePath);
+            const blob = new Blob([binaryData], { type: 'application/zip' });
+            const file = new File([blob], fileName, { type: 'application/zip' });
+            files.push(file);
+            console.log(`✅ ZIP lu: ${fileName} (${binaryData.length} octets)`);
+          } else {
+            // Lire les fichiers NC2/NC1 comme texte
+            const content = await readTextFile(filePath);
+            files.push(new File([content], fileName, { type: 'text/plain' }));
+            console.log(`✅ NC2 lu: ${fileName}`);
+          }
         } catch (error) {
           console.error(`❌ Erreur lecture ${filePath}:`, error);
+          this.showError(`Erreur lors de la lecture du fichier: ${filePath}`);
         }
       }
       
       if (files.length > 0) {
+        console.log(`✅ ${files.length} fichier(s) lus avec succès`);
         const importedBars = await this.importManager.processMultipleFiles(files);
         this._addBarsAndRefresh(importedBars);
       } else {
