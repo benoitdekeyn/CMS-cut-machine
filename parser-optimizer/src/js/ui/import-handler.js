@@ -27,6 +27,81 @@ export const ImportHandler = {
   lastProcessedTime: 0,
   
   /**
+   * Vérifie et verrouille un import (retourne false si déjà en cours ou doublon)
+   */
+  _checkAndLockImport: function(filesSignature) {
+    // Vérifier si un import est déjà en cours
+    if (this.isProcessing) {
+      console.log('⚠️ Import déjà en cours, ignoré');
+      this.showNotification('Un import est déjà en cours', 'warning');
+      return false;
+    }
+    
+    const now = Date.now();
+    
+    // Vérifier si ce sont les mêmes fichiers importés récemment
+    if (filesSignature === this.lastProcessedFiles && (now - this.lastProcessedTime) < DUPLICATE_IMPORT_TIMEOUT) {
+      console.log('🔁 Fichiers déjà traités récemment, ignorés');
+      this.showNotification('Ces fichiers ont déjà été importés', 'info');
+      return false;
+    }
+    
+    // Marquer comme en cours de traitement
+    this.isProcessing = true;
+    this.lastProcessedFiles = filesSignature;
+    this.lastProcessedTime = now;
+    
+    return true;
+  },
+  
+  /**
+   * Libère le verrou d'import après un délai de sécurité
+   */
+  _unlockImport: function() {
+    setTimeout(() => {
+      this.isProcessing = false;
+      console.log('🔓 Import terminé, prêt pour le suivant');
+    }, 1000);
+  },
+  
+  /**
+   * Ajoute les barres et rafraîchit l'affichage
+   */
+  _addBarsAndRefresh: function(importedBars, showScroll = true) {
+    if (!importedBars || importedBars.length === 0) {
+      this.showError('Aucune pièce valide trouvée dans les fichiers.');
+      return false;
+    }
+    
+    console.log(`📊 ${importedBars.length} barres à ajouter`);
+    const addedKeys = this.dataManager.addBars(importedBars);
+    console.log(`✅ ${addedKeys.length} barres ajoutées (clés uniques)`);
+    
+    if (addedKeys.length > 0) {
+      this.showNotification(`${addedKeys.length} barres importées avec succès.`, 'success');
+      
+      if (this.refreshDataDisplay) {
+        this.refreshDataDisplay();
+      }
+      
+      // Faire défiler jusqu'à la zone d'édition
+      if (showScroll) {
+        setTimeout(() => {
+          const editPanel = document.querySelector('.panels-container');
+          if (editPanel) {
+            editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 300);
+      }
+      
+      return true;
+    } else {
+      this.showError('Aucune nouvelle pièce ajoutée (peut-être des doublons).');
+      return false;
+    }
+  },
+  
+  /**
    * Initialise le handler d'import
    */
   init: function(options) {
@@ -190,31 +265,11 @@ export const ImportHandler = {
   processTauriDroppedFiles: async function(filePaths) {
     if (!filePaths || filePaths.length === 0) return;
     
-    // Vérifier si un import est déjà en cours
-    if (this.isProcessing) {
-      console.log('⚠️ Import déjà en cours, ignoré');
-      this.showNotification('Un import est déjà en cours', 'warning');
-      return;
-    }
-    
-    // Générer une signature des fichiers
+    // Vérifier et verrouiller l'import
     const filesSignature = JSON.stringify(filePaths);
-    const now = Date.now();
-    
-    // Vérifier si ce sont les mêmes fichiers importés récemment
-    if (filesSignature === this.lastProcessedFiles && (now - this.lastProcessedTime) < DUPLICATE_IMPORT_TIMEOUT) {
-      console.log('🔁 Fichiers déjà traités récemment, ignorés');
-      this.showNotification('Ces fichiers ont déjà été importés', 'info');
-      return;
-    }
-    
-    // Marquer comme en cours de traitement
-    this.isProcessing = true;
-    this.lastProcessedFiles = filesSignature;
-    this.lastProcessedTime = now;
+    if (!this._checkAndLockImport(filesSignature)) return;
     
     console.log(`📂 Import de ${filePaths.length} fichier(s) Tauri`);
-    
     UIUtils.showSimpleLoadingOverlay('Lecture des fichiers...');
     this.hideError();
     
@@ -229,89 +284,40 @@ export const ImportHandler = {
       // Lire chaque fichier
       for (const filePath of filePaths) {
         try {
-          // Extraire le nom du fichier du chemin
           const fileName = filePath.split(/[\\/]/).pop();
           
-          // Vérifier l'extension
           if (!fileName.match(/\.(nc1|nc2|zip)$/i)) {
-            console.warn(`⚠️ Fichier ignoré (extension non supportée): ${fileName}`);
+            console.warn(`⚠️ Fichier ignoré: ${fileName}`);
             continue;
           }
-          
-          console.log(`📖 Lecture du fichier: ${fileName}`);
           
           if (fileName.endsWith('.zip')) {
-            // Pour les fichiers ZIP, on doit les traiter différemment
-            console.warn('⚠️ Fichiers ZIP non supportés en mode Tauri pour le moment');
+            console.warn('⚠️ Fichiers ZIP non supportés en mode Tauri');
             continue;
-          } else {
-            // Lire comme fichier texte
-            const content = await readTextFile(filePath);
-            
-            // Créer un objet File-like pour compatibilité
-            const file = new File([content], fileName, {
-              type: 'text/plain'
-            });
-            
-            files.push(file);
           }
+          
+          console.log(`📖 Lecture: ${fileName}`);
+          const content = await readTextFile(filePath);
+          files.push(new File([content], fileName, { type: 'text/plain' }));
         } catch (error) {
-          console.error(`❌ Erreur lecture fichier ${filePath}:`, error);
-          this.showError(`Erreur lors de la lecture du fichier: ${filePath}`);
+          console.error(`❌ Erreur lecture ${filePath}:`, error);
         }
       }
       
       if (files.length > 0) {
-        console.log(`✅ ${files.length} fichiers lus avec succès`);
-        
-        // Utiliser la méthode existante pour traiter les fichiers
         const importedBars = await this.importManager.processMultipleFiles(files);
-        
-        if (importedBars && importedBars.length > 0) {
-          console.log(`📊 ${importedBars.length} barres à ajouter`);
-          
-          const addedKeys = this.dataManager.addBars(importedBars);
-          
-          console.log(`✅ ${addedKeys.length} barres ajoutées (clés uniques)`);
-          
-          if (addedKeys.length > 0) {
-            this.showNotification(`${addedKeys.length} barres importées avec succès.`, 'success');
-            
-            if (this.refreshDataDisplay) {
-              this.refreshDataDisplay();
-            }
-            
-            // Faire défiler jusqu'à la zone d'édition après un court délai
-            setTimeout(() => {
-              const editPanel = document.querySelector('.panels-container');
-              if (editPanel) {
-                editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }, 300);
-          } else {
-            this.showError('Aucune nouvelle pièce ajoutée (peut-être des doublons).');
-          }
-        } else {
-          this.showError('Aucune pièce valide trouvée dans les fichiers.');
-        }
+        this._addBarsAndRefresh(importedBars);
       } else {
         this.showError('Aucun fichier valide à traiter');
       }
       
     } catch (error) {
-      console.error('❌ Erreur traitement fichiers Tauri:', error);
-      this.showError(`Erreur de traitement: ${error.message}`);
-      
-      // En cas d'erreur, oublier la signature pour permettre une réessai
-      this.lastProcessedFiles = null;
+      console.error('❌ Erreur traitement Tauri:', error);
+      this.showError(`Erreur: ${error.message}`);
+      this.lastProcessedFiles = null; // Permettre réessai
     } finally {
       UIUtils.hideSimpleLoadingOverlay();
-      
-      // Libérer après un délai de sécurité
-      setTimeout(() => {
-        this.isProcessing = false;
-        console.log('🔓 Import Tauri terminé, prêt pour le suivant');
-      }, 1000);
+      this._unlockImport();
     }
   },
   
@@ -328,113 +334,48 @@ export const ImportHandler = {
   },
   
   /**
-   * Traite les fichiers importés (MODIFIÉ - Utilise le simple overlay)
+   * Traite les fichiers importés
    */
   processImportedFiles: async function(files) {
     if (!files || files.length === 0) return;
     
-    // Vérifier si un import est déjà en cours
-    if (this.isProcessing) {
-      console.log('⚠️ Import déjà en cours, ignoré');
-      this.showNotification('Un import est déjà en cours', 'warning');
-      return;
-    }
-    
-    // Générer une signature des fichiers
+    // Vérifier et verrouiller l'import
     const filesSignature = this.generateFilesSignature(files);
-    const now = Date.now();
-    
-    // Vérifier si ce sont les mêmes fichiers importés récemment
-    if (filesSignature === this.lastProcessedFiles && (now - this.lastProcessedTime) < DUPLICATE_IMPORT_TIMEOUT) {
-      console.log('🔁 Fichiers déjà traités récemment, ignorés');
-      this.showNotification('Ces fichiers ont déjà été importés', 'info');
-      return;
-    }
-    
-    // Marquer comme en cours de traitement
-    this.isProcessing = true;
-    this.lastProcessedFiles = filesSignature;
-    this.lastProcessedTime = now;
+    if (!this._checkAndLockImport(filesSignature)) return;
     
     console.log(`📂 Import de ${files.length} fichier(s)`);
-    
-    // MODIFIÉ: Utiliser le simple overlay au lieu de l'overlay complexe
     UIUtils.showSimpleLoadingOverlay('Traitement des fichiers en cours...');
     this.hideError();
     
     try {
-      // Utiliser ImportManager pour parser les fichiers
       const importedBars = await this.importManager.processMultipleFiles(files);
-      
-      if (importedBars && importedBars.length > 0) {
-        console.log(`📊 ${importedBars.length} barres à ajouter`);
-        
-        // Ajouter les barres au DataManager
-        const addedKeys = this.dataManager.addBars(importedBars);
-        
-        console.log(`✅ ${addedKeys.length} barres ajoutées (clés uniques)`);
-        
-        if (addedKeys.length > 0) {
-          // Rester sur la même section et montrer un message de succès
-          this.showNotification(`${addedKeys.length} barres importées avec succès.`, 'success');
-          
-          // Rafraîchir l'affichage des données
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-          
-          // Faire défiler jusqu'à la zone d'édition après un court délai
-          setTimeout(() => {
-            const editPanel = document.querySelector('.panels-container');
-            if (editPanel) {
-              editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 300);
-        } else {
-          this.showError('Aucune nouvelle pièce ajoutée (peut-être des doublons).');
-        }
-      } else {
-        this.showError('Aucune pièce valide trouvée dans les fichiers.');
-      }
+      this._addBarsAndRefresh(importedBars);
     } catch (error) {
       console.error('❌ Erreur import:', error);
       this.showError(`Erreur d'import: ${error.message}`);
-      
-      // En cas d'erreur, oublier la signature pour permettre une réessai
-      this.lastProcessedFiles = null;
+      this.lastProcessedFiles = null; // Permettre réessai
     } finally {
-      // MODIFIÉ: Masquer le simple overlay
       UIUtils.hideSimpleLoadingOverlay();
       
-      // Réinitialiser l'élément input file pour permettre la réimportation du même fichier
+      // Réinitialiser l'input file
       const fileInput = document.getElementById('nc2-files-input');
-      if (fileInput) {
-        fileInput.value = '';
-      }
+      if (fileInput) fileInput.value = '';
       
-      // Libérer après un délai de sécurité
-      setTimeout(() => {
-        this.isProcessing = false;
-        console.log('🔓 Import terminé, prêt pour le suivant');
-      }, 1000);
+      this._unlockImport();
     }
   },
   
   /**
-   * MODIFIÉ: Traite les fichiers sans notifications de succès (CORRIGÉ - plus de référence ID)
+   * Traite les fichiers sans notifications de succès
    */
   processFiles: async function(files) {
     if (!files || files.length === 0) return;
-    
-    // Vérifier si un import est déjà en cours
     if (this.isProcessing) {
       console.log('⚠️ Import déjà en cours (processFiles), ignoré');
       return;
     }
     
     this.isProcessing = true;
-    
-    // MODIFIÉ: Utiliser le simple overlay
     UIUtils.showSimpleLoadingOverlay('Traitement des fichiers...');
     
     try {
@@ -442,34 +383,23 @@ export const ImportHandler = {
       
       if (results.success.length > 0) {
         const addedKeys = this.dataManager.addBars(results.bars);
-        
-        if (addedKeys.length > 0) {
-          if (this.refreshDataDisplay) {
-            this.refreshDataDisplay();
-          }
-          // SUPPRIMÉ: Notification de succès
+        if (addedKeys.length > 0 && this.refreshDataDisplay) {
+          this.refreshDataDisplay();
         }
       }
       
-      // Afficher seulement les erreurs
       if (results.errors.length > 0) {
         const errorMsg = results.errors.length === 1 
           ? results.errors[0] 
           : `${results.errors.length} erreurs d'import`;
         this.showNotification(errorMsg, 'error');
       }
-      
     } catch (error) {
-      console.error('Erreur lors du traitement des fichiers:', error);
+      console.error('Erreur traitement fichiers:', error);
       this.showNotification('Erreur lors de l\'import', 'error');
     } finally {
-      // MODIFIÉ: Masquer le simple overlay
       UIUtils.hideSimpleLoadingOverlay();
-      
-      // Libérer après traitement
-      setTimeout(() => {
-        this.isProcessing = false;
-      }, 1000);
+      this._unlockImport();
     }
   },
   
