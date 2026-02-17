@@ -8,7 +8,9 @@ module.exports = {
   entry: './src/js/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: process.env.NODE_ENV === 'production' 
+      ? path.resolve(__dirname, '../web-files')
+      : path.resolve(__dirname, 'dist'),
     publicPath: './' // IMPORTANT pour Electron
   },
   resolve: {
