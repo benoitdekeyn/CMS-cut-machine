@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMS F4C Generator - Optimisation de découpe</title>
     <!-- SUPPRIMÉ: <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"> -->
-    <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="./assets/favicon-48x48.png">
     <!-- CSS sera injecté automatiquement par webpack -->
 </head>
 <body>
@@ -22,15 +22,15 @@
                 <div class="theme-toggle-container" id="theme-toggle-container">
                     <div class="theme-toggle" id="theme-toggle">
                         <!-- MODIFIÉ: Utiliser des SVG au lieu d'emojis -->
-                        <img src="assets/sun.svg" alt="Mode clair" class="theme-icon theme-icon-light">
-                        <img src="assets/moon.svg" alt="Mode sombre" class="theme-icon theme-icon-dark">
+                        <img src="./assets/sun.svg" alt="Mode clair" class="theme-icon theme-icon-light">
+                        <img src="./assets/moon.svg" alt="Mode sombre" class="theme-icon theme-icon-dark">
                         <div class="theme-toggle-slider"></div>
                     </div>
                 </div>
                 
                 <!-- Bouton éditer données visible uniquement sur la page résultats -->
                 <button class="nav-btn btn-edit-data" data-section="data-section" id="edit-data-btn" style="display: none;">
-                    <img src="assets/back.svg" alt="" class="btn-icon">
+                    <img src="./assets/back.svg" alt="" class="btn-icon">
                     Éditer les Données
                 </button>
             </nav>
@@ -59,7 +59,7 @@
                         <div class="panel-header">
                             <h3>Barres à découper</h3>
                             <button id="reset-pieces-btn" class="btn btn-sm btn-danger" title="Supprimer toutes les barres à découper">
-                                <img src="assets/delete.svg" alt="Reset" class="btn-icon">
+                                <img src="./assets/delete.svg" alt="Reset" class="btn-icon">
                                 Tout supprimer
                             </button>
                         </div>
@@ -89,7 +89,7 @@
                         <div class="panel-header">
                             <h3>Barres mères</h3>
                             <button id="reset-mother-bars-btn" class="btn btn-sm btn-danger" title="Supprimer toutes les barres mères">
-                                <img src="assets/delete.svg" alt="Reset" class="btn-icon">
+                                <img src="./assets/delete.svg" alt="Reset" class="btn-icon">
                                 Tout supprimer
                             </button>
                         </div>
@@ -114,7 +114,7 @@
                 <!-- Bouton de génération simplifié -->
                 <div class="optimization-actions">
                     <button id="generate-cuts-btn" class="btn btn-success btn-lg">
-                      <img src="assets/gears.svg" alt="" class="btn-icon">
+                      <img src="./assets/gears.svg" alt="" class="btn-icon">
                       Générer les fichiers de découpe
                     </button>
                 </div>
